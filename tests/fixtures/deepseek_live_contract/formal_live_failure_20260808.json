@@ -1,0 +1,24 @@
+{
+  "fixture_source": "deployment/phase4/blocker_remediation/deepseek_failed_response_sanitized.json",
+  "fixture_source_sha256": "0c96c46292e37c4a61848038346c846444a417615502a9af92a9f62d62a038be",
+  "expected_json_parse": true,
+  "expected_schema_valid": false,
+  "expected_normalization_ready": false,
+  "expected_failure_types": ["D_schema_shape", "E_semantic_contract"],
+  "response": {
+    "data_context": {
+      "active_snapshot_id": "tn_state_20260801_v1",
+      "previous_snapshot_id": "tn_state_20260727_v2",
+      "coverage_version": "fact_coverage_20260801_v4",
+      "facts_cutoff": "2026-07-27",
+      "poll_cutoff": "2026-03-12",
+      "period_start": "2026-07-16",
+      "period_end": "2026-07-31",
+      "uncovered_date_range": ["2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31"]
+    },
+    "period_highlights": [],
+    "key_developments": [],
+    "data_gap_disclosures": [],
+    "generation_metadata": {}
+  }
+}

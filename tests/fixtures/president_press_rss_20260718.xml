@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html id="htmlTag" lang="zh-tw" data-type="" data-type2="s">
+<head>
+    <!-- Meta -->
+    
+	<title>中華民國總統府</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<meta name="format-detection" content="telephone=no">
+	<meta property="og:title" content="中華民國總統府">
+	<meta property="og:site_name" content="中華民國總統府">
+	<meta property="og:image" content="/_content/template/assets/img/fbshare.jpg">
+	<meta property="og:image:type" content="image/jpeg">
+	<meta property="og:image:width" content="1200">
+	<meta property="og:image:height" content="628">
+	<meta property="og:description" content="中華民國總統府">
+	<meta property="og:url" content="">
+	<meta name="keywords" content="中華民國總統府">
+	<meta name="description" content="中華民國總統府">
+
+    <!-- favicon -->
+    <link rel="icon" type="image/x-icon" href="/_content/template/assets/img/favicon.ico?v=pp-JGpXdRqcaE5r8Rwdhhj9FdHdWHkveZFUW4-p9O0A">
+    <link rel="apple-touch-icon" sizes="192x192" href="/_content/template/assets/img/touch-icon.png?v=rKSBPNU7BgXACGaIs512867jb1FukcqLs1ClWlYW0PU">
+
+    <!-- (google font)connect to domain of font files -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- (google font)optionally increase loading priority -->
+
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto&#x2B;Sans&#x2B;TC:wght@300;350;400;500;600;700&amp;display=swap">
+
+    <!-- 首頁/內頁用的css -->
+        <link rel="stylesheet" href="/_content/template/assets/css/index.css?v=R5GciMqTwXo0IlmeeqEl6iWIgtZZLaGqllJGNI1q4gs" media="all">
+    <!-- (google font)async CSS -->
+    <link id="gf-noto-tc" rel="stylesheet" media="print" href="https://fonts.googleapis.com/css2?family=Noto&#x2B;Sans&#x2B;TC:wght@300;350;400;500;600;700&amp;display=swap">
+    <script src="/_content/template/js/common/head.js?v=430PU3dPd11QF-WnnDQpmYti5nu28cQBotjk67mg3eo"></script>
+
+    <!-- (google font)no-JS fallback -->
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Noto&#x2B;Sans&#x2B;TC:wght@300;350;400;500;600;700&amp;display=swap" rel="stylesheet" type="text/css" />
+    </noscript>
+
+    <!-- GACode -->
+
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-W7KCBK6');</script>
+
+            <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.president.gov.tw#website","name":"中華民國總統府","url":"https://www.president.gov.tw","alternateName":["中華民國總統府","Office of the President Republic of China(Taiwan)"]},{"@type":"GovernmentOrganization","@id":"https://www.president.gov.tw#organization","name":"中華民國總統府","alternateName":"中華民國總統府","description":"中華民國總統府","keywords":"中華民國總統府","url":"https://www.president.gov.tw","logo":"https://www.president.gov.tw/_content/template/assets/img/logo_president.svg","contactPoint":{"@type":"ContactPoint","telephone":"+886-2-2311-3731","contactType":"general inquiries","areaServed":"TW","availableLanguage":["zh-Hant","en"]},"address":{"@type":"PostalAddress","streetAddress":"100006 臺北市中正區重慶南路一段122號","addressLocality":"臺北市","postalCode":"100006","addressCountry":"TW"}}]}</script>
+
+    <script src="/_content/template/vendor/js/jquery.min.js?v=eqaw4I9IoPldjffqieTL_h7z0ejA9zc_fyXt-05KMl4"></script>
+    <script src="/_content/custom/Vendor/js/mark.min.js?v=Du3hI8Cc3ipmneqrNFtuxtVRqzArUESYDit-homocsc"></script>
+
+    
+</head>
+<body>
+    <noscript>
+        您的瀏覽器不支援 Script 語法，請按鍵盤上的 Ctrl 鍵和 (+) 鍵放大或 (-) 鍵縮小來改變字型大小。
+    </noscript>
+
+    <!-- 切換字級大小&深淺色切換 -->
+    <script src="/_content/template/assets/js/theme.js?v=ap2p0OGPVOGg5we7r0fhcdrnn8C9Lu5HTYZlWLHuPAA"></script>
+
+    <a href="#AC" id="startBrick" class="visually-hidden-focusable" title="跳到主要內容">跳到主要內容</a>
+
+    <!-- loading -->
+    <div class="loading JQ_Loader" id="loading"><span class="loadingLogo"></span></div>
+
+        <!-- header -->
+    <header class="hd">
+        <!-- 頁首導盲磚 -->
+        <div class="wrap2">
+            <a href="#AU" id="AU" accesskey="U" class="a11yBrick" title="頁面頂端功能區塊[快捷鍵Alt&#x2B;U]">:::</a>
+        </div>
+        <div class="wrap2">
+            <!-- 左半logo -->
+            <div class="logoBox">
+                <a href="https://www.president.gov.tw/">
+                    <div class="logo"><img src="/_content/template/assets/img/logo_president.svg" alt=""></div>
+                    <div class="logoDark"><img loading="lazy" src="/_content/template/assets/img/logo_president-dark.svg" alt=""></div>
+                    <h1 class="visually-hidden">中華民國總統府</h1>
+                </a>
+            </div>
+
+            <div class="hdR">
+                <div class="baseBox">
+
+                    <!-- 快速連結 -->
+                    <ul class="quickLink">
+                        <li class="linkI">
+                            <a href="https://www.president.gov.tw/Page/24" title="網站導覽">
+                                <i class="icon" style="background-image: url(/_content/template/assets/img/icon_sitemap.svg);"></i>
+                                <span>網站導覽</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- 社群鈕 -->
+                    <div class="social">
+                        <a href="https://lin.ee/15lfcRtIE" target="_blank" rel="noreferrer noopener" title="加入好友 (另開視窗)">
+                            <i class="icon" style="background-image: url(/_content/template/assets/img/icon_hd-line.svg);"></i><span class="visually-hidden">加入好友</span>
+                        </a>
+                        <a href="https://www.facebook.com/presidentialoffice.tw" target="_blank" rel="noreferrer noopener" title="Facebook (另開視窗)">
+                            <i class="icon" style="background-image: url(/_content/template/assets/img/icon_hd-fb.svg);"></i><span class="visually-hidden">Facebook</span>
+                        </a>
+                        <a href="https://www.flickr.com/photos/presidentialoffice" target="_blank" rel="noreferrer noopener" title="Flickr (另開視窗)">
+                            <i class="icon" style="background-image: url(/_content/template/assets/img/icon_hd-flickr.svg);"></i><span class="visually-hidden">Flickr</span>
+                        </a>
+                        <a href="https://www.youtube.com/user/presidentialoffice" target="_blank" rel="noreferrer noopener" title="YouTube (另開視窗)">
+                            <i class="icon" style="background-image: url(/_content/template/assets/img/icon_hd-yt.svg);"></i><span class="visually-hidden">YouTube</span>
+                        </a>
+                        <a href="https://www.president.gov.tw/newmailbox/write" target="_blank" rel="noreferrer noopener" title="寫信給總統 (另開視窗)">
+                            <i class="icon" style="background-image: url(/_content/template/assets/img/icon_hd-mail.svg);"></i><span class="visually-hidden">寫信給總統</span>
+                        </a>
+                        <a href="https://www.president.gov.tw/Page/23" target="_blank" rel="noreferrer noopener" title="RSS (另開視窗)">
+                            <i class="icon" style="background-image: url(/_content/template/assets/img/icon_hd-rss.svg);"></i><span class="visually-hidden">RSS</span>
+                        </a>
+                    </div>
+
+                    <!-- 切換字體大小 -->
+                    <div class="fontSizeBox fontsizeJs">
+                        <button class="fontsizeBtn" type="button" title="展開字級選單"><span class="visually-hidden">展開字級選單</span></button>
+                        <div class="fontsizeNav">
+                            <button class="fsLBtn" type="button" title="大字級">大<span class="visually-hidden">字級</span></button>
+                            <button class="fsMBtn on" type="button" title="中字級">中<span class="visually-hidden">字級</span></button>
+                            <button class="fsSBtn" type="button" title="小字級">小<span class="visually-hidden">字級</span></button>
+                        </div>
+                    </div>
+
+                    <!-- 語言切換 -->
+                    <div class="langBox">
+                        <a href="https://english.president.gov.tw" title="English"><i class="ci-lang"></i>EN</a>
+                    </div>
+
+                    <!-- 搜尋區開關鈕 -->
+                    <div class="searchBox">
+                        <a href="javascript:;" id="S" accesskey="S" class="searchSwitch searchSwitchJs" role="button" title="展開關鍵字搜尋">
+                            <i class="ci-scope"></i>
+                            <span class="visually-hidden">展開關鍵字搜尋</span>
+                        </a>
+                    </div>
+                    <!-- 搜尋區 -->
+                    <div class="searchPop searchPopJs">
+                        <div class="popWrap">
+                            <div class="popMask"></div>
+                            <div class="popMain">
+                                <div class="searchFm">
+                                    <input type="text" id="searchInput" name="q" class="ipt2 JQ_Header_SearchBy" autocomplete="off" placeholder="請輸入搜尋關鍵字" title="關鍵字搜尋" />
+                                    <button id="doSearch" class="btn3 JQ_Header_SearchButton" type="button" value="Search">
+                                        <i class="ci-scope"></i>
+                                        <span class="visually-hidden">查詢</span>
+                                    </button>
+                                </div>
+                                <a href="javascript:;" class="closeBtn" role="button"><i class="ci-close"></i><span class="visually-hidden">關閉搜尋</span></a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- 手機版-選單開關鈕 -->
+                <div class="navSwitchBox">
+                    <button type="button" class="navOpen navOpenJs" title="展開選單"><i class="ci-burger"></i><span class="visually-hidden">展開選單</span></button>
+                    <button type="button" class="navClose navCloseJs" title="關閉選單"><i class="ci-close"></i><span class="visually-hidden">關閉選單</span></button>
+                </div>
+                <!-- 主選單-->
+                <nav class="nav">
+                    <ul class="mainNav mainNavJs">
+<li><a href="#"><span>國政願景</span></a>
+<div class="navLv2">
+ <strong class="title"><i class="ci-title1"></i><span>國政願景</span></strong>
+     <ul>
+     <li><a href="/Page/716">國家氣候變遷對策委員會</a></li>
+     <li><a href="/Page/718">健康台灣推動委員會</a></li>
+     <li><a href="/Page/727">全社會防衛韌性委員會</a></li>
+     <li><a href="/Issue/138">重要談話</a></li>
+     <li><a href="/Issue/147">外交</a></li>
+     <li><a href="/Issue/146">國防</a></li>
+     </ul>
+</div>
+</li>
+<li><a href="#"><span>新聞與活動</span></a>
+<div class="navLv2">
+ <strong class="title"><i class="ci-title1"></i><span>新聞與活動</span></strong>
+     <ul>
+     <li><a href="/Page/35">總統府新聞</a></li>
+     <li><a href="/Page/36">總統令</a></li>
+     <li><a href="/Page/37">每日活動行程</a></li>
+     <li><a href="/Media">影音頻道</a></li>
+     <li><a href="/Image">網路相簿</a></li>
+     </ul>
+</div>
+</li>
+<li><a href="#"><span>總統與副總統</span></a>
+<div class="navLv2">
+ <strong class="title"><i class="ci-title1"></i><span>總統與副總統</span></strong>
+     <ul>
+     <li><a href="/Page/694">賴清德總統</a></li>
+     <li><a href="/Page/695">蕭美琴副總統</a></li>
+     <li><a href="/Page/81">行憲後歷任總統與副總統</a></li>
+     </ul>
+</div>
+</li>
+<li><a href="/Page/129"><span>總統府公報</span></a>
+</li>
+<li><a href="#"><span>參觀總統府</span></a>
+<div class="navLv2">
+ <strong class="title"><i class="ci-title1"></i><span>參觀總統府</span></strong>
+     <ul>
+     <li><a href="/Page/124">參觀資訊</a></li>
+     <li><a href="/Page/89">建築風華</a></li>
+     <li><a href="/Page/46">總統府展覽</a></li>
+     </ul>
+</div>
+</li>
+
+</ul>
+
+                </nav>
+
+                <!-- 深淺色切換 -->
+                <div class="themeSwitch">
+                    <a href="javascript:;" class="lightJs on" title="淺色模式" role="button">
+                        <i class="ci-light"></i>
+                        <span class="visually-hidden">淺色模式</span>
+                    </a>
+                    <a href="javascript:;" class="darkJs" role="button" title="深色模式">
+                        <i class="ci-dark"></i>
+                        <span class="visually-hidden">深色模式</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+<div class="menuMask"></div>
+
+<!-- 本頁主要內容 start-->
+<main class="main JQ_IsHome" id="main" data-tag="Home">
+    <!-- 固定背景 start-->
+    <picture>
+        <source media="(max-width: 992px)" srcset="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+        <img class="kvBg" src="/_content/template/assets/img/bg_idx1.svg" aria-hidden="true" alt="">
+    </picture>
+        <!-- 1.kv -->
+        <!-- data-autoplay-speed值為輪播速度，若空值則為預設7000，有上稿影片時就強制不自動輪播 -->
+        <section class="kv slick1Js" data-autoplay-speed="">
+            <div class="kvWrap">
+                <!-- 固定背景 end-->
+                <div class="slickBox">
+                    <div class="slickList">
+                                <!-- 形式1：圖片有帶連結 -->
+                                <div class="slickItem">
+                                    <a class="conWrap" href="https://www.youtube.com/live/7UpBUHGiPoM#banner">
+                                        <picture>
+                                            <!-- 手機版圖 -->
+                                            <source media="(max-width: 540px)" srcset="/img/Index/32892410-c59a-47f9-9b33-1b59601fe970.jpg">
+                                            <!-- 桌機版圖 -->
+                                            <img class="pic" src="/img/Index/671e9ed9-6e74-4f7b-8b0d-9e9736228e2c.jpg" alt="">
+                                        </picture>
+                                        <h2 class="title">總統出席「2026總統教育獎頒獎典禮」</h2>
+                                        <div class="info">
+                                            <div class="type"></div>
+                                            <div class="txt">
+                                                總統出席「2026總統教育獎頒獎典禮」網路直播，歡迎收看！
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <!-- 形式1：圖片有帶連結 -->
+                                <div class="slickItem">
+                                    <a class="conWrap" href="/News/40152#banner">
+                                        <picture>
+                                            <!-- 手機版圖 -->
+                                            <source media="(max-width: 540px)" srcset="/img/Index/43c48b0a-4847-4f78-b879-73aab4088d3d.jpg">
+                                            <!-- 桌機版圖 -->
+                                            <img class="pic" src="/img/Index/1de5c68f-4ce5-42bf-a026-aae5eb5faa88.jpg" alt="">
+                                        </picture>
+                                        <h2 class="title">總統主持「全社會防衛韌性委員會第8次委員會議」</h2>
+                                        <div class="info">
+                                            <div class="type"></div>
+                                            <div class="txt">
+                                                總統重申「有準備、更安全」　盼持續提升臺灣安全與防衛韌性
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <!-- 形式1：圖片有帶連結 -->
+                                <div class="slickItem">
+                                    <a class="conWrap" href="https://youtube.com/live/fTzH-PqS0b4?feature=share#banner">
+                                        <picture>
+                                            <!-- 手機版圖 -->
+                                            <source media="(max-width: 540px)" srcset="/img/Index/b3b8184d-b52d-4648-a662-5e67dc9160e8.jpg">
+                                            <!-- 桌機版圖 -->
+                                            <img class="pic" src="/img/Index/9364c38c-5e79-49ed-b527-9cd376e46148.jpg" alt="">
+                                        </picture>
+                                        <h2 class="title">全社會防衛韌性委員會第6次委員會議會後記者會</h2>
+                                        <div class="info">
+                                            <div class="type"></div>
+                                            <div class="txt">
+                                                全社會防衛韌性委員會第6次委員會議會後記者會網路直播，歡迎收看！
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <!-- 形式1：圖片有帶連結 -->
+                                <div class="slickItem">
+                                    <a class="conWrap" href="https://youtube.com/live/xRKynTTkGNA#banner">
+                                        <picture>
+                                            <!-- 手機版圖 -->
+                                            <source media="(max-width: 540px)" srcset="/img/Index/a553d1d0-1dcf-4338-bab3-c22692be1e4f.jpg">
+                                            <!-- 桌機版圖 -->
+                                            <img class="pic" src="/img/Index/c2bc1f14-0c6a-4018-afb2-bd5162591b28.jpg" alt="">
+                                        </picture>
+                                        <h2 class="title">全社會防衛韌性委員會第8次委員會議</h2>
+                                        <div class="info">
+                                            <div class="type"></div>
+                                            <div class="txt">
+                                                全社會防衛韌性委員會第8次委員會議網路直播，歡迎收看！
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <!-- 形式1：圖片有帶連結 -->
+                                <div class="slickItem">
+                                    <a class="conWrap" href="/Page/777#banner">
+                                        <picture>
+                                            <!-- 手機版圖 -->
+                                            <source media="(max-width: 540px)" srcset="/img/Index/acac0168-a450-4882-89f1-37230fe121d8.jpg">
+                                            <!-- 桌機版圖 -->
+                                            <img class="pic" src="/img/Index/eb670589-de65-4c0e-b8e4-9d9441c6e15a.jpg" alt="">
+                                        </picture>
+                                        <h2 class="title">監察院第7屆院長、副院長及監察委員被提名人介紹</h2>
+                                        <div class="info">
+                                            <div class="type"></div>
+                                            <div class="txt">
+                                                
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <!-- 形式1：圖片有帶連結 -->
+                                <div class="slickItem">
+                                    <a class="conWrap" href="https://www.youtube.com/live/tswqFNNTBnI#banner">
+                                        <picture>
+                                            <!-- 手機版圖 -->
+                                            <source media="(max-width: 540px)" srcset="/img/Index/c4c5d839-eec8-4761-b25a-13ab580dd177.jpg">
+                                            <!-- 桌機版圖 -->
+                                            <img class="pic" src="/img/Index/323187dc-b444-4d41-9d77-bf0315c7a5de.jpg" alt="">
+                                        </picture>
+                                        <h2 class="title">監察院第7屆正、副院長及監察委員被提名人介紹記者會</h2>
+                                        <div class="info">
+                                            <div class="type"></div>
+                                            <div class="txt">
+                                                監察院第7屆正、副院長及監察委員被提名人介紹記者會直播，歡迎收看！
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    <!-- 中央內容導盲磚 -->
+    <div class="wrap2">
+        <a href="#AC" id="AC" accesskey="C" class="a11yBrick position-absolute" title="頁面中央內容區塊[快捷鍵Alt&#x2B;C]">:::</a>
+    </div>
+
+        <!-- 2.idxBanner -->
+        <section class="idxBanner" data-aos="fade-up">
+            <div class="wrap1">
+                <ul>
+                        <li>
+                            <a href="/Page/716" target="_self"  title="國家氣候變遷對策委員會">
+                                <img loading="lazy" src="/img/Index/0775f86f-d51f-4857-be7f-9f35c67aa4b8.svg" alt="">
+                                <b>國家氣候變遷對策委員會</b>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/Page/718" target="_self"  title="健康台灣推動委員會">
+                                <img loading="lazy" src="/img/Index/97203f74-edb7-43f3-be74-9b70f01bc0c1.svg" alt="">
+                                <b>健康台灣推動委員會</b>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/Page/727" target="_self"  title="全社會防衛韌性委員會">
+                                <img loading="lazy" src="/img/Index/7ce65cb8-f106-47ce-93f0-37ec6d05eb36.svg" alt="">
+                                <b>全社會防衛韌性委員會</b>
+                            </a>
+                        </li>
+                </ul>
+            </div>
+        </section>
+
+
+    <!-- 3.idxNews -->
+    <section class="idxNews" data-aos="fade-up">
+        <div class="wrap1">
+            <div class="titleBar1">
+                <div class="titleBarL">
+                    <h2>
+                        <i class="ci-title1"></i>
+                        <span class="idxTitle1">總統府新聞</span>
+                    </h2>
+                </div>
+            </div>
+
+            <div class="idxList1">
+                    <div class="listI">
+                        <a href="/News/40200#new">
+                            <div class="pic">
+                                <img loading="lazy" src="/img/Image/16b6b1ef-577b-44cf-ab28-7634efafb587.jpg" alt="">
+                            </div>
+                            <div class="date">
+                                <span>115年07月17日</span>
+                            </div>
+                            <div class="title">
+                                <strong>副總統參訪竹北市立圖書館福德分館</strong>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="listI">
+                        <a href="/News/40199#new">
+                            <div class="pic">
+                                <img loading="lazy" src="/img/Image/af136ee0-5e7a-4bd4-847f-220ec3c47eef.jpg" alt="">
+                            </div>
+                            <div class="date">
+                                <span>115年07月17日</span>
+                            </div>
+                            <div class="title">
+                                <strong>副總統出席「<span dir="ltr" lang="EN-US">2026</span>亞洲生技大展」</strong>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="listI">
+                        <a href="/News/40198#new">
+                            <div class="pic">
+                                <img loading="lazy" src="/img/Image/a614dab3-c3c4-4aa4-9ca7-4e0b6b7c74c2.jpg" alt="">
+                            </div>
+                            <div class="date">
+                                <span>115年07月17日</span>
+                            </div>
+                            <div class="title">
+                                <strong>總統為衛生福利部「<span dir="ltr" lang="EN-US">115</span>年度身心障礙福利機構及團體秋節產品聯合推廣活動記者會」錄製致詞影片</strong>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="listI">
+                        <a href="/News/40197#new">
+                            <div class="pic">
+                                <img loading="lazy" src="/img/Image/97b53502-71b5-4600-8dd9-9d62ee8d6f7f.jpg" alt="">
+                            </div>
+                            <div class="date">
+                                <span>115年07月17日</span>
+                            </div>
+                            <div class="title">
+                                <strong>總統視導國家中山科學研究院航空研究所無人機發展現況</strong>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="listI">
+                        <a href="/News/40196#new">
+                            <div class="pic">
+                                <img loading="lazy" src="/img/Image/d62e7405-7970-404e-935c-cde184bd86af.jpg" alt="">
+                            </div>
+                            <div class="date">
+                                <span>115年07月16日</span>
+                            </div>
+                            <div class="title">
+                                <strong>副總統接見「愛沙尼亞跨黨派國會議員訪問團」</strong>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="listI">
+                        <a href="/News/40195#new">
+                            <div class="pic">
+                                <img loading="lazy" src="/img/Image/4b7aed79-c6b1-4990-a742-fcc37b814eaf.jpg" alt="">
+                            </div>
+                            <div class="date">
+                                <span>115年07月16日</span>
+                            </div>
+                            <div class="title">
+                                <strong>總統出席「115年榮民照護數位轉型元年啟動典禮」</strong>
+                            </div>
+                        </a>
+                    </div>
+            </div>
+
+            <div class="btnbar1">
+                <a href="/Page/35" class="btn1"><span>了解更多</span><span class="visually-hidden">總統府新聞</span></a>
+            </div>
+
+        </div>
+    </section>
+
+        <!-- 4.idxDaily -->
+        <section class="idxDaily" data-aos="fade-up">
+            <div class="wrap1">
+                <!-- 固定背景 start-->
+                <picture class="idxDailyBg">
+                    <source media="(max-width: 900px)" srcset="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+                    <img loading="lazy" src="/_content/template/assets/img/bg_idx2.svg" aria-hidden="true" alt="">
+                </picture>
+                <picture class="idxDailyBgDark">
+                    <source media="(max-width: 900px)" srcset="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+                    <img loading="lazy" src="/_content/template/assets/img/bg_idx2-dark.svg" aria-hidden="true" alt="">
+                </picture>
+                <!-- 固定背景 end-->
+
+                <div class="titleBar1">
+                    <div class="titleBarL">
+                        <h2>
+                            <i class="ci-title1"></i>
+                            <span class="idxTitle1">每日活動行程</span>
+                        </h2>
+                    </div>
+                    <div class="titleBarR">
+                        <div class="btnbar1">
+                            <a href="/Page/37" class="btn1"><span>了解更多</span><span class="visually-hidden">每日活動行程</span></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="idxList2">
+                        <div class="listI">
+                            <a href="/Page/37?Mode=2">
+                                <div class="listT">
+                                    <div class="date">
+                                        <span>115年07月17日</span>
+                                    </div>
+                                    <div class="tagList">
+                                        <span>副總統活動行程</span>
+                                    </div>
+                                </div>
+                                <div class="title">
+                                    <strong>13:30　參訪竹北市立圖書館福德分館</strong>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="listI">
+                            <a href="/Page/37?Mode=2">
+                                <div class="listT">
+                                    <div class="date">
+                                        <span>115年07月17日</span>
+                                    </div>
+                                    <div class="tagList">
+                                        <span>副總統活動行程</span>
+                                    </div>
+                                </div>
+                                <div class="title">
+                                    <strong>09:50　出席「2026亞洲生技大展」</strong>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="listI">
+                            <a href="/Page/37?Mode=1">
+                                <div class="listT">
+                                    <div class="date">
+                                        <span>115年07月17日</span>
+                                    </div>
+                                    <div class="tagList">
+                                        <span>總統活動行程</span>
+                                    </div>
+                                </div>
+                                <div class="title">
+                                    <strong>10:20　視導國家中山科學研究院航空研究所無人機發展現況</strong>
+                                </div>
+                            </a>
+                        </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- 6.idxService -->
+        <section class="idxService slick3Js" data-aos="fade-up">
+            <div class="wrap1">
+                <div class="slickBox">
+                    <div class="slickList">
+                            <div class="slickItem">
+                                <a href="/newmailbox/write#service" target="_blank" rel = "noreferrer noopener" title="寫信給總統（另開視窗）">
+                                    <div class="title">
+                                        <strong>寫信給總統</strong>
+                                    </div>
+                                    <div class="txt">
+                                        <span>歡迎您來信提供寶貴意見，共創美好的臺灣</span>
+                                            <i class="icon">
+                                                <img loading="lazy" src="/img/Index/078b0c8f-58ab-4a5a-82e0-384dc5b9b45d.svg" alt="">
+                                            </i>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="slickItem">
+                                <a href="/Page/53" target="_blank" rel = "noreferrer noopener" title="認識總統府（另開視窗）">
+                                    <div class="title">
+                                        <strong>認識總統府</strong>
+                                    </div>
+                                    <div class="txt">
+                                        <span>歡迎探索總統府，認識組織與職掌、儀節活動等人事物，一起致力於國家的繁榮與發展</span>
+                                            <i class="icon">
+                                                <img loading="lazy" src="/img/Index/2812f6e8-93f3-43b2-8785-7e3e7ccdd7be.svg" alt="">
+                                            </i>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="slickItem">
+                                <a href="/Page/11#service" target="_blank" rel = "noreferrer noopener" title="常見問答（另開視窗）">
+                                    <div class="title">
+                                        <strong>常見問答</strong>
+                                    </div>
+                                    <div class="txt">
+                                        <span>快速查找總統府服務和申請資訊，解決您的問題</span>
+                                            <i class="icon">
+                                                <img loading="lazy" src="/img/Index/4ef03e5f-b909-47e6-abd4-c1b96a04be71.svg" alt="">
+                                            </i>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="slickItem">
+                                <a href="/Page/12#service" target="_blank" rel = "noreferrer noopener" title="便民服務（另開視窗）">
+                                    <div class="title">
+                                        <strong>便民服務</strong>
+                                    </div>
+                                    <div class="txt">
+                                        <span>線上申請便民服務以協助完成您的需求</span>
+                                            <i class="icon">
+                                                <img loading="lazy" src="/img/Index/03aea960-efcb-49d8-9cd4-81b160d64328.svg" alt="">
+                                            </i>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="slickItem">
+                                <a href="/Page/129#service" target="_self"  title="總統府公報">
+                                    <div class="title">
+                                        <strong>總統府公報</strong>
+                                    </div>
+                                    <div class="txt">
+                                        <span>刊載總統令、專載、府屬機關令、總統及副總統活動紀要等事項</span>
+                                            <i class="icon">
+                                                <img loading="lazy" src="/img/Index/126b31c8-2275-42ff-ae02-fb71c72fd38d.svg" alt="">
+                                            </i>
+                                    </div>
+                                </a>
+                            </div>
+                    </div>
+                </div>
+                <div class="slickControl">
+                    <div class="slickBtnBox">
+                        <button type="button" class="slickPrev" title="上一項"><span class="visually-hidden">上一項</span></button>
+                        <button type="button" class="slickNext" title="下一項"><span class="visually-hidden">下一項</span></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7.idxVisit -->
+        <section class="idxVisit tabNavConJs" data-aos="fade-up">
+            <div class="wrap1">
+                <div class="idxVisitL">
+                    <div class="titleBar1">
+                        <div class="titleBarL">
+                            <h2>
+                                <i class="ci-title1"></i>
+                                <span class="idxTitle1">參觀總統府</span>
+                            </h2>
+                        </div>
+                    </div>
+
+                    <div class="pic mShow">
+                        <div class="picList tabCon2">
+                                <div class="listI tabConI">
+                                    <img loading="lazy" src="/img/Index/896572ef-e718-4d62-8651-50e5fae9cf53.png" alt="參觀圖1">
+                                </div>
+                                <div class="listI tabConI">
+                                    <img loading="lazy" src="/img/Index/3d233aa2-401a-4be2-8b21-f8e0690c157e.jpg" alt="參觀圖2">
+                                </div>
+                                <div class="listI tabConI">
+                                    <img loading="lazy" src="/img/Index/6344e01e-423b-4d5f-9c51-c2dccb393c62.png" alt="參觀圖3">
+                                </div>
+                        </div>
+                    </div>
+                    <div class="intro">
+                        <div class="introNav tabNav navLineJs">
+                            <ul role="tablist">
+                                    <li class="tabNavI" data-target="idxVisitI1" role="presentation">
+                                        <a href="javascript:;" role="tab" aria-controls="idxVisitI1">
+                                            <h3>簡介</h3>
+                                        </a>
+                                    </li>
+                                    <li class="tabNavI" data-target="idxVisitI2" role="presentation">
+                                        <a href="javascript:;" role="tab" aria-controls="idxVisitI2">
+                                            <h3>建築風華</h3>
+                                        </a>
+                                    </li>
+                                    <li class="tabNavI" data-target="idxVisitI3" role="presentation">
+                                        <a href="javascript:;" role="tab" aria-controls="idxVisitI3">
+                                            <h3>總統府展覽</h3>
+                                        </a>
+                                    </li>
+                            </ul>
+                        </div>
+                        <div class="introList tabCon">
+                                <div class="typeI tabConI" id="idxVisitI1" role="tabpanel">
+                                    總統府前身為日本時代之臺灣總督府，不僅日本時代地位十分重要，更因為建築本體強固的結構，讓它挺過昭和20（1945）年5月臺北大空襲，儘管正面左側嚴重毀損，但未傷及建築主體。在修復後，繼續挺立，做為臺灣政治權力中樞的地位不變。
+                                </div>
+                                <div class="typeI tabConI" id="idxVisitI2" role="tabpanel">
+                                    總統府建築風格屬後期文藝復興式，受英國建築家Norman Shaw的影響，又稱辰野式樣，立面充滿古典樣式的建築語彙，包括柱列、山牆、圓拱窗、牛眼窗、托座、羅馬柱式、複柱等。柱頭為簡潔多立克柱式，牆身及柱身多飾橫帶，外觀極為華麗。
+                                </div>
+                                <div class="typeI tabConI" id="idxVisitI3" role="tabpanel">
+                                    本展覽以「民主方舟：臺灣永續前行」為主題，呈現臺灣在自然生態的獨特多樣性、科技創新在全球的不可或缺性，以及公民行動所彰顯的民主價值，持續將力量貢獻於國際社會。
+                                </div>
+                        </div>
+                        <div class="btnbar1">
+                            <a href="/Page/124" class="btn1"><span>參觀資訊</span></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pic pcShow">
+                    <div class="picList tabCon2">
+                            <div class="listI tabConI">
+                                <img loading="lazy" src="/img/Index/896572ef-e718-4d62-8651-50e5fae9cf53.png" alt="">
+                            </div>
+                            <div class="listI tabConI">
+                                <img loading="lazy" src="/img/Index/3d233aa2-401a-4be2-8b21-f8e0690c157e.jpg" alt="">
+                            </div>
+                            <div class="listI tabConI">
+                                <img loading="lazy" src="/img/Index/6344e01e-423b-4d5f-9c51-c2dccb393c62.png" alt="">
+                            </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+</main>
+
+
+    <!-- footer -->
+    <footer class="ft">
+        <!-- 頁尾導盲磚 -->
+        <div class="wrap2">
+            <a href="#AZ" id="AZ" accesskey="Z" class="a11yBrick" title="頁面尾端功能區塊[快捷鍵Alt&#x2B;Z]">:::</a>
+        </div>
+        <div class="ftTop">
+            <picture>
+                <source media="(max-width: 540px)" srcset="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+                <img loading="lazy" class="ftBg" src="/_content/template/assets/img/bg_ft.svg" aria-hidden="true" alt="">
+            </picture>
+            <div class="wrap3">
+                <ul class="ftNav">
+<li><a href="/Page/740"><span>國政願景</span></a>
+ <ul>
+<li><a href="/Page/716">國家氣候變遷對策委員會</a></li>
+<li><a href="/Page/718">健康台灣推動委員會</a></li>
+<li><a href="/Page/727">全社會防衛韌性委員會</a></li>
+<li><a href="/Issue/138">重要談話</a></li>
+<li><a href="/Issue/147">外　　交</a></li>
+<li><a href="/Issue/146">國　　防</a></li>
+</ul>
+</li>
+<li><a href="/Page/35"><span>新聞與活動</span></a>
+ <ul>
+<li><a href="/Page/35">總統府新聞</a></li>
+<li><a href="/Page/36">總統令</a></li>
+<li><a href="/Page/37">每日活動行程</a></li>
+<li><a href="/Media">影音頻道</a></li>
+<li><a href="/Image">網路相簿</a></li>
+</ul>
+</li>
+<li><a href="/Page/694"><span>總統與副總統</span></a>
+ <ul>
+<li><a href="/Page/694">賴清德總統</a></li>
+<li><a href="/Page/695">蕭美琴副總統</a></li>
+<li><a href="/Page/81">行憲後歷任總統與副總統</a></li>
+</ul>
+</li>
+<li><a href="/Page/129#service"><span>總統府公報</span></a>
+</li>
+<li><a href="/Page/124"><span>參觀總統府</span></a>
+ <ul>
+<li><a href="/Page/124">參觀資訊</a></li>
+<li><a href="/Page/89">建築風華</a></li>
+<li><a href="/Page/46">總統府展覽</a></li>
+</ul>
+</li>
+<li><a href="/Page/48"><span>中華民國簡介</span></a>
+ <ul>
+<li><a href="https://www.ey.gov.tw/state/" title="另開視窗" target="_blank" rel="noopener noreferrer">國情簡介</a></li>
+<li><a href="/Page/93">中華民國憲法</a></li>
+<li><a href="/Page/49">國　　父</a></li>
+<li><a href="/Page/96">國家象徵</a></li>
+<li><a href="/Page/100">中華民國勳章</a></li>
+<li><a href="/Page/105">政府組織</a></li>
+</ul>
+</li>
+<li><a href="/Page/53"><span>認識總統府</span></a>
+ <ul>
+<li><a href="/Page/53">組織與職掌</a></li>
+<li><a href="/Page/54">機關首長</a></li>
+<li><a href="/Page/55">資政、國策顧問、戰略顧問</a></li>
+<li><a href="/Page/56">儀節活動</a></li>
+<li><a href="/Page/57">總統府法令</a></li>
+</ul>
+</li>
+<li><a href="/Page/12#service"><span>便民服務</span></a>
+</li>
+<li><a href="/newmailbox/write#service"><span>寫信給總統</span></a>
+</li>
+
+
+</ul>
+
+            </div>
+        </div>
+            <div class="ftA11y mShow">
+                <a href="https://accessibility.moda.gov.tw/Applications/Detail?category=20250107100506" target="_blank" title="無障礙網站 (另開視窗)" rel="noopener noreferrer">
+                    <img loading="lazy" src="/_content/template/assets/img/icon_AA.svg" alt="通過AA檢測等級無障礙網頁檢測">
+                </a>
+            </div>
+        <div class="ftMid">
+            <div class="wrap3">
+                <ul class="ftBaseNav">
+<li><a href="/Page/744">網站政策及聲明</a></li><li><a href="/Page/19">政府資訊公開</a></li><li><a href="/Page/20">應用程式介面</a></li><li><a href="/Page/21">陽光法案</a></li><li><a href="/Page/22">雙語詞彙</a></li><li><a href="/Page/11#service">常見問答</a></li>
+</ul>
+
+            </div>
+        </div>
+        <div class="ftBtm">
+            <div class="wrap3">
+                <div class="ftBtmL">
+                    <div class="ftBtmLogo">
+                        <div class="logo"><img loading="lazy" src="/_content/template/assets/img/logo_president2.svg" alt="中華民國總統府"></div>
+                        <div class="logoDark"><img loading="lazy" src="/_content/template/assets/img/logo_president-dark.svg" alt="中華民國總統府"></div>
+                    </div>
+                </div>
+                <div class="ftBtmR">
+                    <ul class="ftInfo">
+                        <li class="d-block">中華民國總統府 All rights reserved.</li>
+                        <li>100006 <a href="https://www.google.com.tw/maps/place/臺北市中正區重慶南路一段122號" rel="noreferrer noopener" target="_blank" title="臺北市中正區重慶南路一段122號 (另開視窗)">臺北市中正區重慶南路一段122號</a></li>
+                        <li>總機：<a href="tel:+886-2-23113731">(02)2311-3731</a></li>
+                    </ul>
+                        <div class="ftA11y pcShow">
+                            <a href="https://accessibility.moda.gov.tw/Applications/Detail?category=20250107100506" target="_blank" title="無障礙網站 (另開視窗)" rel="noreferrer noopener">
+                                <img loading="lazy" src="/_content/template/assets/img/icon_AA.svg" alt="通過AA檢測等級無障礙網頁檢測">
+                            </a>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+
+    <!-- 返回頁面頂端 -->
+    <a href="#toTop" class="topBtn" id="topBtn" title="返回頁面頂端">
+        <i class="ci-arwTop1"></i>
+        <span class="visually-hidden">返回頁面頂端</span>
+    </a>
+
+
+    <!-- ======所有頁共用js -->
+    <script src="/_content/template/vendor/js/slick.min.js?v=anF0t9S1IP1sNtKfq6q_ibRJxxNMpmvg6jKI1UWsoXw"></script>
+    <script src="/_content/template/assets/js/common.js?v=erXC6rDk_S1TL9nrP7RU16WgkVnQUjvTO8RYBEWOFwE"></script>
+    <!-- ======首頁/內頁用的js -->
+        <script src="/_content/template/vendor/js/aos.js?v=Rolb2P-TmxmAW6XVOTS4FM8bAn0GtagVPtjFZYbmaIY"></script>
+        <script src="/_content/template/assets/js/index.js?v=C1n6_X6hYsvuyuSgswWzJbtbTe4IIaGZhhb-Aj3mXmM"></script>
+    <!-- 日曆設定js DEL20260130 -->
+
+    <!-- 跳轉js -->
+    <script src="/_content/template/js/hashRun.js?v=j4xMzPbEvyqs3HSov0kqm1pVPhF99J_5jrcHxIguju4"></script>
+
+    <!-- 自訂js -->
+    <script src="/_content/custom/Shared/apiurl.js?v=mB6qYzdIp3fbxg4JNslqZNJu4A5S4XeqBy4C60_eSEc"></script>
+    <script src="/_content/custom/Shared/blockUtility.js?v=JfxPvxLfg0xn-eiESpToVjkwmIk0NYxONiGRrDwi_84"></script>
+    <script src="/_content/custom/Shared/dateUtility.js?v=Lyf0jfxmZzm44LpXmjtza-oJt3zGJhe8P_WfVMmc3J0"></script>
+    <script src="/_content/custom/Shared/elementUtility.js?v=vPncW4sj3_6ML9rtHlBQvYJH2rsRct7HZmAU9L2Q0gQ"></script>
+    <script src="/_content/custom/Shared/formUtility.js?v=a4o2UfGWQ801SDGWXuwJ0gOjo6Tx0LrGsxl8-nwva_k"></script>
+    <script src="/_content/custom/Shared/getUtility.js?v=jqDcJtk-MOruV4dksID3S5c3ctwvJWbARvPfnXjZnkU"></script>
+    <script src="/_content/custom/Shared/headerUtility.js?v=elnWiN4YO0O7gLkzZ6IV-HS0w03mfwOVML_l4Nw7pBY"></script>
+    <script src="/_content/custom/Shared/pageUtility.js?v=vIuGkHGGQWWOGYjo1-oJvVPKpWTuaikjNZIp5b5RYGM"></script>
+    <script src="/_content/custom/Shared/searchUtility.js?v=Drp7woiXqEHXiF0ax4AUemC5KujjBSCj4X7vnSthgIQ"></script>
+    <script src="/_content/custom/Shared/securityUtility.js?v=cF9qodguqhBXixm2lG3XFR92EtpbkDkmQorDl1_b6H0"></script>
+    <script src="/_content/custom/Shared/validateUtility.js?v=WzsdlOQdAZAApUFFHiwpd1QanOuDenQUnEaaM_eR3Vg"></script>
+    <script src="/_content/custom/Shared/webMenuUtility.js?v=BSK7unOawBAa1IaPLlxQUQzStvgfJIV-MzaAQtYb6gk"></script>
+    <script src="/_content/custom/Shared/site.js?v=PNgMv6lHxQb_MQtbWTA8A0t-CW6HusXHSbOI-aHCyn4"></script>
+
+    
+<!-- Easter egg 彩蛋  -->
+    <link class="JQ_EasterEgg" rel="stylesheet" href="/_content/template/assets/easterEgg/css/easter-eggs.css?v=QD9Ix60nMDOTk7D2CwqulaHoHfNJCqeicPI14zfdIH4" media="all">
+    <section class="easter-eggs-wrap JQ_EasterEgg">
+        <div class="easter-eggs">
+            <div id="lottie_ani"></div>
+            <span class="color_green" data-value="1"></span>
+            <span class="color_gray" data-value="2"></span>
+            <span class="color_red" data-value="3"></span>
+            <span class="color_b" data-value="4"></span>
+            <span class="color_blue" data-value="5"></span>
+        </div>
+        <div id="lottie_fadeout">
+            <div class="lottie_bg"></div>
+            <div id="lottie"></div>
+        </div>
+        <div class="lottie_bg"></div>
+        <div id="lottie"></div>
+            <a href="/File/Doc/223a892b-a87d-45b8-99f7-06b4b14374bf" target="_blank" class="slide-in-button" rel="noreferrer noopener" title="網站設計理念（另開視窗）">
+                網站設計理念
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7" /></svg>
+            </a>
+    </section>
+    <script src="/_content/template/assets/easterEgg/js/lottie.js?v=1C-2N_AVasF_jQ-RynfhKyIoLkIHuzJBcFPTRJtonN8"></script>
+    <script src="/_content/template/assets/easterEgg/js/easter-eggs-dist.js?v=0VYEPqe7JyxQ6r42f4EGFo3vjJUtyHw7bsOAdbr9U0w"></script>
+
+    
+</body>
+</html>
+

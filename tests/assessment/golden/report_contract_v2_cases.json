@@ -1,0 +1,20 @@
+[
+  {"id": "valid_two_complete_units", "mutation": "none", "expected_valid": true, "expected_error": ""},
+  {"id": "news_list_start_no_reasoning", "mutation": "news_list_start_no_reasoning", "expected_valid": false, "expected_error": "conclusion_summary"},
+  {"id": "facts_only_no_reasoning", "mutation": "facts_only_no_reasoning", "expected_valid": false, "expected_error": "reasoning"},
+  {"id": "eight_shallow_columns", "mutation": "eight_shallow_columns", "expected_valid": false, "expected_error": "超过 3 个核心研判"},
+  {"id": "vague_non_falsifiable_judgment", "mutation": "vague_non_falsifiable_judgment", "expected_valid": false, "expected_error": "零信息"},
+  {"id": "stale_evidence_no_disclosure", "mutation": "stale_evidence_as_current", "expected_valid": false, "expected_error": "旧民调"},
+  {"id": "same_fact_repeated_across_units", "mutation": "same_fact_repeated", "expected_valid": false, "expected_error": "重复堆叠"},
+  {"id": "missing_evidence_items", "mutation": "missing_evidence_items", "expected_valid": false, "expected_error": "2-4 条"},
+  {"id": "unit_without_reasoning_chain", "mutation": "short_reasoning", "expected_valid": false, "expected_error": "reasoning"},
+  {"id": "reasoning_paraphrases_judgment", "mutation": "reasoning_paraphrase", "expected_valid": false, "expected_error": "复述判断"},
+  {"id": "judgment_duplicates_evidence", "mutation": "judgment_duplicates_evidence", "expected_valid": false, "expected_error": "区分"},
+  {"id": "unknown_evidence_id", "mutation": "unknown_evidence_id", "expected_valid": false, "expected_error": "不在证据包内"},
+  {"id": "wrong_evidence_date", "mutation": "wrong_evidence_date", "expected_valid": false, "expected_error": "不一致"},
+  {"id": "missing_watch_indicators", "mutation": "missing_watch_indicators", "expected_valid": false, "expected_error": "watch_indicators"},
+  {"id": "missing_falsifiers", "mutation": "missing_falsifiers", "expected_valid": false, "expected_error": "falsifiers_or_limits"},
+  {"id": "missing_required_disclosure", "mutation": "missing_required_disclosure", "expected_valid": false, "expected_error": "required disclosures 不完整"},
+  {"id": "empty_conclusion_judgment", "mutation": "empty_conclusion_judgment", "expected_valid": false, "expected_error": "judgment"},
+  {"id": "no_evidence_binding", "mutation": "no_evidence_binding", "expected_valid": false, "expected_error": "至少引用一项证据"}
+]

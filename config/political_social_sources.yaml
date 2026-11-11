@@ -1,0 +1,133 @@
+schema_version: "1.0"
+
+monitoring_defaults:
+  timezone: Asia/Taipei
+  backfill_days: 30
+
+# Seed persons are role/jurisdiction driven.  Accounts are intentionally left
+# for operator/verification workflows; unverified accounts must never collect.
+persons:
+  - person_id: person_lai_ching_te
+    canonical_name: 賴清德
+    display_name: 賴清德
+    current_role: 總統
+    organization: 總統府
+    party: 民主進步黨
+    jurisdiction_level: national
+    monitoring_tier: 1
+    enabled: true
+    accounts: []
+  - person_id: person_hsiao_bi_khim
+    canonical_name: 蕭美琴
+    display_name: 蕭美琴
+    current_role: 副總統
+    organization: 總統府
+    party: 民主進步黨
+    jurisdiction_level: national
+    monitoring_tier: 1
+    enabled: true
+    accounts: []
+  - person_id: person_cho_rong_tai
+    canonical_name: 卓榮泰
+    display_name: 卓榮泰
+    current_role: 行政院長
+    organization: 行政院
+    party: 民主進步黨
+    jurisdiction_level: national
+    monitoring_tier: 1
+    enabled: true
+    accounts: []
+  - person_id: person_han_kuo_yu
+    canonical_name: 韓國瑜
+    display_name: 韓國瑜
+    current_role: 立法院長
+    organization: 立法院
+    party: 中國國民黨
+    jurisdiction_level: national
+    monitoring_tier: 1
+    enabled: true
+    accounts: []
+  - person_id: person_ku_li_hsiung
+    canonical_name: 顧立雄
+    display_name: 顧立雄
+    current_role: 國防部長
+    organization: 國防部
+    party: 民主進步黨
+    jurisdiction_level: national
+    monitoring_tier: 2
+    enabled: true
+    accounts: []
+  - person_id: person_lin_chia_lung
+    canonical_name: 林佳龍
+    display_name: 林佳龍
+    current_role: 外交部長
+    organization: 外交部
+    party: 民主進步黨
+    jurisdiction_level: national
+    monitoring_tier: 2
+    enabled: true
+    accounts: []
+  - person_id: person_chiu_chui_cheng
+    canonical_name: 邱垂正
+    display_name: 邱垂正
+    current_role: 大陸委員會主任委員
+    organization: 大陸委員會
+    jurisdiction_level: national
+    monitoring_tier: 2
+    enabled: true
+    accounts: []
+  - person_id: person_chiang_wan_an
+    canonical_name: 蔣萬安
+    display_name: 蔣萬安
+    current_role: 臺北市長
+    organization: 臺北市政府
+    party: 中國國民黨
+    jurisdiction_level: city
+    jurisdiction: 臺北市
+    monitoring_tier: 3
+    enabled: true
+    accounts: []
+  - person_id: person_hau_you_yi
+    canonical_name: 侯友宜
+    display_name: 侯友宜
+    current_role: 新北市長
+    organization: 新北市政府
+    party: 中國國民黨
+    jurisdiction_level: city
+    jurisdiction: 新北市
+    monitoring_tier: 3
+    enabled: true
+    accounts: []
+  - person_id: person_lu_shiu_yan
+    canonical_name: 盧秀燕
+    display_name: 盧秀燕
+    current_role: 臺中市長
+    organization: 臺中市政府
+    party: 中國國民黨
+    jurisdiction_level: city
+    jurisdiction: 臺中市
+    monitoring_tier: 3
+    enabled: true
+    accounts: []
+  - person_id: person_chen_chi_mai
+    canonical_name: 陳其邁
+    display_name: 陳其邁
+    current_role: 高雄市長
+    organization: 高雄市政府
+    party: 民主進步黨
+    jurisdiction_level: city
+    jurisdiction: 高雄市
+    monitoring_tier: 3
+    enabled: true
+    accounts: []
+  - person_id: person_huang_wei_che
+    canonical_name: 黃偉哲
+    display_name: 黃偉哲
+    current_role: 臺南市長
+    organization: 臺南市政府
+    party: 民主進步黨
+    jurisdiction_level: city
+    jurisdiction: 臺南市
+    monitoring_tier: 3
+    enabled: true
+    accounts: []

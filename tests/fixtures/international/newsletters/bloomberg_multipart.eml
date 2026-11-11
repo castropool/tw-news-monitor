@@ -1,0 +1,15 @@
+From: news@bloomberg.com
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="bbg-b"
+
+--bbg-b
+Content-Type: text/plain; charset="utf-8"
+
+Bloomberg plain
+https://www.bloomberg.com/news/articles/bbg-multipart
+Plain teaser
+--bbg-b
+Content-Type: text/html; charset="utf-8"
+
+<h2><a href="https://www.bloomberg.com/news/articles/bbg-multipart">Bloomberg multipart</a></h2><p>HTML teaser</p>
+--bbg-b--

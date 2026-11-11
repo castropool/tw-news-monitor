@@ -1,0 +1,92 @@
+[
+  {
+    "case_id": "dup_01",
+    "known_duplicate": true,
+    "expected_formal_event_id": "evt_golden_nom_20260121",
+    "candidate_title": "民進黨正式提名陳亭妃參選台南市長",
+    "candidate_actors": [
+      "陳亭妃"
+    ],
+    "candidate_date": "2026-01-21T10:00:00+08:00",
+    "candidate_event_type": "party_nomination",
+    "candidate_keywords": [
+      "提名",
+      "陳亭妃"
+    ]
+  },
+  {
+    "case_id": "dup_02",
+    "known_duplicate": true,
+    "expected_formal_event_id": "evt_golden_rally_20260725",
+    "candidate_title": "謝龍介舉辦台南市長選舉造勢晚會",
+    "candidate_actors": [
+      "謝龍介"
+    ],
+    "candidate_date": "2026-07-25T18:00:00+08:00",
+    "candidate_event_type": "campaign_event",
+    "candidate_keywords": [
+      "造勢",
+      "謝龍介"
+    ]
+  },
+  {
+    "case_id": "dup_03",
+    "known_duplicate": true,
+    "expected_formal_event_id": "evt_golden_nom_20260121",
+    "candidate_title": "民進黨正式提名陳亭妃參選台南市長 後續報導",
+    "candidate_actors": [
+      "陳亭妃"
+    ],
+    "candidate_date": "2026-01-22T10:00:00+08:00",
+    "candidate_event_type": "party_nomination",
+    "candidate_keywords": [
+      "提名",
+      "陳亭妃"
+    ]
+  },
+  {
+    "case_id": "dup_04",
+    "known_duplicate": false,
+    "expected_formal_event_id": "",
+    "candidate_title": "謝龍介舉辦造勢晚會",
+    "candidate_actors": [
+      "謝龍介"
+    ],
+    "candidate_date": "2026-07-22T18:00:00+08:00",
+    "candidate_event_type": "campaign_event",
+    "candidate_keywords": [
+      "造勢",
+      "謝龍介"
+    ]
+  },
+  {
+    "case_id": "dup_05",
+    "known_duplicate": false,
+    "expected_formal_event_id": "",
+    "candidate_title": "陳亭妃宣布參選台南市長",
+    "candidate_actors": [
+      "陳亭妃"
+    ],
+    "candidate_date": "2026-03-01T09:00:00+08:00",
+    "candidate_event_type": "campaign_launch",
+    "candidate_keywords": [
+      "參選",
+      "陳亭妃"
+    ]
+  },
+  {
+    "case_id": "dup_06",
+    "known_duplicate": false,
+    "expected_formal_event_id": "",
+    "candidate_title": "謝龍介指控對手賄選",
+    "candidate_actors": [
+      "謝龍介"
+    ],
+    "candidate_date": "2026-07-14T16:00:00+08:00",
+    "candidate_event_type": "campaign_attack",
+    "candidate_keywords": [
+      "指控",
+      "謝龍介"
+    ]
+  }
+]

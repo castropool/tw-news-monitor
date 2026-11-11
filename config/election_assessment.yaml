@@ -1,0 +1,173 @@
+timezone: Asia/Taipei
+
+election:
+  election_id: tainan_mayoral_2026
+  display_name: 台南市长选举
+  report_label: 台南市长选情
+
+schedule:
+  run_days:
+    - 9
+    - 22
+
+  periods:
+    day_9: previous_month_16_to_end
+    day_22: current_month_01_to_15
+
+  timezone: Asia/Taipei
+
+paths:
+  database: data/election_context.db
+  events_seed: data/election_seed/tainan_2026/events.jsonl
+  sources_seed: data/election_seed/tainan_2026/sources.jsonl
+  initial_snapshot: data/election_seed/tainan_2026/initial_snapshot.json
+  snapshot_history: data/election_seed/tainan_2026/snapshot_history.jsonl
+  coverage_root: data/election_seed/tainan_2026
+  output_root: data/reports/tainan_2026/evidence_packages
+
+evidence_pack:
+  include_previous_snapshot: true
+  include_background_events: true
+  include_sources: true
+  include_polls: true
+  require_active_snapshot: true
+  require_formal_sources: true
+  require_limitations: true
+  require_do_not_infer: true
+
+background:
+  max_total: 15
+  max_per_mainline: 10
+  mainlines:
+    - key: chen_tingfei_integration
+      label: 陈亭妃整合
+      snapshot_field: dpp_integration
+    - key: hsieh_longchieh_organization
+      label: 谢龙介组织
+      snapshot_field: kmt_organization
+    - key: kmt_tpp_cooperation
+      label: 蓝白合作
+      snapshot_field: kmt_tpp_cooperation
+
+llm:
+  default_provider: deepseek
+
+  openai:
+    api_key_env: OPENAI_API_KEY
+    model_env: OPENAI_MODEL
+    request_timeout_seconds: 120
+    max_output_tokens: 12000
+
+  deepseek:
+    api_key_env: DEEPSEEK_API_KEY
+    model_env: DEEPSEEK_MODEL
+    base_url: https://api.deepseek.com
+    default_model: deepseek-v4-flash
+    allowed_models:
+      - deepseek-v4-flash
+      - deepseek-v4-pro
+    thinking:
+      type: disabled
+    request_timeout_seconds: 120
+    max_generation_attempts: 2
+    max_repair_attempts: 1
+    max_output_tokens: 12000
+    json_output: true
+    allow_external_tools: false
+
+  request_timeout_seconds: 120
+  max_generation_attempts: 1
+  max_repair_attempts: 1
+  max_output_tokens: 12000
+  structured_output: true
+  allow_external_tools: false
+  allow_web_search: false
+  allow_file_search: false
+  cache:
+    enabled: true
+    reuse_validated_output: true
+
+  # research-driven 研判路径（生产）：provider/model/temperature/max_tokens 配置化
+  research_driven:
+    provider: deepseek
+    model_env: DEEPSEEK_MODEL
+    base_url: https://api.deepseek.com
+    default_model: deepseek-v4-pro
+    allowed_models:
+      - deepseek-v4-flash
+      - deepseek-v4-pro
+    temperature: 0.7
+    request_timeout_seconds: 300
+    max_attempts: 2
+    max_output_tokens: 16000
+    json_output: true
+
+report_generation:
+  assessment_generation_mode: research_driven
+  legacy_assessment_generation_modes:
+    - single_stage_claim_validated
+    - two_stage
+  research_driven_pipeline_version: "1.0.0"
+  assessment_generation_pipeline_version: 2.0.0-rc1
+  claim_plan_schema_version: "1.0"
+  claim_planner_contract_version: "1.0"
+  report_writer_stage2_contract_version: "1.0"
+  report_output_schema_version: "1.1"
+  language: zh-CN
+  report_type: internal_political_assessment
+  target_length_chinese_chars:
+    min: 1800
+    max: 2500
+  require_claim_evidence: true
+  require_required_disclosures: true
+  require_do_not_infer_compliance: true
+  require_poll_cutoff_disclosure: true
+  require_facts_cutoff_disclosure: true
+  allowed_generation_modes:
+    - final
+    - draft_with_data_gap
+  repair_invalid_output: true
+  output_root: data/reports/tainan_2026/generated_reports
+  entity_whitelist:
+    - 民进党
+    - 国民党
+    - 民众党
+    - 绿营
+    - 蓝营
+    - 白营
+
+pipeline:
+  version: 1.0.0
+  lock_dir: data/locks
+  pipeline_runs_root: data/reports/tainan_2026/pipeline_runs
+  default_run_time: "09:00"
+  stale_lock_seconds: 3600
+  retry:
+    delivery_max_attempts: 2
+
+delivery:
+  default_provider: feishu
+  enabled: true
+  mode: app_file_upload
+  fallback_mode: none
+
+  webhook:
+    env: FEISHU_WEBHOOK
+
+  app:
+    app_id_env: FEISHU_APP_ID
+    app_secret_env: FEISHU_APP_SECRET
+    chat_id_env: FEISHU_CHAT_ID
+
+  feishu:
+    timeout_seconds: 30
+    max_attempts: 2
+    send_summary: true
+    send_artifact: true
+
+  mock:
+    fixture: success
+
+security:
+  feishu_credentials_rotated_after_incident: false
+  feishu_rotation_acknowledged_at: null

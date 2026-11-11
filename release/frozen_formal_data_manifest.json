@@ -1,0 +1,22 @@
+{
+  "release_name": "tainan-assessment-offline-rc1",
+  "formal_data_frozen": true,
+  "formal_data_unchanged": true,
+  "frozen_at": "2026-08-06T19:27:28.484427",
+  "events_jsonl_sha256": "9f48a40ad78062193f61ce46d5671a0900d33ddc6a621b5c6185101bdff5c00c",
+  "sources_jsonl_sha256": "9d77bfda835f092741c22dd03647821401f74072807fd6647ee45ca1b9031781",
+  "initial_snapshot_sha256": "a447adf088fdeacb727aa2e5736aefc010e9beb0a383ea30e28c409f351314ea",
+  "snapshot_history_sha256": "565d64a04f34c13ecad81a596589fb2f22301401194c7cd83d8bac194427eda5",
+  "poll_seeds_business_hash": "86322d676ee183ddd21dea5e4f5055521e4d770b098a8d73fe48e8c00ad0912c",
+  "coverage_dir_business_hash": "3b0100d57ceff028373115173fac37b93d89b6405451aecd75caa3da7022ec45",
+  "database_business_hash": "5656be1cf7162d60e4e75d219d4a1e0f08bbefac50d1684689e3dc03d8629c09",
+  "baseline_matches": {
+    "events_seed": true,
+    "sources_seed": true,
+    "initial_snapshot": true,
+    "snapshot_history": true,
+    "poll_seeds": true,
+    "coverage_dir": true,
+    "database_business": true
+  }
+}

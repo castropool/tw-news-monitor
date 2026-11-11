@@ -1,0 +1,14 @@
+From: newsletters@wsj.com
+To: reader@example.com
+Subject: WSJ China
+Date: Fri, 14 Aug 2026 07:30:00 -0400
+MIME-Version: 1.0
+Content-Type: text/html; charset="utf-8"
+
+<!doctype html>
+<html><body>
+<h2><a href="https://www.wsj.com/world/china/taiwan-strait-a1?utm_source=email">Taiwan Strait Briefing</a></h2>
+<p>A public newsletter teaser about regional developments.</p>
+<h3><a href="https://www.wsj.com/world/china/chips-a2?from=newsletter">Chip Export Controls Update</a></h3>
+<p>A second newsletter item.</p>
+</body></html>

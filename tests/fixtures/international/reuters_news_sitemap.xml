@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+  <url>
+    <loc>https://www.reuters.com/world/china/china-launches-drills-near-taiwan-2026-08-14/</loc>
+    <lastmod>2026-08-14T11:45:00.000Z</lastmod>
+    <news:news>
+      <news:publication><news:name>Reuters</news:name><news:language>en</news:language></news:publication>
+      <news:publication_date>2026-08-14T11:40:00Z</news:publication_date>
+      <news:title>China launches drills near Taiwan</news:title>
+    </news:news>
+  </url>
+  <url>
+    <loc>https://www.reuters.com/technology/tsmc-chip-output-2026-08-14/</loc>
+    <lastmod>2026-08-14T03:15:00+00:00</lastmod>
+    <news:news>
+      <news:publication><news:name>Reuters</news:name><news:language>en</news:language></news:publication>
+      <news:title>TSMC discusses new chip capacity</news:title>
+    </news:news>
+  </url>
+  <url>
+    <loc>https://www.reuters.com/world/china/china-launches-drills-near-taiwan-2026-08-14/?utm_source=duplicate</loc>
+    <news:news>
+      <news:publication><news:name>Reuters</news:name><news:language>en</news:language></news:publication>
+      <news:publication_date>2026-08-14T11:40:00Z</news:publication_date>
+      <news:title>China launches drills near Taiwan</news:title>
+    </news:news>
+  </url>
+  <url>
+    <loc>https://www.reuters.com/sports/europe-football-result-2026-08-11/</loc>
+    <news:news>
+      <news:publication><news:name>Reuters</news:name><news:language>en</news:language></news:publication>
+      <news:publication_date>2026-08-11T08:00:00Z</news:publication_date>
+      <news:title>European football result</news:title>
+    </news:news>
+  </url>
+</urlset>

@@ -1,0 +1,15 @@
+From: news@reuters.com
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="rt-b"
+
+--rt-b
+Content-Type: text/plain; charset="utf-8"
+
+Reuters plain
+https://www.reuters.com/world/reuters-multipart
+Plain teaser
+--rt-b
+Content-Type: text/html; charset="utf-8"
+
+<h2><a href="https://www.reuters.com/world/reuters-multipart">Reuters multipart</a></h2><p>HTML teaser</p>
+--rt-b--

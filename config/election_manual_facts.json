@@ -1,0 +1,76 @@
+{
+  "tainan": [
+    {
+      "date": "2026-01-15",
+      "actor": "陈亭妃",
+      "action": "正式获得民进党台南市长候选人提名",
+      "party": "民进党",
+      "issue": "候选人提名,党内整合",
+      "election_significance": "high",
+      "source": "民进党中执会",
+      "title": "民进党中执会正式提名陈亭妃参选台南市长",
+      "url": "manual://dpp-tainan-nomination",
+      "multi_source": "yes",
+      "confidence": "high",
+      "is_poll": false
+    },
+    {
+      "date": "2026-07-01",
+      "actor": "王定宇",
+      "action": "交棒中常委非为参选台南市长布局，系被迫交棒",
+      "party": "民进党",
+      "issue": "党内整合,派系互动",
+      "election_significance": "medium",
+      "source": "党内知情人士",
+      "title": "王定宇交棒中常委并非参选市长布局实属被迫",
+      "url": "manual://wang-dingyu-csc-forced",
+      "multi_source": "yes",
+      "confidence": "high",
+      "is_poll": false
+    },
+    {
+      "date": "2024-07-15",
+      "actor": "陈亭妃",
+      "action": "2024年中常委选举期间因执意参选中常委遭正国会出名，此后陈单独被视为一股政治势力，被称为陈亭妃系统",
+      "party": "民进党",
+      "issue": "党内派系,派系互动",
+      "evaluation": "高",
+      "election_significance": "high",
+      "source": "民进党派系政治",
+      "title": "陈亭妃因参选中常委遭正国会出名 自成陈亭妃系统",
+      "url": "manual://chen-tingfei-faction",
+      "multi_source": "yes",
+      "confidence": "high",
+      "is_poll": false
+    },
+    {
+      "date": "2025-12-01",
+      "actor": "陈亭妃,林俊宪",
+      "action": "2025年底陈亭妃与赖清德子弟兵林俊宪争夺台南市长候选人提名，二人关系竞争激烈",
+      "party": "民进党",
+      "issue": "候选人提名,派系竞争",
+      "election_significance": "high",
+      "source": "民进党台南市长初选",
+      "title": "陈亭妃与林俊宪角逐台南市长提名 赖清德属意林俊宪",
+      "url": "manual://chen-vs-lin-primary",
+      "multi_source": "yes",
+      "confidence": "high",
+      "is_poll": false
+    },
+    {
+      "date": "2025-12-01",
+      "actor": "陈亭妃,赖清德",
+      "action": "陈亭妃与赖清德关系不佳，赖清德曾属意林俊宪参选台南市长",
+      "party": "民进党",
+      "issue": "党内派系,候选人提名",
+      "election_significance": "high",
+      "source": "民进党台南市长初选",
+      "title": "陈亭妃与赖清德关系紧张 赖清德属意林俊宪",
+      "url": "manual://chen-lai-relationship",
+      "multi_source": "yes",
+      "confidence": "high",
+      "is_poll": false
+    }
+  ],
+  "new_taipei": []
+}

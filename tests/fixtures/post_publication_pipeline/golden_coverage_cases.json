@@ -1,0 +1,438 @@
+[
+  {
+    "case_id": "cov_01_complete_date",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g1",
+        "occurred_at": "2026-07-10T00:00:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_latest_event_date": "2026-07-10",
+    "expected_event_count": 1,
+    "expected_uncovered_count": 0,
+    "expected_status": "full"
+  },
+  {
+    "case_id": "cov_02_imprecise_date",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g2",
+        "occurred_at": "2026-07-20T00:00:00+08:00",
+        "event_type": "party_nomination"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_latest_event_date": "2026-07-20",
+    "expected_event_count": 1,
+    "expected_uncovered_count": 0,
+    "expected_status": "full"
+  },
+  {
+    "case_id": "cov_03_multi_source",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g3",
+        "occurred_at": "2026-07-15T00:00:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "event_source_ids": [
+      {
+        "event_id": "evt_g3",
+        "source_id": "src_a"
+      },
+      {
+        "event_id": "evt_g3",
+        "source_id": "src_b"
+      }
+    ],
+    "source_count": 3,
+    "facts_cutoff": "2026-07-31",
+    "expected_covered_sources": [
+      "src_a",
+      "src_b"
+    ],
+    "expected_source_count": 3,
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_latest_event_date": "2026-07-15",
+    "expected_event_count": 1,
+    "expected_uncovered_count": 0,
+    "expected_status": "full"
+  },
+  {
+    "case_id": "cov_04_multi_event_same_day",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g4a",
+        "occurred_at": "2026-07-18T09:00:00+08:00",
+        "event_type": "poll_release"
+      },
+      {
+        "event_id": "evt_g4b",
+        "occurred_at": "2026-07-18T18:00:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_latest_event_date": "2026-07-18",
+    "expected_event_count": 2,
+    "expected_uncovered_count": 0,
+    "expected_status": "full",
+    "expected_covered_dates": [
+      "2026-07-18"
+    ]
+  },
+  {
+    "case_id": "cov_05_reviewed_no_material_event",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g5",
+        "occurred_at": null,
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_latest_event_date": null,
+    "expected_event_count": 0,
+    "expected_uncovered_count": 0,
+    "expected_status": "full"
+  },
+  {
+    "case_id": "cov_06_poll_release_vs_fieldwork",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [],
+    "polls": [
+      {
+        "poll_id": "poll_g6",
+        "fieldwork_json": "{\"field_end\": \"2026-07-05\"}",
+        "publication_json": "{}"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "expected_poll_cutoff": "2026-07-05",
+    "expected_status": "full",
+    "expected_uncovered_count": 0,
+    "expected_blocking_count": 0
+  },
+  {
+    "case_id": "cov_07_poll_outside_period",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [],
+    "polls": [
+      {
+        "poll_id": "poll_g7",
+        "fieldwork_json": "{\"field_end\": \"2026-06-30\"}",
+        "publication_json": "{}"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "expected_poll_cutoff": null,
+    "expected_status": "full",
+    "expected_uncovered_count": 0
+  },
+  {
+    "case_id": "cov_08_period_boundary",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g8a",
+        "occurred_at": "2026-07-01T00:00:00+08:00",
+        "event_type": "campaign_event"
+      },
+      {
+        "event_id": "evt_g8b",
+        "occurred_at": "2026-07-31T23:59:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_event_count": 2,
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_latest_event_date": "2026-07-31",
+    "expected_uncovered_count": 0,
+    "expected_status": "full"
+  },
+  {
+    "case_id": "cov_09_month_end_full",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g9",
+        "occurred_at": "2026-07-31T00:00:00+08:00",
+        "event_type": "governance_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_latest_event_date": "2026-07-31",
+    "expected_uncovered_count": 0,
+    "expected_status": "full"
+  },
+  {
+    "case_id": "cov_10_cross_month",
+    "period_start": "2026-06-16",
+    "period_end": "2026-07-15",
+    "events": [
+      {
+        "event_id": "evt_g10a",
+        "occurred_at": "2026-06-30T00:00:00+08:00",
+        "event_type": "campaign_event"
+      },
+      {
+        "event_id": "evt_g10b",
+        "occurred_at": "2026-07-15T00:00:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-15",
+    "expected_event_count": 2,
+    "expected_facts_cutoff": "2026-07-15",
+    "expected_latest_event_date": "2026-07-15",
+    "expected_uncovered_count": 0,
+    "expected_status": "full"
+  },
+  {
+    "case_id": "cov_11_facts_cutoff_period_end",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g11",
+        "occurred_at": "2026-07-31T00:00:00+08:00",
+        "event_type": "disaster_response"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_uncovered_count": 0
+  },
+  {
+    "case_id": "cov_12_poll_cutoff_early",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g12",
+        "occurred_at": "2026-07-30T00:00:00+08:00",
+        "event_type": "poll_release"
+      }
+    ],
+    "polls": [
+      {
+        "poll_id": "poll_g12",
+        "fieldwork_json": "{\"field_end\": \"2026-07-12\"}",
+        "publication_json": "{}"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_poll_cutoff": "2026-07-12",
+    "expected_status": "full",
+    "expected_uncovered_count": 0,
+    "expected_poll_count": 1
+  },
+  {
+    "case_id": "cov_13_blocking_gap",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g13a",
+        "occurred_at": "2026-07-05T00:00:00+08:00",
+        "event_type": "campaign_event"
+      },
+      {
+        "event_id": "evt_g13b",
+        "occurred_at": "2026-07-10T00:00:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "blocking_gaps": [
+      {
+        "kind": "missing_required_dimension",
+        "reason": "theme gap"
+      }
+    ],
+    "expected_status": "partial",
+    "expected_blocking_count": 1
+  },
+  {
+    "case_id": "cov_14_no_event_day_non_blocking",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g14a",
+        "occurred_at": "2026-07-05T00:00:00+08:00",
+        "event_type": "campaign_event"
+      },
+      {
+        "event_id": "evt_g14b",
+        "occurred_at": "2026-07-07T00:00:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "known_gaps": [
+      "2026-07-06 reviewed_no_material_event"
+    ],
+    "expected_status": "full",
+    "expected_uncovered_count": 0,
+    "expected_known_gaps": [
+      "2026-07-06 reviewed_no_material_event"
+    ]
+  },
+  {
+    "case_id": "cov_15_required_dimension_gap",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g15",
+        "occurred_at": "2026-07-20T00:00:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "dimensions": [
+      "campaign_event",
+      "poll_release"
+    ],
+    "expected_dimension_gaps": [
+      "poll_release"
+    ],
+    "expected_status": "partial",
+    "expected_blocking_count": 1
+  },
+  {
+    "case_id": "cov_16_known_gaps_preserved",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g16",
+        "occurred_at": "2026-07-20T00:00:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "known_gaps": [
+      "manual research gap"
+    ],
+    "expected_known_gaps": [
+      "manual research gap"
+    ],
+    "expected_status": "full"
+  },
+  {
+    "case_id": "cov_17_events_outside_period",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g17a",
+        "occurred_at": "2026-06-30T00:00:00+08:00",
+        "event_type": "campaign_event"
+      },
+      {
+        "event_id": "evt_g17b",
+        "occurred_at": "2026-08-01T00:00:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_event_count": 0,
+    "expected_latest_event_date": null,
+    "expected_status": "full",
+    "expected_uncovered_count": 0
+  },
+  {
+    "case_id": "cov_18_source_count",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g18",
+        "occurred_at": "2026-07-20T00:00:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "source_count": 7,
+    "facts_cutoff": "2026-07-31",
+    "expected_source_count": 7,
+    "expected_status": "full"
+  },
+  {
+    "case_id": "cov_19_unreviewed_period",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g19",
+        "occurred_at": "2026-07-27T00:00:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-27",
+    "expected_facts_cutoff": "2026-07-27",
+    "expected_latest_event_date": "2026-07-27",
+    "expected_status": "partial",
+    "expected_uncovered_count": 1,
+    "expected_blocking_count": 1,
+    "expected_uncovered_contains": "2026-07-28"
+  },
+  {
+    "case_id": "cov_20_idempotent",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "evt_g20",
+        "occurred_at": "2026-07-20T00:00:00+08:00",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_idempotent": true
+  }
+]

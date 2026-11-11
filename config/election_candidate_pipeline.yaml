@@ -1,0 +1,658 @@
+timezone: Asia/Taipei
+
+versions:
+  candidate_pipeline_version: 0.3.0
+  candidate_schema_version: 1.1
+  publication_pipeline_version: 0.1.0
+
+deployment:
+  enabled: true
+  scheduler_mode: since-last-success
+  log_path: data/election_candidates/tainan_2026/logs/candidate_pipeline.jsonl
+
+run_retention:
+  enabled: true
+  keep_latest: 12
+  max_total_mb: 40
+
+election:
+  canonical_election_id: tainan_mayoral_2026
+  election_id_aliases:
+    tainan_mayoral_2026: TW-2026-TNN-MAYOR
+  candidate_id_prefix: cand_tnn
+  candidate_id_hash_length: 10
+
+paths:
+  news_db: data/news.db
+  match_db: data/election_watch.db
+  formal_db: data/election_context.db
+  candidate_db: data/election_candidates/tainan_2026/candidate_fact_pipeline.db
+  output_root: data/election_candidates/tainan_2026
+  election_watch_config: config/election_watch.yaml
+  events_seed: data/election_seed/tainan_2026/events.jsonl
+  sources_seed: data/election_seed/tainan_2026/sources.jsonl
+  initial_snapshot: data/election_seed/tainan_2026/initial_snapshot.json
+  snapshot_history: data/election_seed/tainan_2026/snapshot_history.jsonl
+  poll_seeds:
+    - data/election_seed/tainan_2026/polls.jsonl
+    - data/election_seed/tainan_2026/poll_source_links.jsonl
+  coverage_root: data/election_seed/tainan_2026
+  post_publication_root: data/post_publication
+  backup_root: data/backups
+  lock_root: data/locks
+  frozen_release_zip: dist/releases/tainan-assessment-offline-rc1.zip
+
+match_reader:
+  mode: inline_classifier   # persisted | inline_classifier（article_matches 为空时的实际入口）
+  table: article_matches
+  city_values:
+    - tainan
+  relevance_required: false
+  min_relevance: low
+
+news_reader:
+  table: articles
+  id_column: id
+  title_column: title
+  url_column: url
+  source_name_column: source_name
+  category_column: category
+  published_at_column: published_at
+  fetched_at_column: fetched_at
+  summary_column: summary
+  source_id_column: source_id
+
+scan:
+  initial_scan_days: 45
+  cursor_type: news_article_id
+  history_window_days: 200
+
+clustering:
+  date_window_days: 7
+  same_day_boost: true
+  require_actor_overlap: true
+  actor_overlap_ratio: 0.5
+  min_cluster_confidence: 0.35
+  max_articles_per_cluster: 50
+  action_verb_terms:
+    - 提名
+    - 初選
+    - 登記
+    - 宣布
+    - 召開
+    - 出席
+    - 成立
+    - 造勢
+    - 掃街
+    - 拜票
+    - 民調
+    - 質詢
+    - 視察
+    - 指控
+    - 批評
+    - 回應
+    - 呼籲
+    - 會面
+    - 協調
+  event_type_keywords:
+    party_nomination:
+      - 提名
+      - 徵召
+    primary_procedure:
+      - 初選
+      - 初選登記
+    primary_registration:
+      - 登記
+      - 領表
+    primary_result:
+      - 初選結果
+      - 勝出
+    poll_release:
+      - 民調
+      - 支持度
+    campaign_launch:
+      - 造勢
+      - 掃街
+      - 拜票
+      - 競選總部
+    campaign_attack:
+      - 指控
+      - 批評
+      - 質疑
+      - 攻擊
+    alliance_proposal:
+      - 藍白
+      - 合作
+      - 聯盟
+    governance_event:
+      - 視察
+      - 災
+      - 市政
+    policy_proposal:
+      - 政策
+      - 政見
+      - 承諾
+
+input_filter:
+  collection_error_markers:
+    - 採集錯誤
+    - 采集错误
+    - collect_error
+    - HTTP ERROR
+
+assertion_classifier:
+  statement_verbs:
+    - 稱
+    - 表示
+    - 說
+    - 盼
+    - 讚
+    - 強調
+    - 主張
+    - 呼籲
+    - 要求
+    - 認為
+    - 研判
+    - 透露
+    - 建議
+    - 表態
+    - 駁斥
+  allegation_verbs:
+    - 指控
+    - 批評
+    - 質疑
+    - 爆料
+    - 驚爆
+    - 抨擊
+    - 痛批
+    - 砲轟
+  uncertain_markers:
+    - 傳出
+    - 傳
+    - 據悉
+    - 據了解
+    - 消息人士
+    - 知情人士
+    - 外傳
+    - 盛傳
+    - 疑似
+  media_interpretation_markers:
+    - 分析認為
+    - 研判
+    - 觀點
+    - 初探
+    - 評論
+    - 學者分析
+    - 觀察家
+    - 專家評估
+    - 媒體分析
+  known_speaker_terms:
+    - 市府
+    - 政院
+    - 府
+    - 行政院
+    - 中選會
+    - 監院
+    - 競辦
+    - 市長
+    - 立委
+    - 議員
+  planned_action_markers:
+    - 預計
+    - 將於
+    - 計劃
+    - 計畫
+    - 擬
+    - 規劃
+    - 預告
+    - 未來
+    - 號召
+  future_tense_markers:
+    - 將
+    - 明天
+    - 下周
+    - 下週
+    - 月底
+    - 近日
+  observed_fact_markers:
+    - 正式提名
+    - 完成登記
+    - 宣布
+    - 拜票
+    - 公布
+    - 發布
+    - 公告
+    - 召開
+    - 出席
+    - 視察
+    - 成立
+    - 啟動
+    - 開跑
+    - 結果出爐
+    - 當選
+    - 敗選
+    - 辭職
+    - 接任
+    - 宣布參選
+    - 領表
+    - 造勢
+    - 掃街
+    - 舉辦
+    - 同框
+    - 看板
+    - 登記參選
+    - 民調
+    - 協調
+    - 競選總部
+    - 後援會
+    - 前往
+    - 參拜
+
+source_resolver:
+  alias_map:
+    中央社: 中央社
+    中央通訊社: 中央社
+    聯合報: 聯合報
+    聯合新聞網: 聯合新聞網
+    自由時報: 自由時報
+    自由電子報: 自由時報
+    東森新聞: 東森新聞
+    EBC東森新聞: 東森新聞
+    新頭殼: 新頭殼
+    Newtalk新聞: 新頭殼
+    風傳媒: 風傳媒
+    Storm.mg: 風傳媒
+    總統府: 總統府
+    行政院: 行政院
+  fuzzy_threshold: 0.85
+
+duplicate_detection:
+  likely_duplicate_threshold: 0.90
+  possible_match_threshold: 0.65
+  weights:
+    date: 0.20
+    actor: 0.25
+    event_type: 0.15
+    action: 0.20
+    keyword: 0.15
+    source_overlap: 0.05
+  date_window_days:
+    exact: 1
+    close: 7
+    loose: 30
+  max_suggestions_per_candidate: 5
+
+scoring:
+  relevance:
+    match_score_weight: 0.5
+    actor_issue_coverage_weight: 0.3
+    region_weight: 0.2
+  completeness:
+    date: 0.25
+    actors: 0.20
+    text: 0.15
+    sources: 0.15
+    event_type: 0.10
+    summary: 0.15
+  cluster_confidence:
+    article_count_weight: 0.35
+    source_count_weight: 0.30
+    date_consistency_weight: 0.20
+    actor_consistency_weight: 0.15
+  source_confidence:
+    resolved_source_weight: 0.6
+    source_count_weight: 0.4
+  assertion_risk:
+    allegation_weight: 0.35
+    uncertain_weight: 0.30
+    media_interpretation_weight: 0.20
+    unknown_weight: 0.15
+  risk_levels:
+    low_max_risk: 0.30
+    medium_max_risk: 0.60
+    high_min_risk: 0.60
+
+router:
+  min_relevance_score: 0.25
+  min_completeness_for_review: 0.40
+  min_cluster_confidence_for_review: 0.35
+  min_source_confidence_for_review: 0.30
+  date_unknown_hold: true
+  publication_inferred_hold: false
+  direct_statement_requires_actor_statement: true
+  direct_statement_min_risk: medium
+  contextual_status: context_only
+
+relevance:
+  labels:
+    - direct_event
+    - direct_statement
+    - contextual
+    - irrelevant
+    - collection_error
+  national_topic_markers:
+    - 毒油
+    - 食安
+    - 凱道
+    - 凯道
+    - 全代會
+    - 全代会
+    - 公投
+    - 國慶
+    - 国庆
+    - 無人機
+    - 无人机
+    - 統戰
+    - 统战
+    - 中常委
+    - 中評委
+    - 党产
+    - 黨產
+    - IPAC
+    - 居住正義
+    - 外送專法
+    - 修食安法
+    - 食安法
+  other_race_markers:
+    - 新北
+    - 花蓮
+    - 花莲
+    - 高雄
+    - 宜蘭
+    - 基隆
+    - 桃園
+    - 竹北
+    - 台中
+    - 台北
+    - 北市
+    - 中市
+    - 韓國
+    - 中國
+  party_internal_markers:
+    - 中常委
+    - 中評委
+    - 權力核心
+    - 派系
+    - 交棒
+    - 黨職
+    - 中执会
+    - 中執會
+  direct_action_markers:
+    - 正式提名
+    - 完成登記
+    - 領表
+    - 造勢
+    - 掃街
+    - 拜票
+    - 成立後援會
+    - 後援會
+    - 聯合看板
+    - 合體看板
+    - 競選總部
+    - 宣布參選
+    - 參選台南
+    - 競選活動
+  direct_statement_verbs:
+    - 表示
+    - 稱
+    - 強調
+    - 呼籲
+    - 主張
+    - 承諾
+
+event_types:
+  priority:
+    - primary_procedure
+    - primary_registration
+    - primary_debate
+    - primary_result
+    - party_nomination
+    - campaign_launch
+    - campaign_event
+    - campaign_organization
+    - support_organization
+    - joint_campaign
+    - alliance_proposal
+    - alliance_coordination
+    - party_integration
+    - faction_conflict
+    - campaign_attack
+    - campaign_response
+    - poll_release
+    - governance_event
+    - disaster_response
+    - policy_proposal
+    - endorsement
+    - personnel_appointment
+  definitions:
+    primary_procedure:
+      positive_patterns: [初選, 初选]
+      negative_patterns: [提名, 登記, 辯論, 勝出, 出爐]
+      required_actor_or_action: 初選
+      conflicting_types: [primary_result, party_nomination]
+      examples: [民進黨台南市長初選起跑]
+    primary_registration:
+      positive_patterns: [完成登記, 登記參選, 領表]
+      negative_patterns: []
+      required_actor_or_action: 登記
+      conflicting_types: [primary_procedure]
+      examples: [陳亭妃完成初選登記]
+    primary_debate:
+      positive_patterns: [辯論, 政見會]
+      negative_patterns: []
+      required_actor_or_action: 辯論
+      conflicting_types: [primary_procedure]
+      examples: [台南市長初選辯論登場]
+    primary_result:
+      positive_patterns: [初選結果, 勝出, 出爐]
+      negative_patterns: [提名]
+      required_actor_or_action: 初選
+      conflicting_types: [primary_procedure]
+      examples: [陳亭妃初選勝出]
+    party_nomination:
+      positive_patterns: [正式提名, 提名, 徵召]
+      negative_patterns: [初選]
+      required_actor_or_action: 提名
+      conflicting_types: [primary_result]
+      examples: [民進黨正式提名陳亭妃]
+    campaign_launch:
+      positive_patterns: [宣布參選, 參選, 啟動競選, 競選準備]
+      negative_patterns: [提名, 登記]
+      required_actor_or_action: ""
+      conflicting_types: [campaign_event]
+      examples: [謝龍介啟動台南市長競選準備]
+    campaign_event:
+      positive_patterns: [造勢, 掃街, 拜票, 競選活動, 座談會, 市場]
+      negative_patterns: [後援會, 看板]
+      required_actor_or_action: ""
+      conflicting_types: [campaign_launch, support_organization]
+      examples: [謝龍介安南區宮廟聯合拜票]
+    campaign_organization:
+      positive_patterns: [競選總部, 競選辦公室, 組織]
+      negative_patterns: [後援會, 接任, 擔任]
+      required_actor_or_action: 競選
+      conflicting_types: [support_organization]
+      examples: [陳亭妃競選總部成立]
+    support_organization:
+      positive_patterns: [後援會, 支持會]
+      negative_patterns: []
+      required_actor_or_action: 後援會
+      conflicting_types: [campaign_organization]
+      examples: [大台南觀光產業後援會成立]
+    joint_campaign:
+      positive_patterns: [聯合看板, 合體看板, 同框, 聯合造勢]
+      negative_patterns: []
+      required_actor_or_action: ""
+      conflicting_types: [campaign_event]
+      examples: [賴清德與陳亭妃同框看板啟用]
+    alliance_proposal:
+      positive_patterns: [藍白合作, 藍白合, 協調禮讓, 在野整合]
+      negative_patterns: [成形, 完成]
+      required_actor_or_action: 合作
+      conflicting_types: [alliance_coordination]
+      examples: [謝龍介談藍白合作]
+    alliance_coordination:
+      positive_patterns: [協調, 會商, 禮讓]
+      negative_patterns: [完成]
+      required_actor_or_action: 協調
+      conflicting_types: [alliance_proposal]
+      examples: [藍白就台南市長人選協調]
+    party_integration:
+      positive_patterns: [整合, 團結, 全代會, 黨內]
+      negative_patterns: []
+      required_actor_or_action: ""
+      conflicting_types: [faction_conflict]
+      examples: [民進黨台南黨內整合]
+    faction_conflict:
+      positive_patterns: [派系, 角力, 不合, 交棒, 內鬥, 不爽]
+      negative_patterns: []
+      required_actor_or_action: 派系
+      conflicting_types: [party_integration]
+      examples: [王定宇交棒林智鴻 派系角力]
+    campaign_attack:
+      positive_patterns: [指控, 批評, 質疑, 抨擊, 砲轟, 攻擊, 道歉, 下台]
+      negative_patterns: [回應, 澄清, 駁斥, 否認]
+      required_actor_or_action: ""
+      conflicting_types: [campaign_response]
+      examples: [謝龍介質疑食安專報]
+    campaign_response:
+      positive_patterns: [回應, 澄清, 駁斥, 否認, 事實並不符, 不符事實]
+      negative_patterns: []
+      required_actor_or_action: ""
+      conflicting_types: [campaign_attack]
+      examples: [政院駁斥不實指控]
+    poll_release:
+      positive_patterns: [民調, 支持度]
+      negative_patterns: []
+      required_actor_or_action: 民調
+      conflicting_types: []
+      examples: [台南市長民調公布]
+    governance_event:
+      positive_patterns: [視察, 市政, 工程, 座談]
+      negative_patterns: [災, 支持, 政見, 政策, 承諾]
+      required_actor_or_action: ""
+      conflicting_types: [disaster_response]
+      examples: [陳亭妃會勘三爺溪]
+    disaster_response:
+      positive_patterns: [颱風, 災, 水災, 防災]
+      negative_patterns: []
+      required_actor_or_action: 災
+      conflicting_types: [governance_event]
+      examples: [台南市府防災整備]
+    policy_proposal:
+      positive_patterns: [政見, 政策, 承諾, 方案, 公投]
+      negative_patterns: []
+      required_actor_or_action: ""
+      conflicting_types: []
+      examples: [陳亭妃提出七大市政政見]
+    endorsement:
+      positive_patterns: [支持, 表態支持, 站台]
+      negative_patterns: [後援會]
+      required_actor_or_action: ""
+      conflicting_types: [support_organization]
+      examples: [賴清德為陳亭妃站台]
+    personnel_appointment:
+      positive_patterns: [接任, 擔任, 人事, 總幹事, 主委]
+      negative_patterns: []
+      required_actor_or_action: ""
+      conflicting_types: []
+      examples: [王世堅接任競選總部副主委]
+
+quality_gate:
+  relevance_precision_min: 0.90
+  relevance_recall_min: 0.90
+  cluster_pairwise_precision_min: 0.90
+  cluster_pairwise_recall_min: 0.80
+  cluster_pairwise_f1_min: 0.85
+  observed_fact_precision_min: 0.95
+  actor_statement_precision_min: 0.95
+  allegation_precision_min: 0.95
+  assertion_macro_f1_min: 0.85
+  event_type_accuracy_min: 0.85
+  known_duplicate_recall_min: 1.00
+  known_duplicate_top3_recall_min: 0.90
+  known_nonduplicate_false_positive_max: 0
+  unsafe_fact_promotion_max: 0
+
+validation:
+  max_risk_score: 1.0
+  min_score: 0.0
+  max_score: 1.0
+  allowed_review_statuses:
+    - new
+    - review_required
+    - hold
+    - duplicate_candidate
+    - auto_reject
+    - context_only
+    - under_review
+    - review_approved
+    - review_rejected
+    - publication_prepared
+    - published
+    - publication_failed
+    - rolled_back
+  forbidden_review_statuses:
+    - approved
+    - published
+
+guardrails:
+  forbidden_formal_write_methods:
+    - save_event
+    - save_source
+    - create_event
+    - insert_event_source
+    - save_snapshot
+    - mark_event_superseded
+  formal_db_open_mode: read_only
+  allowed_relationship_types:
+    - same_event
+    - possible_subevent
+    - related_event
+    - separate_event
+    - uncertain
+
+auto_publish:
+  # Production enablement 2026-08-12: low-risk auto publish + real snapshot
+  # activation are ON.  --skip-downstream stays refused (test escape hatch only);
+  # tests enable it explicitly via allow_skip_downstream=true in fixtures.
+  enabled: true
+  policy_version: "1.0"
+  max_per_run: 20
+  max_daily: 50
+  consecutive_failure_limit: 2
+  auto_approver: auto_approver_v1
+  kill_switch_file: data/locks/auto_publish_disabled
+  circuit_break_file: data/locks/auto_publish_circuit_open
+  manifest_dir: data/election_candidates/tainan_2026/auto_publish
+  allowed_risk_levels: [low]
+  allowed_relevance_labels: [direct_event]
+  # 2026-09-03 决策：放宽 inferred_from_publication —— direct_event + 低风险 +
+  # 有 observed_fact + 有源的候选，其日期仅“报道当天”推断（router 已挡掉 date_unknown），
+  # 允许自动发布；unknown 仍禁。
+  forbidden_event_date_basis: [unknown]
+  allowed_source_match_statuses: [exact, normalized_match]
+  required_formal_duplicate_status: no_match
+  required_validation_ready: true
+  # Post-publication wiring.  Production refuses --skip-downstream and keeps
+  # real snapshot/coverage activation enabled.
+  allow_skip_downstream: false
+  auto_activate_snapshots: true
+
+outputs:
+  review_queue: review_queue.json
+  review_queue_md: review_queue.md
+  hold_queue: hold_queue.json
+  duplicate_queue: duplicate_queue.json
+  auto_reject_summary: auto_reject_summary.json
+  candidate_events: candidate_events.jsonl
+  candidate_event_articles: candidate_event_articles.jsonl
+  candidate_assertions: candidate_assertions.jsonl
+  candidate_sources: candidate_sources.jsonl
+  formal_duplicate_suggestions: formal_duplicate_suggestions.jsonl
+  candidate_validation: candidate_validation.json
+  run_manifest: run_manifest.json
+  run_idempotency: run_idempotency.json
+  cluster_relationships: cluster_relationships.json
+
+test_mode: false

@@ -1,0 +1,15 @@
+From: news@ft.com
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="ft-b"
+
+--ft-b
+Content-Type: text/plain; charset="utf-8"
+
+FT plain
+https://www.ft.com/content/ft-multipart
+Plain teaser
+--ft-b
+Content-Type: text/html; charset="utf-8"
+
+<h2><a href="https://www.ft.com/content/ft-multipart">FT multipart</a></h2><p>HTML teaser</p>
+--ft-b--

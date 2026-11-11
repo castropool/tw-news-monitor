@@ -1,0 +1,75 @@
+{
+  "release_name": "tainan-assessment-offline-rc1",
+  "release_status": "offline_release_candidate",
+  "production_status": "blocked_pending_live_validation",
+  "created_at": "2026-08-06T19:33:56.568088",
+  "application_version": "1.1.0-rc1",
+  "base_application_version": "1.1.0",
+  "pipeline_version": "1.0.0",
+  "report_schema_version": "1.1",
+  "llm_input_contract_version": "1.1",
+  "generator_version": "1.1.0",
+  "schedule_days": [
+    9,
+    22
+  ],
+  "default_provider": "deepseek",
+  "default_model": "deepseek-v4-flash",
+  "development_pipeline_ready": true,
+  "dry_run_pipeline_ready": true,
+  "production_pipeline_ready": false,
+  "production_blockers": [
+    "DEEPSEEK_API_KEY未配置",
+    "live DeepSeek预检未完成",
+    "飞书旧凭据尚未确认轮换",
+    "飞书生产凭据未配置",
+    "真实计划任务未安装"
+  ],
+  "period_coverage_note": "2026-07-16至2026-07-31历史验收周期 facts_cutoff=2026-07-27 未覆盖 period_end=2026-07-31，该周期不能生成正式报告；仅为历史验收周期限制，不是系统永久阻断。",
+  "test_result": {
+    "passed": 1095,
+    "skipped": 4,
+    "failed": 0
+  },
+  "formal_data_frozen": true,
+  "formal_data_unchanged": true,
+  "evidence_business_semantics_unchanged": true,
+  "formal_data_hashes": {
+    "events_jsonl_sha256": "9f48a40ad78062193f61ce46d5671a0900d33ddc6a621b5c6185101bdff5c00c",
+    "sources_jsonl_sha256": "9d77bfda835f092741c22dd03647821401f74072807fd6647ee45ca1b9031781",
+    "initial_snapshot_sha256": "a447adf088fdeacb727aa2e5736aefc010e9beb0a383ea30e28c409f351314ea",
+    "snapshot_history_sha256": "565d64a04f34c13ecad81a596589fb2f22301401194c7cd83d8bac194427eda5",
+    "poll_seeds_business_hash": "86322d676ee183ddd21dea5e4f5055521e4d770b098a8d73fe48e8c00ad0912c",
+    "coverage_dir_business_hash": "3b0100d57ceff028373115173fac37b93d89b6405451aecd75caa3da7022ec45",
+    "database_business_hash": "5656be1cf7162d60e4e75d219d4a1e0f08bbefac50d1684689e3dc03d8629c09"
+  },
+  "deployment_bundle_hash": "26748afad2f608477a01be91d871d72f33d038b9d06caac734bb60147cb79ad8",
+  "release_archive": {
+    "path": "dist/releases/tainan-assessment-offline-rc1.zip",
+    "size_bytes": 434630,
+    "sha256": "70b8b8f0ac7c9118b0df1f303c71b4e47c3845660dec252e27013d8c7b453ce3",
+    "extracted_validation": {
+      "bundle_valid": true,
+      "sha256_validated_count": 142
+    },
+    "entry_count": 145
+  },
+  "security_scan_result": {
+    "deepseek_api_key_exposed": false,
+    "feishu_app_secret_exposed": false,
+    "feishu_webhook_exposed": false,
+    "authorization_header_exposed": false,
+    "reasoning_content_persisted": false,
+    "absolute_developer_path_exposed": false,
+    "secret_env_value_exposed": false,
+    "deployment_scan_passed": true,
+    "deployment_bundle_scan_passed": true,
+    "local_env_file_secrets_present": true,
+    "rotation_required": true,
+    "production_delivery_blocked_until_rotation_acknowledged": true,
+    "security_scan_freeze_path": "data/reports/tainan_2026/deployment_validation/security_scan_freeze.json"
+  },
+  "production_llm_ready": false,
+  "live_deepseek_test": "not_run",
+  "offline_release_candidate_ready": true
+}

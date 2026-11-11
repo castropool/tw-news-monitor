@@ -1,0 +1,16 @@
+schema_version: "1.0"
+enabled: true
+timezone: Asia/Taipei
+
+scheduling:
+  tier_intervals_minutes:
+    1: 15
+    2: 30
+    3: 60
+    4: 60
+
+backfill:
+  default_days: 30
+
+raw:
+  root: data/social_monitor/raw

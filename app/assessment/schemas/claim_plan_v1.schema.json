@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TainanClaimPlanV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["claim_plan_version", "claim_planner_contract_version", "election_id", "reporting_period", "formal_state_hash", "evidence_pack_hash", "claims", "data_limitations"],
+  "properties": {
+    "claim_plan_version": {"type": "string", "const": "1.0"},
+    "claim_planner_contract_version": {"type": "string", "const": "1.0"},
+    "election_id": {"type": "string"},
+    "reporting_period": {"type": "object"},
+    "formal_state_hash": {"type": "string"},
+    "evidence_pack_hash": {"type": "string"},
+    "data_limitations": {"type": "array", "items": {"type": "string"}},
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim_id", "target_section_id", "claim_type", "claim_strength", "claim_text", "event_ids", "source_ids", "poll_ids", "snapshot_dimensions", "gap_ids", "evidence_reasoning_summary", "confidence", "limitations", "material_for_report", "applies_to_period"],
+        "properties": {
+          "claim_id": {"type": "string", "pattern": "^CP_S0[1-8]_[0-9]{3}$"},
+          "target_section_id": {"type": "string", "enum": ["S01", "S02", "S03", "S04", "S05", "S06", "S07", "S08"]},
+          "claim_type": {"type": "string", "enum": ["factual_synthesis", "current_assessment", "comparative_assessment", "forward_outlook", "limitation", "data_disclosure"]},
+          "claim_strength": {"type": "string", "enum": ["direct_fact", "attributed_statement", "bounded_inference", "strong_inference", "unsupported"]},
+          "claim_text": {"type": "string", "minLength": 1},
+          "event_ids": {"type": "array", "items": {"type": "string"}},
+          "source_ids": {"type": "array", "items": {"type": "string"}},
+          "poll_ids": {"type": "array", "items": {"type": "string"}},
+          "snapshot_dimensions": {"type": "array", "items": {"type": "string"}},
+          "gap_ids": {"type": "array", "items": {"type": "string"}},
+          "evidence_reasoning_summary": {"type": "string"},
+          "confidence": {"type": "string", "enum": ["high", "medium", "low", "not_applicable"]},
+          "limitations": {"type": "array", "items": {"type": "string"}},
+          "material_for_report": {"type": "boolean"},
+          "applies_to_period": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}

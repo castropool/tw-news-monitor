@@ -1,0 +1,15 @@
+From: news@wsj.com
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="wsj-b"
+
+--wsj-b
+Content-Type: text/plain; charset="utf-8"
+
+WSJ plain
+https://www.wsj.com/articles/wsj-multipart
+Plain teaser
+--wsj-b
+Content-Type: text/html; charset="utf-8"
+
+<h2><a href="https://www.wsj.com/articles/wsj-multipart">WSJ multipart</a></h2><p>HTML teaser</p>
+--wsj-b--

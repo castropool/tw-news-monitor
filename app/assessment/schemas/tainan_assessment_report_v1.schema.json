@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TainanAssessmentReportV1_1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "report_id",
+    "election_id",
+    "report_period",
+    "generation_mode",
+    "report_status",
+    "title",
+    "title_claim_ids",
+    "overall_judgment_claim_ids",
+    "sections",
+    "claims",
+    "required_disclosures",
+    "do_not_infer_compliance",
+    "report_statistics",
+    "data_context"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.1"},
+    "report_id": {"type": "string"},
+    "election_id": {"type": "string"},
+    "report_period": {"type": "object", "additionalProperties": true},
+    "generation_mode": {"type": "string", "enum": ["final", "draft_with_data_gap"]},
+    "report_status": {"type": "string", "enum": ["generated", "repaired", "rejected"]},
+    "title": {"type": "string"},
+    "title_claim_ids": {"type": "array", "items": {"type": "string"}},
+    "overall_judgment_claim_ids": {"type": "array", "items": {"type": "string"}},
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["section_id", "heading", "claim_ids", "section_purpose"],
+        "properties": {
+          "section_id": {"type": "string"},
+          "heading": {"type": "string"},
+          "claim_ids": {"type": "array", "items": {"type": "string"}},
+          "section_purpose": {"type": "string"}
+        }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "claim_type",
+          "claim_text",
+          "confidence",
+          "material_for_report",
+          "supporting_event_ids",
+          "supporting_poll_ids",
+          "supporting_source_ids",
+          "supporting_snapshot_dimensions",
+          "supporting_gap_ids",
+          "inference_basis",
+          "limitations",
+          "applies_to_period"
+        ],
+        "properties": {
+          "claim_id": {"type": "string"},
+          "claim_type": {"type": "string", "enum": ["factual_synthesis", "current_assessment", "comparative_assessment", "forward_outlook", "limitation", "data_disclosure"]},
+          "claim_text": {"type": "string"},
+          "confidence": {"type": "string", "enum": ["high", "medium", "low", "not_applicable"]},
+          "material_for_report": {"type": "boolean"},
+          "supporting_event_ids": {"type": "array", "items": {"type": "string"}},
+          "supporting_poll_ids": {"type": "array", "items": {"type": "string"}},
+          "supporting_source_ids": {"type": "array", "items": {"type": "string"}},
+          "supporting_snapshot_dimensions": {"type": "array", "items": {"type": "string"}},
+          "supporting_gap_ids": {"type": "array", "items": {"type": "string"}},
+          "inference_basis": {"type": "string"},
+          "limitations": {"type": "array", "items": {"type": "string"}},
+          "applies_to_period": {"type": "boolean"}
+        }
+      }
+    },
+    "required_disclosures": {"type": "array", "items": {"type": "string"}},
+    "do_not_infer_compliance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule_id", "rule_text", "violated", "related_claim_ids"],
+        "properties": {
+          "rule_id": {"type": "string"},
+          "rule_text": {"type": "string"},
+          "violated": {"type": "boolean"},
+          "related_claim_ids": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "report_statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_count", "section_count", "chinese_char_count", "length_below_target"],
+      "properties": {
+        "claim_count": {"type": "integer"},
+        "section_count": {"type": "integer"},
+        "event_reference_count": {"type": "integer"},
+        "poll_reference_count": {"type": "integer"},
+        "source_reference_count": {"type": "integer"},
+        "gap_reference_count": {"type": "integer"},
+        "chinese_char_count": {"type": "integer"},
+        "length_below_target": {"type": "boolean"}
+      }
+    },
+    "data_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "active_snapshot_id",
+        "previous_snapshot_id",
+        "coverage_version",
+        "facts_cutoff",
+        "poll_cutoff",
+        "period_start",
+        "period_end",
+        "uncovered_date_range"
+      ],
+      "properties": {
+        "active_snapshot_id": {"type": "string"},
+        "previous_snapshot_id": {"type": "string"},
+        "coverage_version": {"type": "string"},
+        "facts_cutoff": {"type": "string"},
+        "poll_cutoff": {"type": "string"},
+        "period_start": {"type": "string"},
+        "period_end": {"type": "string"},
+        "uncovered_date_range": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

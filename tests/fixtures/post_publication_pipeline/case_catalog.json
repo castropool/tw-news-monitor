@@ -1,0 +1,22 @@
+{
+  "pipeline": "post_publication_pipeline",
+  "fixture_kind": "isolated_test_fixture",
+  "cases": {
+    "A": "new event -> coverage updated -> snapshot no change -> non-report day -> assessment pending",
+    "B": "new event changes deterministic snapshot field -> candidate -> validator pass -> auto activate",
+    "C": "new event touches analytical snapshot field -> review_required -> no auto activation -> assessment blocked",
+    "D": "new event published but coverage rebuild fails -> facts stay -> old coverage stays -> refresh failed",
+    "E": "coverage succeeds, snapshot staging fails -> coverage retained -> active snapshot unchanged",
+    "F": "snapshot commit interrupted -> journal detected -> recovery -> exactly one active",
+    "G": "snapshot succeeds, mock assessment fails -> no snapshot rollback -> trigger retry",
+    "H": "report day + full coverage -> mock assessment final format generated",
+    "I": "report day + incomplete coverage -> draft_with_data_gap -> no formal delivery",
+    "J": "duplicate consumption of same refresh request -> no duplicate coverage/snapshot/trigger",
+    "K": "new facts in same period -> old pending trigger superseded",
+    "L": "refresh request after publication rollback -> consumption rejected"
+  },
+  "production_real_commit_performed": false,
+  "production_real_snapshot_activation_performed": false,
+  "production_real_coverage_commit_performed": false,
+  "production_real_assessment_delivery_performed": false
+}

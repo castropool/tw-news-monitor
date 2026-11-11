@@ -1,0 +1,164 @@
+# =============================================================
+# 2026 九合一选举人物实体库（最小集，随开发扩展）
+#
+# 用途：候选人/潜在候选人实体，作为九合一识别的辅助证据。
+#       实体命中绝不单独判正 —— 必须与选举语境/强词组合。
+# 字段说明：
+#   party   : 所属政党
+#   regions : 关联县市（可多个，如跨县市政治人物）
+#   status  : confirmed（正式登记）/ potential（潜在）/ reported（媒体点名）
+#   aliases : 常见别名/简中写法（新闻标题以繁体为主，仍收录简中）
+# =============================================================
+
+candidates:
+  陳亭妃:
+    party: 民進黨
+    regions:
+      - 台南市
+    status: potential
+    aliases:
+      - 陈亭妃
+  謝龍介:
+    party: 國民黨
+    regions:
+      - 台南市
+    status: potential
+    aliases:
+      - 谢龙介
+  林俊憲:
+    party: 民進黨
+    regions:
+      - 台南市
+    status: potential
+  王定宇:
+    party: 民進黨
+    regions:
+      - 台南市
+    status: potential
+  蘇巧慧:
+    party: 民進黨
+    regions:
+      - 新北市
+    status: potential
+    aliases:
+      - 苏巧慧
+  侯友宜:
+    party: 國民黨
+    regions:
+      - 新北市
+    status: potential
+    aliases:
+      - 侯友宜
+  李四川:
+    party: 國民黨
+    regions:
+      - 新北市
+    status: potential
+  洪孟楷:
+    party: 國民黨
+    regions:
+      - 新北市
+    status: potential
+  黃國昌:
+    party: 民眾黨
+    regions:
+      - 新北市
+    status: potential
+  陳時中:
+    party: 民進黨
+    regions:
+      - 台北市
+    status: potential
+  蔣萬安:
+    party: 國民黨
+    regions:
+      - 台北市
+    status: potential
+  黃珊珊:
+    party: 民眾黨
+    regions:
+      - 台北市
+    status: potential
+  鄭文燦:
+    party: 民進黨
+    regions:
+      - 桃園市
+    status: potential
+  張善政:
+    party: 國民黨
+    regions:
+      - 桃園市
+    status: potential
+  高虹安:
+    party: 民眾黨
+    regions:
+      - 新竹市
+    status: potential
+  林智堅:
+    party: 民進黨
+    regions:
+      - 新竹市
+    status: potential
+  楊文科:
+    party: 國民黨
+    regions:
+      - 新竹縣
+    status: potential
+  周江杰:
+    party: 民進黨
+    regions:
+      - 新竹縣
+    status: potential
+  陳其邁:
+    party: 民進黨
+    regions:
+      - 高雄市
+    status: potential
+  柯志恩:
+    party: 國民黨
+    regions:
+      - 高雄市
+    status: potential
+  盧秀燕:
+    party: 國民黨
+    regions:
+      - 台中市
+    status: potential
+  蔡其昌:
+    party: 民進黨
+    regions:
+      - 台中市
+    status: potential
+  江啟臣:
+    party: 國民黨
+    regions:
+      - 台中市
+    status: potential
+  謝國樑:
+    party: 國民黨
+    regions:
+      - 基隆市
+    status: potential
+  王美惠:
+    party: 民進黨
+    regions:
+      - 嘉義市
+    status: potential
+  賴清德:
+    party: 民進黨
+    regions: []
+    status: other
+    aliases:
+      - 赖清德
+  朱立倫:
+    party: 國民黨
+    regions: []
+    status: other
+    aliases:
+      - 朱立伦
+  柯文哲:
+    party: 民眾黨
+    regions: []
+    status: other
+    aliases:
+      - 柯文哲

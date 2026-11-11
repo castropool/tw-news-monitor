@@ -1,0 +1,129 @@
+# 独立事件处理规则；不影响 config/military.yaml 的采集过滤。
+version: 1
+word_enabled: false
+entities:
+  organizations:
+    国军: [國軍, 台軍, 台灣軍方]
+    陆军: [陸軍]
+    海军: [海軍]
+    空军: [空軍]
+    海军陆战队: [海軍陸戰隊, 陸戰隊]
+    宪兵: [憲兵]
+    后备: [後備]
+    国防部: [國防部]
+    参谋本部: [參謀本部]
+    中科院: [中科院, 國家中山科學研究院]
+    解放军: [解放軍, 共軍, 共機, 共艦]
+    美军: [美軍, 美國軍方]
+  weapons:
+    F-16V: [F-16V, F16V]
+    F-16: [F-16, F16]
+    幻象2000: [幻象2000, 幻象戰機]
+    IDF: [IDF, 經國號]
+    勇鹰: [勇鷹]
+    海鲲号: [海鯤號, 海鯤艦]
+    沱江舰: [沱江艦]
+    玉山舰: [玉山艦]
+    爱国者: [愛國者]
+    天弓: [天弓]
+    雄风: [雄風]
+    海马斯: [海馬斯, HIMARS]
+    M1A2T: [M1A2T, M1A2T戰車]
+    MQ-9B: [MQ-9B, MQ9B]
+    山东舰: [山東艦]
+    辽宁舰: [遼寧艦]
+  equipment:
+    战机: [戰機, 軍機]
+    军舰: [軍艦, 航母, 航空母艦]
+    潜舰: [潛艦, 潛艇]
+    无人机: [無人機, 無人系統, 無人載具]
+    飞弹: [飛彈, 導彈]
+    防空: [防空系統, 防空]
+    雷达: [雷達]
+    火炮: [火炮, 榴彈炮]
+    战车: [戰車, 裝甲車]
+    卫星: [衛星]
+    电子战: [電子戰]
+    弹药: [彈藥]
+  named_events:
+    汉光演习: [漢光演習, 漢光軍演]
+    立即备战操演: [立即備戰操演]
+  places:
+    台湾海峡: [台灣海峽, 台海, 海峽中線, 臺灣海峽]
+    南海: [南海]
+    花莲: [花蓮]
+    台东: [台東]
+    屏东: [屏東]
+    高雄: [高雄]
+    澎湖: [澎湖]
+    金门: [金門]
+actions:
+  budget: [預算, 質疑, 凍結, 刪減]
+  sale: [軍售, 軍援, 採購, 軍購]
+  delivery: [交付, 接收, 交機, 交艦, 運抵]
+  research: [研發, 造艦, 潛艦自造, 軍工, 軍事科技, AI軍事, 建案]
+  plan: [規劃, 預告]
+  test: [測試, 試驗, 試射, 試飛, 海試, 潛航測試]
+  transit: [通過, 航經, 穿越]
+  exercise: [演習, 演訓, 軍演, 操演, 訓練, 實彈射擊, 聯合戰備警巡]
+  deployment: [部署, 戰備偵巡, 巡航, 越過, 圍台, 擾台, 活動, 動態]
+  inspection: [檢查, 維護, 後勤, 補充, 戰備]
+  service: [成軍, 服役]
+  security: [機密, 外洩, 外泄, 查獲, 間諜]
+  interaction: [军事交流, 軍事交流, 聯訓, 代表團, 互訪]
+action_priority: [budget, sale, delivery, research, plan, test, transit, exercise, deployment, service, security, interaction, inspection]
+scope:
+  taiwan: [台灣, 臺灣, 台軍, 國軍, 對台, 援台, 圍台, 擾台, 台海, 海峽中線, 美台, 抵台]
+  foreign: [美國, 美軍, 美海軍, 美陸軍, 美空軍, 美測試, 美國空軍, 美國海軍, 以色列, 烏克蘭, 俄羅斯, 日本, 韓國, 南海, 德國, 英國, 法國, 印度, 巴基斯坦, 伊朗, 朝鮮, 北韓, 澳洲, 在澳, 歐洲, 帕勞, 太平洋島國, 中國試射, 中國空軍, 中國海軍, 希臘, 波蘭, 瑞典, 芬蘭, 巴西]
+  us: [美國, 美軍, 美海軍, 美陸軍, 美空軍, 對美, 美台, 美售台, 美援台, 美測試, 華府, 五角大廈, 白宮, 國務院, 國會, 川普, 特朗普, 拜登, 歐巴馬, 奧巴馬, 美方, 美參院, 美眾院]
+  strong_signals: [對台軍售, 對台軍援, 美台軍事交流, 軍事安全]
+  military_context: [軍用, 軍事, 國防, 台軍, 國軍]
+negative:
+  contexts: [遊戲, 電玩, 電影, 影視, 動畫, 玩具, 模型玩具, 農業, 噴藥, 農用, 燈光秀, 球迷, 概念股, 股價, 歷史回顧, 歷史上的, 回顧當年, 攝影比賽, 家庭日, 敬軍餐會, 慰問活動]
+  political_noise: [政治口水, 口水戰, 藍綠互批, 政黨攻防]
+  status_negative: [取消, 否認, 並未, 並非, 不會, 未進行, 尚未, 沒有]
+categories:
+  taiwan_exercise: 台军演训
+  taiwan_equipment: 台军装备
+  arms_sale: 军购军援
+  defense_technology: 军事科技与军工
+  pla_activity: 解放军台海动态
+  us_taiwan_military: 美台军事互动
+  other_military: 其他涉台军事安全
+category_actions:
+  arms_sale: [sale, delivery]
+  defense_technology: [research]
+  taiwan_exercise: [exercise, plan]
+  taiwan_equipment: [test, service]
+clustering:
+  window_hours: 72
+  missing_time_window_hours: 12
+  threshold: 60
+  min_title_similarity: 0.12
+  entity_weight: 35
+  action_weight: 25
+  title_weight: 30
+  place_weight: 5
+  time_weight: 10
+  time_penalty: 18
+  broad_places: [台湾海峡]
+  daily_bulletins: [台海周邊, 共機擾台, 24小時]
+importance:
+  category_base: {taiwan_exercise: 40, taiwan_equipment: 40, arms_sale: 48, defense_technology: 38, pla_activity: 45, us_taiwan_military: null, other_military: 25}
+  key_equipment: [战机, 潜舰, 飞弹, 防空, F-16V, F-16, 幻象2000, IDF, 海鲲号, 海马斯, 天弓, 雄风, M1A2T]
+  equipment_bonus: 12
+  source_bonus: 4
+  max_source_bonus: 8
+  signals:
+    first: {terms: [首次, 首度], actions: [test, exercise, delivery, service, research], weight: 10, reason: 首次军事活动或装备里程碑}
+    live_fire: {terms: [實彈], actions: [test, exercise], weight: 12, reason: 实弹试验或演训}
+    large_scale: {terms: [大規模, 大批], actions: [exercise, deployment], weight: 14, reason: 大规模军事行动}
+    urgent: {terms: [突發, 緊急, 圍台], actions: [exercise, deployment], weight: 12, reason: 台海紧急军事活动}
+    delivered: {terms: [正式交付, 正式接收], actions: [delivery], weight: 8, reason: 装备正式交付}
+sources:
+  中央社: {aliases: [中央社, 中央通訊社], quality: 24, mainstream: true}
+  联合报: {aliases: [联合报, 聯合報, 联合新闻网, 聯合新聞網], quality: 20, mainstream: true}
+  自由时报: {aliases: [自由时报, 自由時報, 自由軍武, 自由军武], quality: 20, mainstream: true}
+  NOWnews: {aliases: [NOWnews, NOWnews今日新聞, NOWnews 今日新聞], quality: 18, mainstream: true}
+  青年日报: {aliases: [青年日报, 青年日報], quality: 20, mainstream: false}
+  军闻社: {aliases: [军闻社, 軍聞社, 軍事新聞通訊社], quality: 20, mainstream: false}

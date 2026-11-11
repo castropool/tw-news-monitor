@@ -1,0 +1,40 @@
+写作目标：根据本期正式证据包生成一份台南市长选情内部研判稿。全文以“观点/判断优先、近期事实佐证”组织：先给结论摘要，再集中讲清 1-3 个核心研判，其余事实进附录。禁止新闻流水账罗列。
+
+报告结构（固定顺序，机器逐字段校验）：
+1. conclusion_summary（结论摘要，1-3 条）：
+   - 每条为一句可证伪判断，必须有明确方向（如“A 在 X 上领先/落后/接近”），禁止“值得关注”“有待观察”“需持续观察”等零信息套话；
+   - 每条必须绑定证据引用（evidence_refs），不得写证据包外事实。
+2. core_assessments（核心研判，1-3 个）：每个单元内部固定顺序，字段一一对应：
+   - judgment：明确判断（1-2 句，有方向性、可证伪）；
+   - evidence_items：最近事实证据 2-4 条，优先报告期内；每条必须写 evidence_id（证据包内 event/poll ID）、evidence_date（与证据包一致的日期）、evidence_summary（一句话事实，不夹带判断）；
+   - evidence_refs：本单元引用的 event/poll/source/gap/snapshot dimension ID；
+   - reasoning：推理链，解释这些事实为何支持该判断（不得复述新闻、不得重复判断原文）；
+   - falsifiers_or_limits：反证/限制条件，写明什么新事实会推翻或削弱该判断；
+   - confidence：high / medium / low；
+   - watch_indicators：下一期可观察指标（1-3 条）。
+3. appendix（数据限制与事实附录）：无法形成核心判断的新闻、背景事实、数据限制与披露放在这里，不进入核心正文。
+4. required_disclosures：逐字写入证据包 mandatory_disclosure_texts 中的披露文字（事实截止、民调截止、未覆盖日期、民调空窗等）。
+
+写作规则：
+- 观点先行：正文第一块必须是结论摘要，禁止从新闻事实清单开头。
+- 宁可少而讲透：全文最多 3 个核心研判；同一证据（evidence_id）不得在多个研判单元重复使用；不为了覆盖栏目而硬凑判断。
+- 候选人、政党整合、民调、治理议题不再强制各占一节；只有能支持某个核心判断的内容才进入正文，其余进入附录。
+- 段落化、连贯：每个核心研判建议 350-700 中文字；避免 bullet 堆叠、逐条新闻摘要、同义反复、空泛形容。
+- 没有实质变化时，结论摘要必须明确写“总体格局保持稳定/无明显变化”之类的方向性判断，不得用空话代替。
+- 事实与判断措辞区分：evidence_items 只陈述证据包事实；judgment/reasoning 使用“研判、显示、可能、预计、值得观察”等限定词。
+- 人物与组织名称必须逐字使用输入证据中出现的完整名称；不得使用“赖陈”“韩侯蒋”等姓氏拼接或自造缩写。
+- 不得为了形成报告而强行制造变化；判断强度不得超出证据强度。
+
+引用与披露细则：
+- 只能使用请求中 allowed_reference_ids 明列的 event_id、poll_id、source_id、gap_id 和 snapshot dimension；其他位置出现的 ID 仅是背景文本，不是可引用 ID。
+- required_disclosures 只能填写披露文字（字符串），必须逐字覆盖 mandatory_disclosure_texts 中的每条，不得改写日期格式或同义转述；每条披露同时应在 appendix 中给出对应 disclosure 条目或与某条结论直接相关。
+- 民调限制必须使用 mandatory_disclosure_texts 的原句；引用报告期之前的民调时，evidence_date 必须写明该民调实际日期，并保留“正式民调截止至……”披露与局限说明，不得写成“当前/最新支持率”。
+- evidence_refs.source_ids 使用扁平并集：每个所引 event/poll 至少列出一个与之正式关联的 source_id；每个列出的 source_id 也必须至少关联一个所引 event/poll。
+- 禁止为了说明合规而复述“胜选概率”“当前支持率”等禁用表达；直接陈述证据限制。
+
+最终结构自检（写完后逐单元自查）：
+1. 每个研判单元：judgment 有方向、可证伪；evidence_items 2-4 条带日期与证据 ID；reasoning 是真正的推理链（解释“为何”），不是新闻复述，也不是判断的同义反复；falsifiers_or_limits 写明推翻条件；confidence 与 watch_indicators 完整。
+2. 结论摘要 ≤3 条、核心研判 ≤3 个；同一 evidence_id 未在多个单元重复。
+3. 所有判断均有证据绑定；未引入证据包外任何事实、人物、数字、日期。
+4. 旧民调均写明日期且带局限披露。
+5. data_context 原样照抄权威值。

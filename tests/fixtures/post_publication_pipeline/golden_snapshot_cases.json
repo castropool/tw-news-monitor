@@ -1,0 +1,599 @@
+[
+  {
+    "case_id": "snap_01_no_new_events",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [
+      "evt_fix_nom"
+    ],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [],
+    "events_by_id": {},
+    "coverage": {
+      "coverage_version": "fact_coverage_20260727_v001",
+      "built_from_formal_state_hash": "h1"
+    },
+    "as_of": "2026-08-01",
+    "refresh_batch_id": "dr_a",
+    "expected_change_required": false,
+    "expected_review": false
+  },
+  {
+    "case_id": "snap_02_deterministic_milestone",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g2"
+    ],
+    "events_by_id": {
+      "evt_g2": {
+        "event_id": "evt_g2",
+        "occurred_at": "2026-08-02",
+        "event_type": "primary_result"
+      }
+    },
+    "coverage": {
+      "coverage_version": "fact_coverage_20260802_v001",
+      "built_from_formal_state_hash": "h2"
+    },
+    "as_of": "2026-08-02",
+    "refresh_batch_id": "dr_b",
+    "expected_change_required": true,
+    "expected_auto": true,
+    "expected_review": false,
+    "expected_change_type": "deterministic_append"
+  },
+  {
+    "case_id": "snap_03_analytical_review",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g3"
+    ],
+    "events_by_id": {
+      "evt_g3": {
+        "event_id": "evt_g3",
+        "occurred_at": "2026-08-03",
+        "event_type": "campaign_event"
+      }
+    },
+    "coverage": {
+      "coverage_version": "fact_coverage_20260803_v001",
+      "built_from_formal_state_hash": "h3"
+    },
+    "as_of": "2026-08-03",
+    "refresh_batch_id": "dr_c",
+    "expected_change_required": true,
+    "expected_auto": false,
+    "expected_review": true
+  },
+  {
+    "case_id": "snap_04_milestone_plus_analytical",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g4a",
+      "evt_g4b"
+    ],
+    "events_by_id": {
+      "evt_g4a": {
+        "event_id": "evt_g4a",
+        "occurred_at": "2026-08-04",
+        "event_type": "primary_result"
+      },
+      "evt_g4b": {
+        "event_id": "evt_g4b",
+        "occurred_at": "2026-08-04",
+        "event_type": "poll_release"
+      }
+    },
+    "coverage": {
+      "coverage_version": "fact_coverage_20260804_v001",
+      "built_from_formal_state_hash": "h4"
+    },
+    "as_of": "2026-08-04",
+    "refresh_batch_id": "dr_d",
+    "expected_change_required": true,
+    "expected_auto": false,
+    "expected_review": true
+  },
+  {
+    "case_id": "snap_05_no_dimension_impact",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [
+      "old"
+    ],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g5"
+    ],
+    "events_by_id": {
+      "evt_g5": {
+        "event_id": "evt_g5",
+        "occurred_at": "2026-08-05",
+        "event_type": "primary_registration"
+      }
+    },
+    "coverage": {
+      "coverage_version": "fact_coverage_20260805_v001",
+      "built_from_formal_state_hash": "h5"
+    },
+    "as_of": "2026-08-05",
+    "refresh_batch_id": "dr_e",
+    "expected_change_required": false,
+    "expected_review": false
+  },
+  {
+    "case_id": "snap_06_unknown_type",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g6"
+    ],
+    "events_by_id": {
+      "evt_g6": {
+        "event_id": "evt_g6",
+        "occurred_at": "2026-08-06",
+        "event_type": "unknown"
+      }
+    },
+    "coverage": {
+      "coverage_version": "fact_coverage_20260806_v001",
+      "built_from_formal_state_hash": "h6"
+    },
+    "as_of": "2026-08-06",
+    "refresh_batch_id": "dr_f",
+    "expected_change_required": false,
+    "expected_review": false
+  },
+  {
+    "case_id": "snap_07_merge_milestones",
+    "previous_state": {
+      "milestone_events": [
+        "old_m"
+      ],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [
+      "old_m"
+    ],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g7"
+    ],
+    "events_by_id": {
+      "evt_g7": {
+        "event_id": "evt_g7",
+        "occurred_at": "2026-08-07",
+        "event_type": "primary_result"
+      }
+    },
+    "coverage": {
+      "coverage_version": "fact_coverage_20260807_v001",
+      "built_from_formal_state_hash": "h7"
+    },
+    "as_of": "2026-08-07",
+    "refresh_batch_id": "dr_g",
+    "expected_change_required": true,
+    "expected_auto": true,
+    "expected_milestones": [
+      "evt_g7",
+      "old_m"
+    ]
+  },
+  {
+    "case_id": "snap_08_missing_event",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_missing"
+    ],
+    "events_by_id": {},
+    "coverage": {
+      "coverage_version": "x",
+      "built_from_formal_state_hash": "h"
+    },
+    "as_of": "2026-08-08",
+    "refresh_batch_id": "dr_h",
+    "expected_error": "not found"
+  },
+  {
+    "case_id": "snap_09_id_increment",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v3",
+    "new_event_ids": [
+      "evt_g9"
+    ],
+    "events_by_id": {
+      "evt_g9": {
+        "event_id": "evt_g9",
+        "occurred_at": "2026-08-09",
+        "event_type": "primary_result"
+      }
+    },
+    "coverage": {
+      "coverage_version": "fact_coverage_20260809_v001",
+      "built_from_formal_state_hash": "h9"
+    },
+    "as_of": "2026-08-09",
+    "refresh_batch_id": "dr_i",
+    "expected_change_required": true,
+    "expected_candidate_id": "tn_state_20260809_v4"
+  },
+  {
+    "case_id": "snap_10_id_stable",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g10"
+    ],
+    "events_by_id": {
+      "evt_g10": {
+        "event_id": "evt_g10",
+        "occurred_at": "2026-08-10",
+        "event_type": "primary_result"
+      }
+    },
+    "coverage": {
+      "coverage_version": "fact_coverage_20260810_v001",
+      "built_from_formal_state_hash": "h10"
+    },
+    "as_of": "2026-08-10",
+    "refresh_batch_id": "dr_j",
+    "expected_change_required": true,
+    "expected_candidate_id": "tn_state_20260810_v2"
+  },
+  {
+    "case_id": "snap_11_supporting_accumulate",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [
+      "a",
+      "b"
+    ],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g11"
+    ],
+    "events_by_id": {
+      "evt_g11": {
+        "event_id": "evt_g11",
+        "occurred_at": "2026-08-11",
+        "event_type": "primary_result"
+      }
+    },
+    "coverage": {
+      "coverage_version": "x",
+      "built_from_formal_state_hash": "h"
+    },
+    "as_of": "2026-08-11",
+    "refresh_batch_id": "dr_k",
+    "expected_change_required": true,
+    "expected_supporting": [
+      "a",
+      "b",
+      "evt_g11"
+    ]
+  },
+  {
+    "case_id": "snap_12_analytical_unchanged",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g12"
+    ],
+    "events_by_id": {
+      "evt_g12": {
+        "event_id": "evt_g12",
+        "occurred_at": "2026-08-12",
+        "event_type": "campaign_event"
+      }
+    },
+    "coverage": {
+      "coverage_version": "x",
+      "built_from_formal_state_hash": "h"
+    },
+    "as_of": "2026-08-12",
+    "refresh_batch_id": "dr_l",
+    "expected_change_required": true,
+    "expected_review": true,
+    "expected_new_value": "unchanged_pending_review"
+  },
+  {
+    "case_id": "snap_13_no_previous_id",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "",
+    "new_event_ids": [
+      "evt_g13"
+    ],
+    "events_by_id": {
+      "evt_g13": {
+        "event_id": "evt_g13",
+        "occurred_at": "2026-08-13",
+        "event_type": "primary_result"
+      }
+    },
+    "coverage": {
+      "coverage_version": "x",
+      "built_from_formal_state_hash": "h"
+    },
+    "as_of": "2026-08-13",
+    "refresh_batch_id": "dr_m",
+    "expected_change_required": true,
+    "expected_candidate_id": "tn_state_20260813_v1"
+  },
+  {
+    "case_id": "snap_14_nomination_review",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g14"
+    ],
+    "events_by_id": {
+      "evt_g14": {
+        "event_id": "evt_g14",
+        "occurred_at": "2026-08-14",
+        "event_type": "party_nomination"
+      }
+    },
+    "coverage": {
+      "coverage_version": "x",
+      "built_from_formal_state_hash": "h"
+    },
+    "as_of": "2026-08-14",
+    "refresh_batch_id": "dr_n",
+    "expected_change_required": true,
+    "expected_review": true,
+    "expected_auto": false
+  },
+  {
+    "case_id": "snap_15_launch_review",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g15"
+    ],
+    "events_by_id": {
+      "evt_g15": {
+        "event_id": "evt_g15",
+        "occurred_at": "2026-08-15",
+        "event_type": "campaign_launch"
+      }
+    },
+    "coverage": {
+      "coverage_version": "x",
+      "built_from_formal_state_hash": "h"
+    },
+    "as_of": "2026-08-15",
+    "refresh_batch_id": "dr_o",
+    "expected_change_required": true,
+    "expected_review": true
+  },
+  {
+    "case_id": "snap_16_alliance_agreement",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g16"
+    ],
+    "events_by_id": {
+      "evt_g16": {
+        "event_id": "evt_g16",
+        "occurred_at": "2026-08-16",
+        "event_type": "alliance_agreement"
+      }
+    },
+    "coverage": {
+      "coverage_version": "x",
+      "built_from_formal_state_hash": "h"
+    },
+    "as_of": "2026-08-16",
+    "refresh_batch_id": "dr_p",
+    "expected_change_required": true,
+    "expected_auto": true,
+    "expected_review": false
+  },
+  {
+    "case_id": "snap_17_announcement",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g17"
+    ],
+    "events_by_id": {
+      "evt_g17": {
+        "event_id": "evt_g17",
+        "occurred_at": "2026-08-17",
+        "event_type": "candidate_announcement"
+      }
+    },
+    "coverage": {
+      "coverage_version": "x",
+      "built_from_formal_state_hash": "h"
+    },
+    "as_of": "2026-08-17",
+    "refresh_batch_id": "dr_q",
+    "expected_change_required": true,
+    "expected_auto": true
+  },
+  {
+    "case_id": "snap_18_governance_review",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g18"
+    ],
+    "events_by_id": {
+      "evt_g18": {
+        "event_id": "evt_g18",
+        "occurred_at": "2026-08-18",
+        "event_type": "governance_event"
+      }
+    },
+    "coverage": {
+      "coverage_version": "x",
+      "built_from_formal_state_hash": "h"
+    },
+    "as_of": "2026-08-18",
+    "refresh_batch_id": "dr_r",
+    "expected_change_required": true,
+    "expected_review": true
+  },
+  {
+    "case_id": "snap_19_disaster_review",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g19"
+    ],
+    "events_by_id": {
+      "evt_g19": {
+        "event_id": "evt_g19",
+        "occurred_at": "2026-08-19",
+        "event_type": "disaster_response"
+      }
+    },
+    "coverage": {
+      "coverage_version": "x",
+      "built_from_formal_state_hash": "h"
+    },
+    "as_of": "2026-08-19",
+    "refresh_batch_id": "dr_s",
+    "expected_change_required": true,
+    "expected_review": true
+  },
+  {
+    "case_id": "snap_20_poll_review",
+    "previous_state": {
+      "milestone_events": [],
+      "candidate_status": "unknown",
+      "structural_lean": "unknown",
+      "competitiveness": "unknown"
+    },
+    "previous_supporting": [],
+    "previous_snapshot_id": "tn_state_20260801_v1",
+    "new_event_ids": [
+      "evt_g20"
+    ],
+    "events_by_id": {
+      "evt_g20": {
+        "event_id": "evt_g20",
+        "occurred_at": "2026-08-20",
+        "event_type": "poll_release"
+      }
+    },
+    "coverage": {
+      "coverage_version": "x",
+      "built_from_formal_state_hash": "h"
+    },
+    "as_of": "2026-08-20",
+    "refresh_batch_id": "dr_t",
+    "expected_change_required": true,
+    "expected_review": true
+  }
+]

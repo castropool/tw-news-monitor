@@ -1,0 +1,90 @@
+enabled: true
+# Noise is retained in news.db and excluded only from delivery.
+noise_mode: exclude_from_delivery
+
+# Protection terms take priority over noise phrases.  Traditional and
+# simplified spellings are both explicit because feeds can contain either.
+keep_keywords:
+  - 軍購
+  - 军购
+  - 軍售
+  - 军售
+  - 軍演
+  - 军演
+  - 共軍
+  - 共军
+  - 軍機
+  - 军机
+  - 軍艦
+  - 军舰
+  - 飛彈
+  - 飞弹
+  - 導彈
+  - 导弹
+  - 戰機
+  - 战机
+  - 潛艦
+  - 潜舰
+  - 無人機
+  - 无人机
+  - 無人艇
+  - 无人艇
+  - 雷達
+  - 雷达
+  - 防空
+  - 戰車
+  - 战车
+  - 火炮
+  - 國防預算
+  - 国防预算
+  - 軍事投資
+  - 军事投资
+  - 國防產業
+  - 国防产业
+  - 戰備
+  - 战备
+  - 兵推
+  - 漢光演習
+  - 汉光演习
+  - 軍事科技
+  - 军事科技
+  - 航母
+  - 武器
+  - 反潛
+  - 反潜
+  - 演練
+  - 演练
+  - 敵情
+  - 敌情
+  - 作戰
+  - 作战
+  - 情監偵
+  - 情监侦
+  - 戰力
+  - 战力
+
+drop_phrases:
+  - 軍人節優惠
+  - 军人节优惠
+  - 敬軍餐會
+  - 敬军餐会
+  - 軍眷活動
+  - 军眷活动
+  - 攝影比賽
+  - 摄影比赛
+  - 文藝活動
+  - 文艺活动
+  - 運動會
+  - 运动会
+  - 慰問活動
+  - 慰问活动
+  - 官兵家庭日
+  - 家庭日
+  - 慰問官兵
+  - 慰问官兵
+  - 勞軍
+  - 劳军
+  - 慰訪
+  - 慰访
+  - 聯誼茶會
+  - 联谊茶会

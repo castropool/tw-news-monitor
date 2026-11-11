@@ -1,0 +1,235 @@
+sources:
+- category: politics
+  collector: rss
+  id: cna_politics
+  name: 中央社
+  type: rss
+  url: https://feeds.feedburner.com/rsscna/politics
+- category: economy
+  collector: rss
+  id: cna_finance
+  name: 中央社
+  type: rss
+  url: https://feeds.feedburner.com/rsscna/finance
+- category: international
+  collector: rss
+  id: cna_international
+  name: 中央社
+  type: rss
+  url: https://feeds.feedburner.com/rsscna/intworld
+- category: politics
+  collector: udn
+  id: udn_politics
+  name: 聯合新聞網
+  type: udn
+  url: https://udn.com/news/cate/2/6638
+- category: economy
+  collector: udn
+  id: udn_economy
+  name: 聯合新聞網
+  type: udn
+  url: https://udn.com/news/cate/2/6644
+- category: international
+  collector: udn
+  id: udn_international
+  name: 聯合新聞網
+  type: udn
+  url: https://udn.com/news/cate/2/7225
+- category: politics
+  collector: ebc
+  id: ebc_politics
+  name: 東森新聞
+  type: ebc
+  url: https://news.ebc.net.tw/news/politics
+- category: economy
+  collector: ebc
+  id: ebc_economy
+  name: 東森新聞
+  type: ebc
+  url: https://news.ebc.net.tw/news/business
+- category: international
+  collector: ebc
+  id: ebc_international
+  name: 東森新聞
+  type: ebc
+  url: https://news.ebc.net.tw/news/world
+- category: politics
+  enabled: false
+  id: president_press
+  name: 總統府
+  type: president_json
+  url: https://www.president.gov.tw/Handler/GetNews.ashx
+- category: politics
+  enabled: false
+  id: cna_web_politics
+  name: 中央社
+  type: cna_list_html
+  url: https://www.cna.com.tw/list/aipl.aspx
+- category: economy
+  enabled: false
+  id: cna_web_economy
+  name: 中央社
+  type: cna_list_html
+  url: https://www.cna.com.tw/list/aie.aspx
+- category: international
+  enabled: false
+  id: cna_web_international
+  name: 中央社
+  type: cna_list_html
+  url: https://www.cna.com.tw/list/aopl.aspx
+- category: politics
+  enabled: false
+  id: ltn_politics
+  name: 自由時報
+  type: ltn_rss
+  url: https://news.ltn.com.tw/rss/politics.xml
+- category: economy
+  enabled: false
+  id: ltn_economy
+  name: 自由時報
+  type: ltn_rss
+  url: https://news.ltn.com.tw/rss/business.xml
+- category: international
+  enabled: false
+  id: ltn_international
+  name: 自由時報
+  type: ltn_rss
+  url: https://news.ltn.com.tw/rss/world.xml
+- default_category: military
+  enabled: true
+  id: ltn_defense
+  name: 自由时报·军武
+  type: ltn_rss
+  url: https://news.ltn.com.tw/rss/def.xml
+- category: politics
+  enabled: false
+  id: newtalk_politics
+  name: Newtalk新聞
+  type: newtalk_rss
+  url: https://newtalk.tw/rss/category/2
+- category: economy
+  enabled: false
+  id: newtalk_economy
+  name: Newtalk新聞
+  type: newtalk_rss
+  url: https://newtalk.tw/rss/category/3
+- category: international
+  enabled: false
+  id: newtalk_international
+  name: Newtalk新聞
+  type: newtalk_rss
+  url: https://newtalk.tw/rss/category/1
+- category: politics
+  enabled: false
+  id: storm_politics
+  name: 風傳媒
+  type: rss
+  url: https://www.storm.mg/api/getRss/channel_id/7?path=https%3A%2F%2Fwww.storm.mg%2Farticle
+- category: international
+  enabled: false
+  id: storm_international
+  name: 風傳媒
+  type: rss
+  url: https://www.storm.mg/api/getRss/channel_id/10?path=https%3A%2F%2Fwww.storm.mg%2Farticle
+- category: politics
+  enabled: false
+  id: ey_cabinet_news
+  name: 行政院
+  type: rss
+  url: https://www.ey.gov.tw/RSS_Content.aspx?ModuleType=3
+- category: politics
+  enabled: false
+  id: ey_ministry_news
+  name: 行政院
+  type: rss
+  url: https://www.ey.gov.tw/RSS_Content.aspx?ModuleType=4
+# 西藏之聲（Voice of Tibet，印度達蘭薩拉）中文新聞
+# 注意：cn.vot.org 在當前監測環境持續返回 HTTP 429，RSS 地址尚未完成
+# 生產網絡驗證；本來源不設固定 category，文章按內容進入既有欄目。
+- enabled: true
+  id: voice_of_tibet_cn
+  name: 西藏之声
+  type: rss
+  url: https://cn.vot.org/feed/
+# 联合早报（新加坡）国际频道：官网无公开 RSS，列表页也不含发布时间；
+# 使用官方 Google News Sitemap（googlenews.xml），path_prefix 限定栏目。
+- category: international
+  enabled: true
+  id: zaobao_international
+  name: 联合早报·国际
+  path_prefix: /news/world/
+  type: zaobao
+  url: https://www.zaobao.com.sg/googlenews.xml
+# ══════════════════════════════════════════════════════════════════
+# 国际媒体免费监测层 Phase I（2026-08-13 调研结论，详见
+# docs/international_sources_research.md）
+# 三类 collector（reuters / ft_alphaville / wsj_rss）已于 Phase I 实现并
+# 注册 COLLECTOR_MAP；wsj_rss 停用（enabled: false）但类完整可用。
+# ══════════════════════════════════════════════════════════════════
+# Reuters：官方 RSS 已停用（arc/outboundfeeds 各 rss 端点 404）；
+# 使用官方 Google News sitemap（news-sitemap-index / news-sitemap 分页）。
+# 栏目可由 URL path 派生（/world/ /business/ /markets/ /technology/ 等）。
+- access_level: metadata_only
+  category: international
+  enabled: false
+  id: reuters_international
+  language: en
+  name: Reuters
+  type: reuters
+  url: https://www.reuters.com/arc/outboundfeeds/news-sitemap-index/?outputType=xml
+# Financial Times：FT Alphaville 官方 RSS，RSS 2.0，
+# 提供 title / description(简短摘要) / link / pubDate / guid，无全文。
+- access_level: public
+  category: international
+  enabled: false
+  id: ft_alphaville
+  language: en
+  name: Financial Times
+  section: alphaville
+  type: ft_alphaville
+  url: https://www.ft.com/alphaville?format=rss
+# WSJ：只接收操作员授权邮箱中、InternationalNews label 下的官方 Newsletter。
+# 当前 disabled；没有真实 OAuth/Newsletter 验收时不得打开。
+- access_level: newsletter
+  article_allowlist:
+  - wsj.com
+  category: international
+  enabled: false
+  id: wsj_newsletter
+  language: en
+  mailbox_label: InternationalNews
+  mailbox_since: 1d
+  name: Wall Street Journal
+  sender_allowlist:
+  - wsj.com
+  - dowjones.com
+  type: wsj_newsletter
+  url: https://www.wsj.com/newsletters
+# Bloomberg：同样仅走只读邮箱 adapter；普通网页/robots 受限入口不作为 collector。
+- access_level: newsletter
+  article_allowlist:
+  - bloomberg.com
+  category: international
+  enabled: false
+  id: bloomberg_newsletter
+  language: en
+  mailbox_label: InternationalNews
+  mailbox_since: 1d
+  name: Bloomberg
+  sender_allowlist:
+  - bloomberg.com
+  - bloombergmedia.com
+  type: bloomberg_newsletter
+  url: https://www.bloomberg.com/account/newsletters
+# Wall Street Journal：官方 Dow Jones RSS 技术上可访问但已冻结
+# （lastBuildDate≈2025-01-27）且条目均标 PAID（AccessClassName）→ 判定
+# 不可靠，Phase I 停用（enabled: false），仅保留条目与 collector/adapter 占位。
+- access_level: metadata_only
+  category: international
+  enabled: false
+  id: wsj_international
+  language: en
+  name: Wall Street Journal
+  section: world
+  type: wsj_rss
+  url: https://feeds.a.dj.com/rss/RSSWorldNews.xml

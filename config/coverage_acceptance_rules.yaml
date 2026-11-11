@@ -1,0 +1,47 @@
+# Coverage 统一验收规则（Phase 3.5 权威语义）
+#
+# 本文件是 Coverage Builder / Coverage Validator / 报告门禁共用的唯一核心规则来源。
+# 任何一处 Coverage 完整性判断不得另行复制一套 if 逻辑。
+coverage:
+  # coverage_status=full 必须同时满足以下条件
+  full_requires:
+    facts_cutoff_reaches_period_end: true
+    formal_state_ready: true
+    blocking_gaps_empty: true
+
+  # “某一天没有正式事件”不是 coverage gap。
+  # 若该日已经过正式研究/采集覆盖且确实无值得入库事件，属于 reviewed_no_material_event。
+  no_event_day_is_gap: false
+
+  poll:
+    # 没有新民调不是 facts coverage gap；poll_cutoff 仅用于报告限制说明。
+    absence_of_new_poll_is_blocking: false
+
+  # gap 分类：blocking 阻止 coverage_status=full；non_blocking 只作为披露限制。
+  gap_kinds:
+    blocking:
+      - unreviewed_period
+      - missing_required_source
+      - missing_required_dimension
+      - unresolved_conflict
+      - genuinely_uncovered
+    non_blocking:
+      - no_event
+      - no_poll
+      - reviewed_no_material_event
+      - soft_limitation
+      - non_blocking_gap
+
+  # 已经过审核但无材料事件日期的语义标签
+  reviewed_no_material_event_semantics: reviewed_no_material_event
+
+  # facts_cutoff 语义：正式事实研究/审核已覆盖到的最后日期。
+  # 来源必须是权威研究状态（coverage preflight / refresh request），
+  # 不得从 MAX(event_date) 推导。
+  facts_cutoff:
+    derivation: authoritative_input_only
+    fallback_when_missing: partial_without_cutoff
+
+  # latest_event_date 语义：正式事件底表中，落在 requested period 内的最后事件日期。
+  latest_event_date:
+    derivation: max_event_date_in_period

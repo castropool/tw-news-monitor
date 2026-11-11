@@ -1,0 +1,52 @@
+[
+  {
+    "article_id": "9635664",
+    "urls": [
+      "https://udn.com/news/story/124948/9635664",
+      "https://udn.com/news/story/6656/9635664"
+    ],
+    "titles": [
+      "石納克被解雇？底特專領法兹"
+    ],
+    "published_at": "2026-07-18 08:00",
+    "expected_key": "udn:9635664"
+  },
+  {
+    "article_id": "9635642",
+    "urls": [
+      "https://udn.com/news/story/6656/9635642",
+      "https://udn.com/news/story/124948/9635642"
+    ],
+    "titles": [
+      "【即時短評】面對毒油推譬在先 卓挴廈9連価道歉無法安民心"
+    ],
+    "published_at": "2026-07-18 08:00",
+    "expected_key": "udn:9635642"
+  },
+  {
+    "article_id": "9635667",
+    "urls": [
+      "https://udn.com/news/story/7238/9635667",
+      "https://udn.com/news/story/6656/9635667"
+    ],
+    "titles": [
+      "Original",
+      "Updated"
+    ],
+    "published_at": "2026-07-18 08:00",
+    "expected_key": "udn:9635667"
+  },
+  {
+    "article_id": "9635746",
+    "urls": [
+      "https://udn.com/news/story/124948/9635746",
+      "https://udn.com/news/story/6656/9635746"
+    ],
+    "titles": [
+      "藥席繼續弟扖法",
+      "藥席繼續弟扖法"
+    ],
+    "published_at": "2026-07-18 08:00",
+    "expected_key": "udn:9635746"
+  }
+]

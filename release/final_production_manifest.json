@@ -1,0 +1,24 @@
+{
+  "schema_version": "phase4.final-production-manifest.v1",
+  "generated_at": "2026-08-08T22:05:14+08:00",
+  "release": "tainan-assessment-production-rc2",
+  "manifest_status": "final_acceptance_record",
+  "production_ready": false,
+  "production_activation_status": "blocked",
+  "archive_sha256": "6b5b8d0162aae4aa52a0ae096dd63f9a798919d5a509c8bca93e75da31fef894",
+  "archive_bytes": 676890,
+  "bundle_manifest_sha256": "5a73ceabc98ecd8400bf0afd44dda1ccee4e7254b250d8f992931fc9de54e846",
+  "production_status_sha256": "cbaeb4695dfb18eb3b9ca69b433adf889acf4fc4f47815f9caa91d6fca28bbb6",
+  "acceptance_report_sha256": "f69ab1d365a4c9ba2c88addd494e5fcb2f43b200b99594778472bef4d31ced44",
+  "feishu_live_evidence_sha256": "ee01649ae19df4f73305de956d6f73c9eba34d5a67b2b6b90532d6c77aafb223",
+  "deepseek_live_evidence_sha256": "2cd703d9c976aca6779d0aa6eb65e960a0b90a220f425d4e0b142eb6603bb287",
+  "blockers": [
+    "ASSESSMENT_OUTPUT_SCHEMA_REJECTED",
+    "FEISHU_ROTATION_UNACKNOWLEDGED",
+    "PRODUCTION_PREFLIGHT_FAILED"
+  ],
+  "required_next_authorizations": [
+    "explicit authorization to resend the formal political fact package to DeepSeek",
+    "credential rotation acknowledgement by the responsible operator"
+  ]
+}

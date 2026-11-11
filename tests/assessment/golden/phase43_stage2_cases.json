@@ -1,0 +1,22 @@
+[
+  {"id":"S2-01","mutation":"none","expected_ready":true,"holdout":false},
+  {"id":"S2-02","mutation":"reverse_renderings","expected_ready":true,"holdout":false},
+  {"id":"S2-03","mutation":"title_subset","expected_ready":true,"holdout":false},
+  {"id":"S2-04","mutation":"overall_subset","expected_ready":true,"holdout":false},
+  {"id":"S2-05","mutation":"heading_change","expected_ready":true,"holdout":false},
+  {"id":"S2-06","mutation":"unauthorized_render","expected_ready":false,"holdout":false},
+  {"id":"S2-07","mutation":"missing_render","expected_ready":false,"holdout":false},
+  {"id":"S2-08","mutation":"duplicate_render","expected_ready":false,"holdout":false},
+  {"id":"S2-09","mutation":"bad_plan_hash","expected_ready":false,"holdout":false},
+  {"id":"S2-10","mutation":"unauthorized_section_claim","expected_ready":false,"holdout":false},
+  {"id":"S2-11","mutation":"missing_section_claim","expected_ready":false,"holdout":false},
+  {"id":"S2-12","mutation":"duplicate_section_claim","expected_ready":false,"holdout":false},
+  {"id":"S2-13","mutation":"target_section_mismatch","expected_ready":false,"holdout":false},
+  {"id":"S2-14","mutation":"title_unauthorized","expected_ready":false,"holdout":false},
+  {"id":"S2-15","mutation":"overall_unauthorized","expected_ready":false,"holdout":false},
+  {"id":"S2-16","mutation":"strength_escalation","expected_ready":false,"holdout":true},
+  {"id":"S2-17","mutation":"bounded_marker_removed","expected_ready":false,"holdout":true},
+  {"id":"S2-18","mutation":"new_date","expected_ready":false,"holdout":true},
+  {"id":"S2-19","mutation":"extra_top_field","expected_ready":false,"holdout":true},
+  {"id":"S2-20","mutation":"empty_render","expected_ready":false,"holdout":true}
+]

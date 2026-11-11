@@ -1,0 +1,329 @@
+# ══════════════════════════════════════════════════════════════════
+# 国际媒体免费监测层 Phase I — 逻辑配置（2026-08-13 修订：关键词定稿）
+#
+# 本文件由 app/international.py 读取（load_international_config）：
+# 相关度关键词（任务书第十一章定稿）、跨媒体事件去重参数、来源加分。
+# 缺文件/损坏时返回禁用安全默认，绝不崩主流程（与 content_filter 一致）。
+# 现有新闻管道不读取本文件；main/Word 接线在后续任务。
+#
+# 调研结论与启用/停用依据见 docs/international_sources_research.md
+# ══════════════════════════════════════════════════════════════════
+
+enabled: true
+
+# 展示名映射：英文 canonical 名 -> 中文展示名。
+# Article.source_name 复用为 canonical publisher（如 "Reuters"），
+# 下游展示中文名时查此表（display_name），查不到则回退英文名。
+display_names:
+  Reuters: 路透社
+  Financial Times: 金融时报
+  Wall Street Journal: 华尔街日报
+  Bloomberg: 彭博社
+
+# Tier-1 国际媒体（四家英文 canonical 名，与 sources.yaml 中国际源条目一致）。
+tier1_international_media:
+  - Reuters
+  - Financial Times
+  - Wall Street Journal
+  - Bloomberg
+
+# 相关度关键词（三层 + 规则 (b) 辅助交叉层，任务书第十一章定稿）。
+# 匹配规则见 app/international.py word_contains：
+#   英文单关键词按词边界（"China" 不命中 "Chinatown"）；
+#   多词短语按连续 token 子序列（"Taiwan Strait" / "chip export controls" /
+#   "Cross-Strait" 均可命中）；大小写不敏感。
+relevance_keywords:
+  # (a) 台湾直接相关：命中即 relevant（tier=taiwan_direct）
+  taiwan_direct:
+    - Taiwan
+    - Taiwanese
+    - Taipei
+    - Taiwan Strait
+    - Cross-Strait
+    - Formosa
+    - TSMC
+    - Lai Ching-te
+    - William Lai
+    - Kuomintang
+    - KMT
+    - DPP
+    - Democratic Progressive Party
+    - People's Liberation Army
+    - PLA
+    - Taiwan Affairs Office
+    - Taiwan government
+    - Taiwan military
+    - Taiwan election
+    - 台灣
+    - 台湾
+    - 臺灣
+    - 台北
+    - 臺北
+    - 台海
+    - 兩岸
+    - 两岸
+    - 台美
+    - 台日
+    - 台澳
+    - 台灣政府
+    - 台湾政府
+    - 台灣軍方
+    - 台湾军方
+    - 台灣選舉
+    - 台湾选举
+    - 台積電
+    - 台积电
+    - 賴清德
+    - 赖清德
+    - 民進黨
+    - 民进党
+    - 國民黨
+    - 国民党
+    - 解放軍
+    - 解放军
+    - 共軍
+    - 共军
+    - 國台辦
+    - 国台办
+  # (b) 中国/两岸/涉华：仅当同时命中 china_relevant_cross 才 relevant；
+  #     单纯 China 经济/社会新闻 -> relevant=False
+  china_related:
+    - China
+    - Chinese
+    - Beijing
+    - Xi Jinping
+    - Chinese Communist Party
+    - CCP
+    - PLA
+    - People's Liberation Army
+    - State Council
+    - Taiwan Affairs Office
+    - 中國
+    - 中国
+    - 中共
+    - 北京
+    - 習近平
+    - 习近平
+    - 大陸
+    - 大陆
+    - 國台辦
+    - 国台办
+    - 解放軍
+    - 解放军
+    - 國務院
+    - 国务院
+  # (c) 美国与国际局势：仅当同时命中 taiwan_direct 或 china_related
+  #     才 relevant（tier=us_international）
+  us_international:
+    - United States
+    - Washington
+    - Pentagon
+    - State Department
+    - Congress
+    - Indo-Pacific
+    - Japan
+    - Philippines
+    - South China Sea
+    - East China Sea
+    - semiconductor
+    - chip export controls
+    - arms sales
+    - military exercise
+    - sanctions
+    - trade
+    - tariffs
+    - 美國
+    - 美国
+    - 華盛頓
+    - 华盛顿
+    - 五角大廈
+    - 五角大厦
+    - 國務院
+    - 国务院
+    - 國會
+    - 国会
+    - 印太
+    - 南海
+    - 東海
+    - 东海
+    - 菲律賓
+    - 菲律宾
+    - 半導體
+    - 半导体
+    - 晶片
+    - 芯片
+    - 軍售
+    - 军售
+    - 軍事演習
+    - 军事演习
+    - 制裁
+    - 貿易
+    - 贸易
+    - 關稅
+    - 关税
+    - 出口管制
+  # (d) 中美关系：两组实体必须同时出现；避免把单纯中国内政或美国新闻扩大纳入。
+  china_us_china_entities:
+    - China
+    - Chinese
+    - Beijing
+    - Xi Jinping
+    - CCP
+    - 中國
+    - 中国
+    - 中共
+    - 北京
+    - 習近平
+    - 习近平
+  china_us_us_entities:
+    - United States
+    - US
+    - U.S.
+    - Washington
+    - White House
+    - Trump
+    - State Department
+    - Pentagon
+    - Congress
+    - 美國
+    - 美国
+    - 華盛頓
+    - 华盛顿
+    - 白宮
+    - 白宫
+    - 國務院
+    - 国务院
+    - 國會
+    - 国会
+    - 五角大廈
+    - 五角大厦
+  # 规则 (b) 的辅助交叉词：涉台/军事/外交/半导体（含单复数形式）
+  china_relevant_cross:
+    - Taiwan
+    - Strait
+    - TSMC
+    - military
+    - Pentagon
+    - sanctions
+    - sanction
+    - chip
+    - chips
+    - export
+    - exports
+    - tariff
+    - tariffs
+    - arms
+    - missile
+    - missiles
+    - exercise
+    - exercises
+    - drill
+    - drills
+    - South China Sea
+    - East China Sea
+    - PLA
+    - Taiwan Affairs Office
+    - 台灣
+    - 台湾
+    - 臺灣
+    - 台海
+    - 台灣海峽
+    - 台湾海峡
+    - 兩岸
+    - 两岸
+    - 軍事
+    - 军事
+    - 軍售
+    - 军售
+    - 軍演
+    - 军演
+    - 演習
+    - 演习
+    - 國防
+    - 国防
+    - 外交
+    - 區域安全
+    - 区域安全
+    - 印太
+    - 制裁
+    - 貿易
+    - 贸易
+    - 關稅
+    - 关税
+    - 半導體
+    - 半导体
+    - 晶片
+    - 芯片
+    - 出口管制
+
+# 跨媒体事件去重（显示层，不写库）：仅对国际媒体文章聚类。聚类方式为
+# “时间窗内相似度图”的传递闭包（连通分量）：两篇之间构成合并边当且仅当
+# 同时满足 ① 在 window_hours 时间窗内；② 标题归一化 token 集 Jaccard >=
+# similarity_threshold；③ 归一化后共享 >= 2 个 core_words 核心概念。
+# canonical 取 published_at 最早，并列按 source_priority（Reuters >
+# Financial Times > Wall Street Journal > Bloomberg）。
+# 保守优先：无 published_at / 超时间窗 / aware-naive 混合 / 相似度不足 /
+# 共享核心词不足 2 个的都不构成边。
+dedup:
+  similarity_threshold: 0.70   # 标题相似度阈值（0~1；0.70 结合同义词归一
+                               # 可使“China launches drills near Taiwan /
+                               # China begins military exercises around Taiwan /
+                               # China starts new Taiwan military drills”
+                               # 三篇聚类为同一事件，同时负例不误合并）
+  window_hours: 24             # 相似去重时间窗口（小时）
+  source_priority:
+    - Reuters
+    - Financial Times
+    - Wall Street Journal
+    - Bloomberg
+  # 核心地理/事件词：同义词归一后，两篇标题共享 >= 2 个才构成合并边条件之一
+  core_words:
+    - Taiwan
+    - Strait
+    - China
+    - Beijing
+    - Washington
+    - US
+    - TSMC
+    - chip
+    - chips
+    - military
+    - missile
+    - missiles
+    - exercise
+    - exercises
+    - drill
+    - drills
+    - tariff
+    - tariffs
+    - sanction
+    - sanctions
+    - export
+    - exports
+    - arms
+    - Pentagon
+    - PLA
+  # 轻量同义词归一（应用于小写 token，先于停用词过滤与词干化）
+  synonyms:
+    drill: exercise
+    drills: exercise
+    exercise: exercise
+    exercises: exercise
+    maneuvers: exercise
+    wargames: exercise
+    launches: start
+    begins: start
+    starts: start
+    commences: start
+    holds: start
+    near: near
+    around: near
+    off: near
+    surrounding: near
+
+# 来源加分（与 config/importance_rules.yaml scoring 同步）：
+# importance.py 按 source_name 命中 scoring.tier1_international_media 时 +3。
+# 硬约束：tier1_international_bonus(3) <= official_source_bonus(5)，
+# 由 importance.validate_rules_config 校验。
+source_bonus:
+  tier1: 3

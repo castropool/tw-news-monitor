@@ -1,0 +1,32 @@
+pricing_schema_version: "1.0"
+currency: USD
+unit: per_1m_tokens
+
+verified_at: "2026-08-05"
+source: "deepseek_official_models_and_pricing"
+
+providers:
+  deepseek:
+    models:
+      deepseek-v4-flash:
+        input_cache_hit: 0.0028
+        input_cache_miss: 0.14
+        output: 0.28
+
+      deepseek-v4-pro:
+        input_cache_hit: 0.003625
+        input_cache_miss: 0.435
+        output: 0.87
+
+    peak_pricing:
+      announced: true
+      effective: false
+      multiplier: 2.0
+      timezone: Asia/Shanghai
+      windows:
+        - start: "09:00"
+          end: "12:00"
+        - start: "14:00"
+          end: "18:00"
+      effective_date: null
+      apply_to_estimates: false

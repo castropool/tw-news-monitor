@@ -1,0 +1,41 @@
+{
+  "schema_version": "phase4.release-manifest.v1",
+  "generated_at": "2026-08-08T22:05:14+08:00",
+  "release": "tainan-assessment-production-rc2",
+  "release_type": "production_release_candidate",
+  "production_ready": false,
+  "archive": {
+    "path": "dist\\releases\\tainan-assessment-production-rc2.zip",
+    "bytes": 676890,
+    "sha256": "6b5b8d0162aae4aa52a0ae096dd63f9a798919d5a509c8bca93e75da31fef894"
+  },
+  "bundle_manifest": {
+    "file_count": 254,
+    "sha256": "5a73ceabc98ecd8400bf0afd44dda1ccee4e7254b250d8f992931fc9de54e846"
+  },
+  "deployed_path": "deployment/tainan-assessment-production-rc2",
+  "backup_path": "deployment/phase4/pre_phase4_deployment_backup/20260808_174617",
+  "previous_rc1_preserved": true,
+  "previous_rc1_sha256": "70b8b8f0ac7c9118b0df1f303c71b4e47c3845660dec252e27013d8c7b453ce3",
+  "tests": {
+    "full": {
+      "passed": 2019,
+      "skipped": 4,
+      "failed": 0
+    },
+    "deployment": {
+      "passed": 42,
+      "failed": 0
+    },
+    "recovery": {
+      "passed": 40,
+      "failed": 0,
+      "deselected": 171
+    }
+  },
+  "activation_blockers": [
+    "ASSESSMENT_OUTPUT_SCHEMA_REJECTED",
+    "FEISHU_ROTATION_UNACKNOWLEDGED",
+    "PRODUCTION_PREFLIGHT_FAILED"
+  ]
+}

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>自由时报电子报 - 军武</title>
+    <link>https://news.ltn.com.tw/list/breakingnews/def</link>
+    <description>自由时报军武频道</description>
+    <item>
+      <title>国军举行年度联合演训</title>
+      <link>https://news.ltn.com.tw/news/def/breakingnews/5000001?utm_source=rss</link>
+      <description><![CDATA[<p>演训于台湾东部举行，验证联合指挥能力。</p><img src="https://example.invalid/a.jpg" />]]></description>
+      <pubDate>Mon, 10 Aug 2026 19:44:47 +0800</pubDate>
+    </item>
+    <item>
+      <title>新型舰艇完成海上测试</title>
+      <link>https://news.ltn.com.tw/news/def/breakingnews/5000002</link>
+      <description>舰艇完成测试 &amp; 返回港区。</description>
+      <pubDate>Mon, 10 Aug 2026 18:15:00 +0800</pubDate>
+    </item>
+    <item>
+      <title>跨频道重复文章</title>
+      <link>https://news.ltn.com.tw/news/politics/breakingnews/1234567?utm_campaign=defense</link>
+      <description>用于验证同一永久 URL 的跨频道去重。</description>
+      <pubDate>Mon, 10 Aug 2026 17:00:00 +0800</pubDate>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,18 @@
+schema_version: "1.0"
+word_allowed_categories:
+  - policy
+  - election
+  - candidate_status
+  - party_strategy
+  - cross_strait
+  - defense
+  - foreign_affairs
+  - national_security
+  - legislature
+  - controversy_response
+  - personnel
+  - local_government
+excluded_categories:
+  - routine_activity
+  - personal
+  - ceremonial

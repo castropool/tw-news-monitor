@@ -1,0 +1,493 @@
+[
+  {
+    "case_id": "sem_01_cutoff_equals_end",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e1",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_latest_event_date": "2026-07-27"
+  },
+  {
+    "case_id": "sem_02_cutoff_after_end",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e2",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-08-02",
+    "expected_status": "full",
+    "expected_facts_cutoff": "2026-08-02",
+    "expected_latest_event_date": "2026-07-27"
+  },
+  {
+    "case_id": "sem_03_cutoff_before_end",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e3",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-27",
+    "expected_status": "partial",
+    "expected_facts_cutoff": "2026-07-27",
+    "expected_latest_event_date": "2026-07-27",
+    "expected_uncovered_contains": "2026-07-28"
+  },
+  {
+    "case_id": "sem_04_last_event_before_cutoff",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e4",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_latest_event_date": "2026-07-27"
+  },
+  {
+    "case_id": "sem_05_no_events_reviewed",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_latest_event_date": null
+  },
+  {
+    "case_id": "sem_06_second_half_unreviewed",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e6",
+        "occurred_at": "2026-07-20",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-23",
+    "expected_status": "partial",
+    "expected_latest_event_date": "2026-07-20",
+    "expected_uncovered_contains": "2026-07-24"
+  },
+  {
+    "case_id": "sem_07_many_events_one_day",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e7a",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      },
+      {
+        "event_id": "e7b",
+        "occurred_at": "2026-07-27",
+        "event_type": "poll_release"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_latest_event_date": "2026-07-27",
+    "expected_event_count": 2
+  },
+  {
+    "case_id": "sem_08_blocking_gap",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e8",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "blocking_gaps": [
+      {
+        "kind": "missing_required_dimension",
+        "reason": "x"
+      }
+    ],
+    "expected_status": "partial",
+    "expected_blocking_count": 1
+  },
+  {
+    "case_id": "sem_09_non_blocking_gap",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e9",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "known_gaps": [
+      "soft_limitation only"
+    ],
+    "expected_status": "full"
+  },
+  {
+    "case_id": "sem_10_no_event_day",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e10",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_uncovered_count": 0
+  },
+  {
+    "case_id": "sem_11_no_poll_period",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e11",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_poll_cutoff": null
+  },
+  {
+    "case_id": "sem_12_poll_cutoff_early",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e12",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [
+      {
+        "poll_id": "p12",
+        "fieldwork_json": "{\"field_end\": \"2026-07-18\"}",
+        "publication_json": "{}"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_poll_cutoff": "2026-07-18"
+  },
+  {
+    "case_id": "sem_13_latest_before_end",
+    "subset": "calibration",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e13",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_latest_event_date": "2026-07-27"
+  },
+  {
+    "case_id": "sem_14_cross_month",
+    "subset": "calibration",
+    "period_start": "2026-06-16",
+    "period_end": "2026-07-15",
+    "events": [
+      {
+        "event_id": "e14",
+        "occurred_at": "2026-06-30",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-15",
+    "expected_status": "full",
+    "expected_latest_event_date": "2026-06-30"
+  },
+  {
+    "case_id": "sem_15_month_end",
+    "subset": "calibration",
+    "period_start": "2026-01-01",
+    "period_end": "2026-01-31",
+    "events": [
+      {
+        "event_id": "e15",
+        "occurred_at": "2026-01-31",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-01-31",
+    "expected_status": "full",
+    "expected_latest_event_date": "2026-01-31"
+  },
+  {
+    "case_id": "sem_16_leap_feb",
+    "subset": "calibration",
+    "period_start": "2028-02-01",
+    "period_end": "2028-02-29",
+    "events": [
+      {
+        "event_id": "e16",
+        "occurred_at": "2028-02-15",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2028-02-29",
+    "expected_status": "full",
+    "expected_latest_event_date": "2028-02-15"
+  },
+  {
+    "case_id": "sem_17_non_leap_feb",
+    "subset": "calibration",
+    "period_start": "2027-02-01",
+    "period_end": "2027-02-28",
+    "events": [
+      {
+        "event_id": "e17",
+        "occurred_at": "2027-02-15",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2027-02-28",
+    "expected_status": "full",
+    "expected_latest_event_date": "2027-02-15"
+  },
+  {
+    "case_id": "sem_18_start_no_event",
+    "subset": "calibration",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e18",
+        "occurred_at": "2026-07-10",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_latest_event_date": "2026-07-10"
+  },
+  {
+    "case_id": "sem_19_end_no_event",
+    "subset": "calibration",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e19",
+        "occurred_at": "2026-07-10",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_latest_event_date": "2026-07-10"
+  },
+  {
+    "case_id": "sem_20_empty_events_reviewed",
+    "subset": "calibration",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "events": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_latest_event_date": null
+  },
+  {
+    "case_id": "sem_21_cutoff_after_end_holdout",
+    "subset": "holdout",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e21",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-08-05",
+    "expected_status": "full",
+    "expected_facts_cutoff": "2026-08-05",
+    "expected_latest_event_date": "2026-07-27"
+  },
+  {
+    "case_id": "sem_22_cutoff_missing_holdout",
+    "subset": "holdout",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e22",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": null,
+    "expected_status": "partial",
+    "expected_facts_cutoff": null,
+    "expected_latest_event_date": "2026-07-27",
+    "expected_blocking_count": 1
+  },
+  {
+    "case_id": "sem_23_unreviewed_blocking_holdout",
+    "subset": "holdout",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e23",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-27",
+    "expected_status": "partial",
+    "expected_blocking_count": 1
+  },
+  {
+    "case_id": "sem_24_empty_reviewed_holdout",
+    "subset": "holdout",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_latest_event_date": null,
+    "expected_uncovered_count": 0
+  },
+  {
+    "case_id": "sem_25_no_poll_holdout",
+    "subset": "holdout",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e25",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "polls": [],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full"
+  },
+  {
+    "case_id": "sem_26_latest_equals_cutoff_holdout",
+    "subset": "holdout",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e26",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-27",
+    "expected_status": "partial",
+    "expected_facts_cutoff": "2026-07-27",
+    "expected_latest_event_date": "2026-07-27"
+  },
+  {
+    "case_id": "sem_27_latest_before_cutoff_holdout",
+    "subset": "holdout",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e27",
+        "occurred_at": "2026-07-20",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-31",
+    "expected_status": "full",
+    "expected_facts_cutoff": "2026-07-31",
+    "expected_latest_event_date": "2026-07-20"
+  },
+  {
+    "case_id": "sem_28_leap_feb_holdout",
+    "subset": "holdout",
+    "period_start": "2028-02-01",
+    "period_end": "2028-02-29",
+    "events": [],
+    "facts_cutoff": "2028-02-29",
+    "expected_status": "full",
+    "expected_latest_event_date": null
+  },
+  {
+    "case_id": "sem_29_non_leap_feb_holdout",
+    "subset": "holdout",
+    "period_start": "2027-02-01",
+    "period_end": "2027-02-28",
+    "events": [],
+    "facts_cutoff": "2027-02-27",
+    "expected_status": "partial",
+    "expected_uncovered_contains": "2027-02-28"
+  },
+  {
+    "case_id": "sem_30_multi_blocking_holdout",
+    "subset": "holdout",
+    "period_start": "2026-07-16",
+    "period_end": "2026-07-31",
+    "events": [
+      {
+        "event_id": "e30",
+        "occurred_at": "2026-07-27",
+        "event_type": "campaign_event"
+      }
+    ],
+    "facts_cutoff": "2026-07-27",
+    "blocking_gaps": [
+      {
+        "kind": "unresolved_conflict",
+        "reason": "c"
+      }
+    ],
+    "expected_status": "partial",
+    "expected_blocking_count": 2
+  }
+]

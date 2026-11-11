@@ -1,0 +1,145 @@
+[
+  {
+    "case_id": "trg_01_day9",
+    "run_date": "2026-08-09",
+    "facts_cutoff": "2026-07-31",
+    "expected_start": "2026-07-16",
+    "expected_end": "2026-07-31",
+    "expected_eligible": true,
+    "expected_status": "eligible"
+  },
+  {
+    "case_id": "trg_02_day22",
+    "run_date": "2026-08-22",
+    "facts_cutoff": "2026-08-15",
+    "expected_start": "2026-08-01",
+    "expected_end": "2026-08-15",
+    "expected_eligible": true,
+    "expected_status": "eligible"
+  },
+  {
+    "case_id": "trg_03_day8_pending",
+    "run_date": "2026-08-08",
+    "facts_cutoff": "2026-07-31",
+    "expected_start": "2026-08-01",
+    "expected_end": "2026-08-15",
+    "expected_eligible": false,
+    "expected_status": "pending",
+    "expected_reason": "not_reporting_day"
+  },
+  {
+    "case_id": "trg_04_day10_pending",
+    "run_date": "2026-08-10",
+    "facts_cutoff": "2026-07-31",
+    "expected_start": "2026-08-01",
+    "expected_end": "2026-08-15",
+    "expected_eligible": false,
+    "expected_status": "pending",
+    "expected_reason": "not_reporting_day"
+  },
+  {
+    "case_id": "trg_05_day21_pending",
+    "run_date": "2026-08-21",
+    "facts_cutoff": "2026-08-15",
+    "expected_start": "2026-08-16",
+    "expected_end": "2026-08-31",
+    "expected_eligible": false,
+    "expected_status": "pending",
+    "expected_reason": "not_reporting_day"
+  },
+  {
+    "case_id": "trg_06_day23_pending",
+    "run_date": "2026-08-23",
+    "facts_cutoff": "2026-08-15",
+    "expected_start": "2026-08-16",
+    "expected_end": "2026-08-31",
+    "expected_eligible": false,
+    "expected_status": "pending",
+    "expected_reason": "not_reporting_day"
+  },
+  {
+    "case_id": "trg_07_month_end",
+    "run_date": "2026-08-31",
+    "facts_cutoff": "2026-08-31",
+    "expected_start": "2026-08-16",
+    "expected_end": "2026-08-31",
+    "expected_eligible": false,
+    "expected_status": "pending",
+    "expected_reason": "not_reporting_day"
+  },
+  {
+    "case_id": "trg_08_leap_feb_22",
+    "run_date": "2028-02-22",
+    "facts_cutoff": "2028-02-15",
+    "expected_start": "2028-02-01",
+    "expected_end": "2028-02-15",
+    "expected_eligible": true,
+    "expected_status": "eligible"
+  },
+  {
+    "case_id": "trg_09_leap_feb_9",
+    "run_date": "2028-02-09",
+    "facts_cutoff": "2028-01-31",
+    "expected_start": "2028-01-16",
+    "expected_end": "2028-01-31",
+    "expected_eligible": true,
+    "expected_status": "eligible"
+  },
+  {
+    "case_id": "trg_10_non_leap_feb_9",
+    "run_date": "2027-02-09",
+    "facts_cutoff": "2027-01-31",
+    "expected_start": "2027-01-16",
+    "expected_end": "2027-01-31",
+    "expected_eligible": true,
+    "expected_status": "eligible"
+  },
+  {
+    "case_id": "trg_11_coverage_gap_report_day",
+    "run_date": "2026-08-09",
+    "facts_cutoff": "2026-07-30",
+    "expected_start": "2026-07-16",
+    "expected_end": "2026-07-31",
+    "expected_eligible": false,
+    "expected_status": "pending",
+    "expected_reason": "report_day_coverage_insufficient_draft_allowed"
+  },
+  {
+    "case_id": "trg_12_snapshot_pending_blocked",
+    "run_date": "2026-08-09",
+    "facts_cutoff": "2026-07-31",
+    "snapshot_pending": true,
+    "expected_eligible": false,
+    "expected_status": "blocked"
+  },
+  {
+    "case_id": "trg_13_duplicate_same_hash",
+    "run_date": "2026-08-09",
+    "facts_cutoff": "2026-07-31",
+    "expected_start": "2026-07-16",
+    "expected_end": "2026-07-31",
+    "duplicate_same_hash": true,
+    "expected_status": "eligible",
+    "expected_eligible": true
+  },
+  {
+    "case_id": "trg_14_new_hash_supersede",
+    "run_date": "2026-08-08",
+    "facts_cutoff": "2026-08-15",
+    "expected_start": "2026-08-01",
+    "expected_end": "2026-08-15",
+    "supersede_old": true,
+    "expected_status": "pending",
+    "expected_eligible": false
+  },
+  {
+    "case_id": "trg_15_manual",
+    "run_date": "2026-08-08",
+    "facts_cutoff": "2026-08-15",
+    "manual": true,
+    "expected_start": "2026-08-01",
+    "expected_end": "2026-08-15",
+    "expected_eligible": true,
+    "expected_status": "eligible"
+  }
+]

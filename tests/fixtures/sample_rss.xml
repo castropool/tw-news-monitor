@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+  <channel>
+    <title>中央社政治新聞</title>
+    <item>
+      <title>測試新聞一：立法院審查預算案</title>
+      <link>https://www.cna.com.tw/news/aipl/202607140001.aspx</link>
+      <description>立法院今日審查...</description>
+      <pubDate>Tue, 14 Jul 2026 10:00:00 +0800</pubDate>
+    </item>
+    <item>
+      <title>測試新聞二：行政院通過新法案</title>
+      <link>https://www.cna.com.tw/news/aipl/202607140002.aspx</link>
+      <description>行政院會今日通過...</description>
+      <pubDate>Tue, 14 Jul 2026 11:30:00 +0800</pubDate>
+    </item>
+    <item>
+      <title></title>
+      <link>https://www.cna.com.tw/news/aipl/202607140003.aspx</link>
+      <description>空白標題...</description>
+      <pubDate>Tue, 14 Jul 2026 12:00:00 +0800</pubDate>
+    </item>
+    <item>
+      <title>測試新聞三：無連結</title>
+      <link></link>
+      <description>無連結...</description>
+      <pubDate>Tue, 14 Jul 2026 13:00:00 +0800</pubDate>
+    </item>
+  </channel>
+</rss>

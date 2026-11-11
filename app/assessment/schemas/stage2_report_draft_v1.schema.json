@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TainanStage2ReportDraftV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["stage2_draft_version", "report_writer_stage2_contract_version", "validated_claim_plan_hash", "title", "title_claim_ids", "overall_judgment_claim_ids", "sections", "claim_renderings"],
+  "properties": {
+    "stage2_draft_version": {"type": "string", "const": "1.0"},
+    "report_writer_stage2_contract_version": {"type": "string", "const": "1.0"},
+    "validated_claim_plan_hash": {"type": "string"},
+    "title": {"type": "string", "minLength": 1},
+    "title_claim_ids": {"type": "array", "items": {"type": "string"}},
+    "overall_judgment_claim_ids": {"type": "array", "items": {"type": "string"}},
+    "sections": {
+      "type": "array", "minItems": 8, "maxItems": 8,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["section_id", "heading", "claim_ids", "section_purpose"],
+        "properties": {
+          "section_id": {"type": "string"}, "heading": {"type": "string"},
+          "claim_ids": {"type": "array", "items": {"type": "string"}},
+          "section_purpose": {"type": "string"}
+        }
+      }
+    },
+    "claim_renderings": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["claim_id", "rendered_text"],
+        "properties": {"claim_id": {"type": "string"}, "rendered_text": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}

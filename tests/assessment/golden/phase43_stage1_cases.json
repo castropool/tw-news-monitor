@@ -1,0 +1,22 @@
+[
+  {"id":"S1-01","mutation":"none","expected_status":"accepted","holdout":false},
+  {"id":"S1-02","mutation":"remove_s05","expected_status":"accepted","holdout":false},
+  {"id":"S1-03","mutation":"remove_s06","expected_status":"accepted","holdout":false},
+  {"id":"S1-04","mutation":"bad_event","expected_status":"rejected","holdout":false},
+  {"id":"S1-05","mutation":"bad_source","expected_status":"rejected","holdout":false},
+  {"id":"S1-06","mutation":"unlinked_source","expected_status":"rejected","holdout":false},
+  {"id":"S1-07","mutation":"duplicate_id","expected_status":"rejected","holdout":false},
+  {"id":"S1-08","mutation":"bad_formal_hash","expected_status":"rejected","holdout":false},
+  {"id":"S1-09","mutation":"bad_pack_hash","expected_status":"rejected","holdout":false},
+  {"id":"S1-10","mutation":"bad_election","expected_status":"rejected","holdout":false},
+  {"id":"S1-11","mutation":"bad_period","expected_status":"rejected","holdout":false},
+  {"id":"S1-12","mutation":"unsupported_strength","expected_status":"rejected","holdout":false},
+  {"id":"S1-13","mutation":"forward_strong","expected_status":"rejected","holdout":false},
+  {"id":"S1-14","mutation":"factual_no_evidence","expected_status":"rejected","holdout":false},
+  {"id":"S1-15","mutation":"current_insufficient","expected_status":"rejected","holdout":false},
+  {"id":"S1-16","mutation":"comparative_no_dimension","expected_status":"accepted_with_rejections","holdout":true},
+  {"id":"S1-17","mutation":"section_id_mismatch","expected_status":"rejected","holdout":true},
+  {"id":"S1-18","mutation":"extra_field","expected_status":"rejected","holdout":true},
+  {"id":"S1-19","mutation":"missing_s03","expected_status":"rejected","holdout":true},
+  {"id":"S1-20","mutation":"poll_missing_source","expected_status":"accepted_with_rejections","holdout":true}
+]

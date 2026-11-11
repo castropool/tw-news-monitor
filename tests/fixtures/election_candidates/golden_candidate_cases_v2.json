@@ -1,0 +1,767 @@
+[
+  {
+    "case_id": "cal_01",
+    "split": "calibration",
+    "article_ids": [
+      "a01",
+      "a01b"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "a01",
+        "a01b"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "party_nomination",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "likely_duplicate",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "cal_02",
+    "split": "calibration",
+    "article_ids": [
+      "a10",
+      "a10b",
+      "a10c"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "a10",
+        "a10b",
+        "a10c"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "campaign_event",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "duplicate_candidate",
+    "expected_formal_match": "likely_duplicate",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "cal_03",
+    "split": "calibration",
+    "article_ids": [
+      "h23a",
+      "h23b"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 2,
+    "expected_cluster_members": [
+      [
+        "h23b"
+      ],
+      [
+        "h23a"
+      ]
+    ],
+    "expected_relationship": "possible_subevent",
+    "expected_event_type": "campaign_event",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "cal_04",
+    "split": "calibration",
+    "article_ids": [
+      "b01"
+    ],
+    "expected_relevance": "direct_statement",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "b01"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "endorsement",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "actor_statement"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": true
+  },
+  {
+    "case_id": "cal_05",
+    "split": "calibration",
+    "article_ids": [
+      "e01"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "e01"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "campaign_attack",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "allegation"
+    ],
+    "expected_route_status": "hold",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": true
+  },
+  {
+    "case_id": "cal_06",
+    "split": "calibration",
+    "article_ids": [
+      "c01"
+    ],
+    "expected_relevance": "contextual",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "c01"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "media_interpretation"
+    ],
+    "expected_route_status": "hold",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": true
+  },
+  {
+    "case_id": "cal_07",
+    "split": "calibration",
+    "article_ids": [
+      "c03"
+    ],
+    "expected_relevance": "contextual",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "c03"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "uncertain_report"
+    ],
+    "expected_route_status": "hold",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": true
+  },
+  {
+    "case_id": "cal_08",
+    "split": "calibration",
+    "article_ids": [
+      "f01"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "f01"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "campaign_event",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "planned_action"
+    ],
+    "expected_route_status": "hold",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": true
+  },
+  {
+    "case_id": "cal_09",
+    "split": "calibration",
+    "article_ids": [
+      "a12"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "a12"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "campaign_launch",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "cal_10",
+    "split": "calibration",
+    "article_ids": [
+      "a02"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "a02"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "primary_registration",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "cal_11",
+    "split": "calibration",
+    "article_ids": [
+      "a05"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "a05"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "support_organization",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "cal_12",
+    "split": "calibration",
+    "article_ids": [
+      "a06"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "a06"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "joint_campaign",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "cal_13",
+    "split": "calibration",
+    "article_ids": [
+      "b02"
+    ],
+    "expected_relevance": "direct_statement",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "b02"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "alliance_proposal",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "actor_statement"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": true
+  },
+  {
+    "case_id": "cal_14",
+    "split": "calibration",
+    "article_ids": [
+      "a11"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "a11"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "alliance_coordination",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "cal_15",
+    "split": "calibration",
+    "article_ids": [
+      "c06"
+    ],
+    "expected_relevance": "contextual",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "c06"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "faction_conflict",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "unknown"
+    ],
+    "expected_route_status": "hold",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": true
+  },
+  {
+    "case_id": "cal_16",
+    "split": "calibration",
+    "article_ids": [
+      "e01",
+      "e02"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 2,
+    "expected_cluster_members": [
+      [
+        "e01"
+      ],
+      [
+        "e02"
+      ]
+    ],
+    "expected_relationship": "related_event",
+    "expected_event_type": "campaign_attack",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "allegation",
+      "actor_statement"
+    ],
+    "expected_route_status": "hold",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": true
+  },
+  {
+    "case_id": "cal_17",
+    "split": "calibration",
+    "article_ids": [
+      "a07"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "a07"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "poll_release",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "cal_18",
+    "split": "calibration",
+    "article_ids": [
+      "a08"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "a08"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "governance_event",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "cal_19",
+    "split": "calibration",
+    "article_ids": [
+      "d01"
+    ],
+    "expected_relevance": "irrelevant",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "d01"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [],
+    "expected_route_status": "auto_reject",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": true
+  },
+  {
+    "case_id": "cal_20",
+    "split": "calibration",
+    "article_ids": [
+      "b04"
+    ],
+    "expected_relevance": "direct_statement",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "b04"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "party_integration",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "actor_statement"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": true
+  },
+  {
+    "case_id": "hold_21",
+    "split": "holdout",
+    "article_ids": [
+      "h21a",
+      "h21b"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "h21a",
+        "h21b"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "campaign_event",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "hold_22",
+    "split": "holdout",
+    "article_ids": [
+      "h22a",
+      "h22b"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 2,
+    "expected_cluster_members": [
+      [
+        "h22a"
+      ],
+      [
+        "h22b"
+      ]
+    ],
+    "expected_relationship": "possible_subevent",
+    "expected_event_type": "campaign_attack",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "allegation",
+      "actor_statement"
+    ],
+    "expected_route_status": "hold",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": true
+  },
+  {
+    "case_id": "hold_23",
+    "split": "holdout",
+    "article_ids": [
+      "h23a",
+      "h23b"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 2,
+    "expected_cluster_members": [
+      [
+        "h23b"
+      ],
+      [
+        "h23a"
+      ]
+    ],
+    "expected_relationship": "possible_subevent",
+    "expected_event_type": "campaign_event",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "hold_24",
+    "split": "holdout",
+    "article_ids": [
+      "h24a",
+      "h24b"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 2,
+    "expected_cluster_members": [
+      [
+        "h24a"
+      ],
+      [
+        "h24b"
+      ]
+    ],
+    "expected_relationship": "separate_event",
+    "expected_event_type": "campaign_event",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "hold_25",
+    "split": "holdout",
+    "article_ids": [
+      "h25a",
+      "h25b"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 2,
+    "expected_cluster_members": [
+      [
+        "h25a"
+      ],
+      [
+        "h25b"
+      ]
+    ],
+    "expected_relationship": "separate_event",
+    "expected_event_type": "campaign_event",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "hold_26",
+    "split": "holdout",
+    "article_ids": [
+      "h26a",
+      "h26b"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 2,
+    "expected_cluster_members": [
+      [
+        "h26a"
+      ],
+      [
+        "h26b"
+      ]
+    ],
+    "expected_relationship": "possible_subevent",
+    "expected_event_type": "support_organization",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact",
+      "actor_statement"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "hold_27",
+    "split": "holdout",
+    "article_ids": [
+      "h27a",
+      "h27b"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 2,
+    "expected_cluster_members": [
+      [
+        "h27a"
+      ],
+      [
+        "h27b"
+      ]
+    ],
+    "expected_relationship": "possible_subevent",
+    "expected_event_type": "party_nomination",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "hold_28",
+    "split": "holdout",
+    "article_ids": [
+      "h28a",
+      "h28b"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 2,
+    "expected_cluster_members": [
+      [
+        "h28a"
+      ],
+      [
+        "h28b"
+      ]
+    ],
+    "expected_relationship": "separate_event",
+    "expected_event_type": "governance_event",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "hold_29",
+    "split": "holdout",
+    "article_ids": [
+      "h29"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "h29"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "party_nomination",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "duplicate_candidate",
+    "expected_formal_match": "likely_duplicate",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  },
+  {
+    "case_id": "hold_30",
+    "split": "holdout",
+    "article_ids": [
+      "h30"
+    ],
+    "expected_relevance": "direct_event",
+    "expected_cluster_count": 1,
+    "expected_cluster_members": [
+      [
+        "h30"
+      ]
+    ],
+    "expected_relationship": "same_event",
+    "expected_event_type": "campaign_event",
+    "expected_event_date_basis": "inferred_from_publication",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_route_status": "review_required",
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "must_not_classify_as_observed_fact": false
+  }
+]

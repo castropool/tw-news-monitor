@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>西藏之声中文新闻</title>
+    <link>https://cn.vot.org/</link>
+    <description>Voice of Tibet 中文新闻</description>
+    <item>
+      <title>某寺院举行藏传佛教法会</title>
+      <link>https://cn.vot.org/2026/08/10/religion-event/</link>
+      <description><![CDATA[<p>僧侣与信众参加法会，现场使用藏文祝祷：བོད་。</p>]]></description>
+      <pubDate>Mon, 10 Aug 2026 10:30:00 +0530</pubDate>
+    </item>
+    <item>
+      <title>达赖喇嘛会见美国议员讨论西藏政策</title>
+      <link>https://cn.vot.org/2026/08/10/policy-meeting/</link>
+      <description>美国议员 John Smith 参加会谈 &amp; 发表讲话。</description>
+      <pubDate>Mon, 10 Aug 2026 09:30:00 +0530</pubDate>
+    </item>
+    <item>
+      <title>美国国会通过涉藏法案</title>
+      <link>https://cn.vot.org/2026/08/10/us-congress/</link>
+      <description><![CDATA[<a href="https://example.invalid">法案消息</a>由国会公布。]]></description>
+      <pubDate>Mon, 10 Aug 2026 08:30:00 +0530</pubDate>
+    </item>
+    <item>
+      <title>中印边境解放军举行军事演练</title>
+      <link>https://cn.vot.org/2026/08/10/border-drill/</link>
+      <description>报道涉及军事部署、车辆与装备。</description>
+      <pubDate>Mon, 10 Aug 2026 07:30:00 +0530</pubDate>
+    </item>
+    <item>
+      <title>西藏地方政治会议讨论治理政策</title>
+      <link>https://cn.vot.org/2026/08/10/local-policy/</link>
+      <description>会议讨论地方治理与公共政策。</description>
+      <pubDate>Mon, 10 Aug 2026 06:30:00 +0530</pubDate>
+    </item>
+  </channel>
+</rss>

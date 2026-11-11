@@ -1,0 +1,68 @@
+﻿title_structure:
+  - Must summarize the most important pattern change this period
+  - Must mention both cities in a comparative frame
+  - Use active voice, avoid "分析/报告/综述" as lead words
+
+chapter_structure:
+  overall_judgment:
+    position: 1
+    length_words: "300—500"
+    content:
+      - Current electoral stage for both cities
+      - Biggest change this period
+      - Structural difference between Tainan and New Taipei
+      - Main contradiction for next stage
+  tainan:
+    position: 2
+    length_words: "2500—3000"
+    sections:
+      - "(一) 本期新变化及格局判断"
+      - "(二) 民进党人选整合、组织布局及权力意图"
+      - "(三) 国民党竞选整备、攻防策略及突破方向"
+      - "(四) 地方治理、派系互动和选民议题变化"
+      - "(五) 下步走势研判"
+  new_taipei:
+    position: 3
+    length_words: "2500—3000"
+    sections:
+      - "(一) 本期新变化及格局判断"
+      - "(二) 民进党提名整合、中央布局及权力意图"
+      - "(三) 国民党人选布局、执政优势及组织整备"
+      - "(四) 蓝白关系、地方治理和关键议题变化"
+      - "(五) 下步走势研判"
+  comparison:
+    position: 4
+    length_words: "300—500"
+
+sentence_style:
+  preferred_patterns:
+    - "一是、二是、三是"
+    - Short sentences
+    - Four-character idioms
+  disallowed_patterns:
+    - News-style chronological narrative
+    - Repeated conclusions
+  tone: internal political assessment
+  verdict_first: true
+  avoid_overuse:
+    - 可能
+    - 或将
+    - 值得关注
+    - 不排除
+
+analysis_logic:
+  layers:
+    - "判格局"
+    - "析权力意图"
+    - "提炼新变化"
+    - "研判影响和走势"
+  must_answer:
+    - Why take this action now
+    - What resource or political interest is being sought
+    - Impact on intra-party integration and camp relations
+    - What changed vs last period
+
+title_blacklist:
+  - "台南、新北选举情况分析"
+  - "九合一选举动态报告"
+  - "近期选情综述"

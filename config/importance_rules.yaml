@@ -1,0 +1,781 @@
+enabled: true
+thresholds:
+  critical: 85
+  important: 65
+  normal: 0
+display:
+  max_highlights: 5
+total_cap: 5
+lanes:
+  # 重点简报的台湾/本地保留位；选举位计入此总数，不与其叠加。
+  taiwan_domestic:
+    min_slots: 3
+  election:
+    min_slots: 1
+scoring:
+  official_source_bonus: 5
+  tier1_international_bonus: 3   # Tier-1 国际媒体加分（<= official_source_bonus，validate_rules_config 校验）
+  multi_rule_bonus: 5
+  category_bonus:
+    politics: 3
+    economy: 0
+    international: 0
+  official_sources:
+  - 總統府
+  - 行政院
+  - 國防部
+  - 外交部
+  - 陸委會
+  - 中央社
+  # Tier-1 国际媒体（与 config/international_media.yaml tier1_international_media 同步）
+  tier1_international_media:
+  - Reuters
+  - Financial Times
+  - Wall Street Journal
+  - Bloomberg
+feishu_highlight_card:
+  enabled: true
+  title: "本期重点新闻提示"
+  show_summary: false
+  show_source: false
+  show_published_at: false
+  use_importance_max_highlights: true
+rules:
+# ================= 选情轨道（台南市长选情） =================
+- id: tainan_election_candidates
+  track: election
+  description: 台南市长候选人动态（表态/参选/登记/提名/征召/退选）
+  base_score: 75
+  level_cap: critical
+  subjects:
+  - 台南市長
+  - 台南市長選舉
+  - 台南市長候選人
+  - 陳亭妃
+  - 謝龍介
+  - 林俊憲
+  - 王定宇
+  - 陳以信
+  - 黃偉哲
+  actions:
+  - 表態
+  - 宣布
+  - 參選
+  - 登記
+  - 提名
+  - 徵召
+  - 退選
+  - 角逐
+  - 爭取
+  - 投入
+  scenes:
+  - 台南
+  - 九合一
+  - 2026
+  - 初選
+  - 市長選舉
+  negative:
+  - 舊聞
+  - 回顧
+  - 學者分析
+  - 一般市政
+  - 活動預告
+  boosts:
+  - keywords: [民進黨初選, 國民黨徵召, 登記參選, 宣布參選]
+    add: 12
+
+- id: tainan_election_polls
+  track: election
+  description: 台南市长选举民调/支持度
+  base_score: 72
+  level_cap: important
+  subjects:
+  - 民調
+  - 支持度
+  - 看好度
+  - 民調中心
+  actions:
+  - 公布
+  - 發布
+  - 顯示
+  - 指出
+  - 調查
+  scenes:
+  - 台南
+  - 市長選舉
+  - 初選
+  - 陳亭妃
+  - 謝龍介
+  - 林俊憲
+  - 王定宇
+  - 陳以信
+  - 2026
+  negative:
+  - 全國民調
+  - 總統民調
+  - 六都民調
+  - 假民調
+  boosts:
+  - keywords: [民進黨, 國民黨, 領先, 差距]
+    add: 10
+
+- id: tainan_election_alliance
+  track: election
+  description: 蓝白合/在野整合/礼让（台南市长选情）
+  base_score: 70
+  level_cap: important
+  subjects:
+  - 藍白
+  - 藍白合
+  - 在野
+  - 民眾黨
+  - 國民黨
+  - 民進黨
+  actions:
+  - 合作
+  - 整合
+  - 禮讓
+  - 結盟
+  - 協調
+  - 破局
+  - 競爭
+  scenes:
+  - 台南
+  - 市長選舉
+  - 2026
+  - 九合一
+  - 謝龍介
+  - 陳亭妃
+  negative:
+  - 立院
+  - 國會
+  - 全國層級
+  - 一般市政
+  boosts:
+  - keywords: [台南市長, 禮讓, 在野整合]
+    add: 10
+
+- id: tainan_election_faction
+  track: election
+  description: 派系/组织盘/竞总（台南市长选情）
+  base_score: 68
+  level_cap: important
+  subjects:
+  - 派系
+  - 正國會
+  - 湧言會
+  - 賴系
+  - 新潮流
+  - 英系
+  - 地方組織
+  - 樁腳
+  - 競選團隊
+  - 競選總部
+  actions:
+  - 整合
+  - 角力
+  - 布局
+  - 結盟
+  - 分裂
+  - 挺
+  - 表態
+  - 成立
+  - 進駐
+  scenes:
+  - 台南
+  - 市長選舉
+  - 初選
+  - 陳亭妃
+  - 謝龍介
+  - 林俊憲
+  - 王定宇
+  - 2026
+  negative:
+  - 一般地方活動
+  - 舊聞
+  boosts:
+  - keywords: [初選, 市長選舉]
+    add: 10
+
+# ================= 政经安全轨道 =================
+- id: top_leadership
+  track: politics_security
+  description: 总统副总统正式讲话/政策/出访/过境（接见邦交国另由总统外交互动规则处理）
+  base_score: 78
+  level_cap: critical
+  subjects:
+  - 總統
+  - 副總統
+  - 台灣總統
+  - 台灣副總統
+  - 總統府
+  - 賴清德
+  actions:
+  - 發表
+  - 宣布
+  - 提出
+  - 定調
+  - 啟動
+  - 出訪
+  - 過境
+  - 會晤
+  - 展開系列演講
+  - 簽署
+  scenes:
+  - 520
+  - 就職
+  - 雙十
+  - 國慶演說
+  - 兩岸政策
+  - 國防政策
+  - 外交政策
+  - 重大施政
+  - 國家安全
+  negative:
+  - 地方行程
+  - 參訪
+  - 節目
+  - 致詞
+  - 活動預告
+  - 猜測
+  - 尚未證實
+  - 傳出
+  - 傳聞
+  - 祝賀
+  - 一般接見
+  boosts:
+  - keywords: [國家安全, 兩岸, 國防, 外交, 緊急]
+    add: 8
+
+- id: president_diplomatic_meeting
+  track: politics_security
+  description: 总统/副总统接见邦交国元首/总理/外长/大使等
+  base_score: 74
+  level_cap: important
+  subjects:
+  - 總統
+  - 副總統
+  - 台灣總統
+  - 台灣副總統
+  - 總統府
+  - 賴清德
+  actions:
+  - 接見
+  - 會晤
+  - 宴請
+  - 會面
+  - 接待
+  scenes:
+  - 邦交國
+  - 元首
+  - 總理
+  - 外長
+  - 外交部長
+  - 大使
+  - 訪台
+  - 國宴
+  - 史瓦帝尼
+  - 吐瓦魯
+  - 帛琉
+  - 馬紹爾
+  - 聖露西亞
+  - 聖文森
+  - 貝里斯
+  - 瓜地馬拉
+  - 巴拉圭
+  - 海地
+  negative:
+  - 地方人士
+  - 民間團體
+  - 企業界
+  - 宗教團體
+  - 社團
+  - 學者
+  - 一般接見
+  boosts:
+  - keywords: [邦交國, 元首, 總理, 國宴]
+    add: 10
+
+- id: president_international_statement
+  track: politics_security
+  description: 总统对国际局势/区域安全表态（台日、台美、中国威胁等）
+  base_score: 74
+  level_cap: important
+  subjects:
+  - 總統
+  - 副總統
+  - 賴清德
+  - 台灣總統
+  - 總統府
+  - 台灣副總統
+  actions:
+  - 表示
+  - 強調
+  - 重申
+  - 警告
+  - 呼籲
+  - 指出
+  - 喊話
+  - 稱
+  - 說
+  scenes:
+  - 台日
+  - 台美
+  - 中國
+  - 中共
+  - 威脅
+  - 守護民主
+  - 區域安全
+  - 印太
+  - 民主同盟
+  - 最大威脅
+  - 國安
+  negative:
+  - 一般市政
+  - 選舉造勢
+  - 地方行程
+  - 立委補選
+  boosts:
+  - keywords: [最大威脅, 守護民主, 區域安全, 印太]
+    add: 10
+
+- id: party_power
+  track: politics_security
+  description: 政党人事/路线/高层外访/九合一提名征召
+  base_score: 72
+  level_cap: important
+  subjects:
+  - 民進黨
+  - 國民黨
+  - 民眾黨
+  - 黨主席
+  - 中常會
+  - 中執會
+  - 全代會
+  - 黨代會
+  - 主要派系
+  actions:
+  - 改選
+  - 當選
+  - 落選
+  - 擴權
+  - 結盟
+  - 分裂
+  - 提名
+  - 通過
+  - 調整路線
+  - 訪問美國
+  - 訪問大陸
+  - 會見美官員
+  - 徵召
+  scenes:
+  - 九合一
+  - 2026
+  - 縣市長
+  - 立委提名
+  - 總統提名
+  negative:
+  - 例行黨務會議
+  - 黨內人士評論
+  - 猜測
+  - 活動照片
+  - 宣導活動
+  - 節目
+  - 一般造勢
+  - 基層活動
+  boosts:
+  - keywords: ["2026", 九合一, 縣市長提名, 徵召]
+    add: 10
+
+- id: local_election_moves
+  track: politics_security
+  description: 全国县市长选情动态（竞总成立/派系插旗/大团结/蓝白合/提名征召）
+  base_score: 68
+  level_cap: important
+  subjects:
+  - 縣市長
+  - 縣市長候選人
+  - 競選總部
+  - 競總
+  - 蔡英文
+  - 英系
+  - 正國會
+  - 湧言會
+  - 賴系
+  actions:
+  - 插旗
+  - 成立
+  - 進駐
+  - 出任
+  - 接任
+  - 提名
+  - 徵召
+  - 整合
+  - 結盟
+  scenes:
+  - 競選總部
+  - 競總
+  - 綠營
+  - 大團結
+  - 選情
+  - 選戰
+  - 三腳督
+  - 藍白合
+  - 在野整合
+  - 台東
+  - 台北
+  - 新北
+  - 桃園
+  - 台中
+  - 高雄
+  - 縣市長選舉
+  - 九合一
+  negative:
+  - 台南市長
+  - 陳亭妃
+  - 謝龍介
+  - 林俊憲
+  - 王定宇
+  - 一般市政
+  - 一般地方活動
+  - 舊聞
+  boosts:
+  - keywords: [競選總部, 競總, 插旗, 大團結, 提名, 徵召]
+    add: 8
+
+- id: cross_strait_policy
+  track: politics_security
+  description: 大陆涉台法律/惠台措施/台湾官方回应
+  base_score: 78
+  level_cap: critical
+  subjects:
+  - 大陸
+  - 中國
+  - 中共
+  - 北京
+  - 國台辦
+  - 台灣官方
+  - 陸委會
+  - 行政院
+  - 國安部門
+  - 民進黨
+  - 國民黨
+  - 台灣主管機關
+  actions:
+  - 發布
+  - 通過
+  - 實施
+  - 公布
+  - 回應
+  - 批評
+  - 評價
+  - 定性
+  - 反制
+  - 研議
+  scenes:
+  - 涉台法律
+  - 民族團進法
+  - 惠台措施
+  - 惠台十條
+  - 融合發展
+  - 台胞台企
+  - 懲誡措施
+  - 制裁
+  - 統一
+  - 國家安全
+  - 人員往來
+  - 經貿措施
+  negative:
+  - 講座
+  - 學者
+  - 活動照片
+  - 節目評論
+  - 宣導活動
+  - 學者評論
+  - 一般學者評論
+  - 既有惠台政策宣傳
+  - 地方交流活動
+  boosts:
+  - keywords: [軍事, 封鎖, 演習, 法律, 制裁]
+    add: 8
+
+- id: taiwan_allied_security
+  track: politics_security
+  description: 台美/台日/台澳防卫合作、军售、联合声明、安全信号
+  base_score: 78
+  level_cap: critical
+  subjects:
+  - 台灣
+  - 台美
+  - 台日
+  - 台澳
+  - 美國
+  - 白宮
+  - 美國國務院
+  - 美國國會
+  - 日本
+  - 澳洲
+  - 國防部
+  - 外交部
+  actions:
+  - 宣布
+  - 證實
+  - 透露
+  - 報導
+  - 簽署
+  - 啟動
+  - 擴大
+  - 恢復
+  - 舉行
+  - 規劃
+  scenes:
+  - 防衛合作
+  - 軍事合作
+  - 安全合作
+  - 軍售
+  - 聯合聲明
+  - 共同訓練
+  - 協防
+  - 信號
+  - 白皮書
+  - 印太
+  - 區域安全
+  - 兩岸威脅
+  - 趨公開
+  negative:
+  - 智庫活動
+  - 尚未證實
+  - 宴會
+  - 規劃中行程
+  - 猜測
+  - 傳出
+  - 傳聞
+  - 禮節性會見
+  - 節目
+  boosts:
+  - keywords: [軍售, 防衛合作, 聯合聲明, 共同訓練]
+    add: 10
+
+- id: maritime_security
+  track: politics_security
+  description: 渔船碰撞/海缆受损/敏感水域执法
+  base_score: 76
+  level_cap: critical
+  subjects:
+  - 大陸漁船
+  - 大陸船隻
+  - 台灣海巡
+  - 台灣軍方
+  - 貨輪
+  - 海警
+  - 海事部門
+  actions:
+  - 碰撞
+  - 撞船
+  - 翻覆
+  - 扣押
+  - 登檢
+  - 驅離
+  - 追緝
+  - 傷亡
+  - 失聯
+  - 割斷
+  - 損壞
+  - 破壞
+  - 拖救
+  - 調查
+  scenes:
+  - 金門
+  - 馬祖
+  - 台海中線
+  - 限制水域
+  - 禁限制水域
+  - 海底光纜
+  - 港口
+  - 能源設施
+  - 通信設施
+  - 關鍵基礎設施
+  negative:
+  - 去年
+  - 普通海事事故
+  - 舊聞
+  - 一般擱淺
+  - 及時驅離
+  - 回顧
+  - 一般越界
+  - 無關兩岸安全船隻故障
+  boosts: []
+
+- id: border_penetration
+  track: politics_security
+  description: 快艇抵岸/人员登陆/防线穿透
+  base_score: 80
+  level_cap: critical
+  subjects:
+  - 大陸男子
+  - 大陸人員
+  - 大陸船隻
+  - 大陸快艇
+  - 橡皮艇
+  - 舢舨
+  - 無人機
+  actions:
+  - 越界
+  - 闖入
+  - 偷渡
+  - 抵達
+  - 靠岸
+  - 登陸
+  - 進入
+  - 逼近
+  - 未被發現
+  - 突破防線
+  scenes:
+  - 台灣本島
+  - 淡水河口
+  - 港口
+  - 海灘
+  - 機場
+  - 營區
+  - 軍事設施
+  - 首都周邊
+  - 重要河口
+  - 外島
+  negative:
+  - 外海即被
+  - 被攔截
+  - 無關安全的一般海上事故
+  - 外海被攔截
+  - 在外海即被攔截
+  - 一般偷渡
+  - 普通經濟性偷渡
+  boosts: []
+
+- id: irregular_diplomacy
+  track: politics_security
+  description: 非公开/临时/非常规出访/专机/秘密过境
+  base_score: 76
+  level_cap: critical
+  subjects:
+  - 台灣總統
+  - 台灣副總統
+  - 總統府
+  - 賴清德
+  actions:
+  - 出訪
+  - 過境
+  - 搭乘
+  - 會晤
+  - 轉機
+  - 改變行程
+  scenes:
+  - 秘密
+  - 未公開
+  - 低調
+  - 臨時
+  - 突然
+  - 改道
+  - 改變航線
+  - 外國專機
+  - 政府專機
+  - 包機
+  - 秘密過境
+  - 秘密會晤
+  negative:
+  - 例行行程
+  - 普通公開出訪
+  - 尚未證實
+  - 猜測
+  - 傳出
+  - 評論
+  - 傳聞
+  - 節目
+  - 推測
+  boosts: []
+
+- id: judicial_political_cases
+  track: politics_security
+  description: 政治人物涉重大司法案件（侦办/起诉/开庭/羁押/判决）
+  base_score: 70
+  level_cap: important
+  subjects:
+  - 柯文哲
+  - 政治人物
+  - 立委
+  - 縣市長
+  - 市長
+  - 議員
+  - 民代
+  - 候選人
+  - 前總統
+  - 前縣市長
+  - 前立委
+  actions:
+  - 涉
+  - 偵辦
+  - 起訴
+  - 開庭
+  - 羈押
+  - 判決
+  - 交保
+  - 聲押
+  - 抗告
+  - 上訴
+  - 傳喚
+  - 約談
+  scenes:
+  - 京華城
+  - 圖利
+  - 收賄
+  - 貪汙
+  - 一審
+  - 二審
+  - 更審
+  - 高院
+  - 地院
+  - 司法案件
+  - 政治獻金
+  - 弊案
+  negative:
+  - 一般詐騙案
+  - 毒品案
+  - 普通刑事案件
+  - 社會案件
+  boosts:
+  - keywords: [二審, 一審, 羈押, 判決, 京華城]
+    add: 12
+
+- id: legislative_candidacy_rules
+  track: politics_security
+  description: 影响参选资格的重大立法（三读/修法/判刑不得参选）
+  base_score: 70
+  level_cap: important
+  subjects:
+  - 立法院
+  - 立院
+  - 內政委員會
+  - 選罷法
+  - 公職人員選舉罷免法
+  actions:
+  - 三讀
+  - 通過
+  - 修法
+  - 修正
+  - 表決
+  scenes:
+  - 不得參選
+  - 參選資格
+  - 被選舉權
+  - 候選人資格
+  - 選舉資格
+  - 詐防條例
+  - 判刑確定
+  - 有罪確定
+  - 褫奪公權
+  - 排黑條款
+  negative:
+  - 一般地方選舉
+  - 舊聞
+  boosts:
+  - keywords: [三讀, 不得參選, 參選資格, 有罪確定]
+    add: 10

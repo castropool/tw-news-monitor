@@ -1,0 +1,1470 @@
+[
+  {
+    "case_id": "golden_01",
+    "coverage": "同一事件多家媒体报道",
+    "note": "真实新闻：蓝白凯道集会（中央社/东森，2026-07-25）",
+    "articles": [
+      {
+        "id": "2065",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "藍白凱道集會　綠：製造社會對立選舉操作",
+        "url": "https://www.cna.com.tw/news/aipl/202607250206.aspx",
+        "published_at": "2026-07-25T21:34:15+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [],
+          "matched_parties": [],
+          "matched_issues": [
+            "選舉"
+          ],
+          "matched_terms": [
+            "選舉"
+          ],
+          "matched_basis": [
+            "issue_match"
+          ],
+          "region_match": false,
+          "election_context_match": true,
+          "match_score": 0.65
+        }
+      },
+      {
+        "id": "2164",
+        "source_name": "東森新聞",
+        "category": "politics",
+        "title": "藍白凱道集會 綠：製造社會對立選舉操作",
+        "url": "https://news.ebc.net.tw/news/politics/563073",
+        "published_at": "2026-07-25T23:27:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [],
+          "matched_parties": [],
+          "matched_issues": [
+            "選舉"
+          ],
+          "matched_terms": [
+            "選舉"
+          ],
+          "matched_basis": [
+            "issue_match"
+          ],
+          "region_match": false,
+          "election_context_match": true,
+          "match_score": 0.65
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "context_only",
+    "expected_assertion_kinds": [
+      "actor_statement"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_02",
+    "coverage": "同一事件连续两天报道（后续说明应关联而非合并）",
+    "note": "真实新闻：725凯道集会与林俊宪次日评论",
+    "articles": [
+      {
+        "id": "2064",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "藍白號召民眾上凱道　籲捍衛食安、要求賴政府下台[影]",
+        "url": "https://www.cna.com.tw/news/aipl/202607250209.aspx",
+        "published_at": "2026-07-25T21:45:21+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [],
+          "matched_parties": [],
+          "matched_issues": [
+            "選舉"
+          ],
+          "matched_terms": [
+            "選舉"
+          ],
+          "matched_basis": [
+            "issue_match"
+          ],
+          "region_match": false,
+          "election_context_match": true,
+          "match_score": 0.65
+        }
+      },
+      {
+        "id": "2114",
+        "source_name": "聯合新聞網",
+        "category": "politics",
+        "title": "725反毒油藍3本柱沒來 林俊憲：鄭麗文拉回政黨對決 還端走蔣萬安焦點",
+        "url": "https://udn.com/news/story/6656/9651808",
+        "published_at": "2026-07-26T14:08:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [
+            "林俊憲"
+          ],
+          "matched_parties": [],
+          "matched_issues": [
+            "選舉"
+          ],
+          "matched_terms": [
+            "林俊憲",
+            "選舉"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "issue_match"
+          ],
+          "region_match": false,
+          "election_context_match": true,
+          "match_score": 0.65
+        }
+      }
+    ],
+    "expected_cluster_count": 2,
+    "expected_relationship": "separate_event",
+    "expected_status": "hold",
+    "expected_assertion_kinds": [
+      "actor_statement"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [
+      "golden_01"
+    ]
+  },
+  {
+    "case_id": "golden_03",
+    "coverage": "人物表态与正式动作区分",
+    "note": "真实新闻：陈以信表态 vs 民进党全代会授战旗",
+    "articles": [
+      {
+        "id": "965",
+        "source_name": "聯合新聞網",
+        "category": "politics",
+        "title": "在野725為食安上凱道 陳以信：賴總統道歉 卓榮泰下台",
+        "url": "https://udn.com/news/story/124948/9635973",
+        "published_at": "2026-07-18T13:31:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [
+            "陳以信"
+          ],
+          "matched_parties": [],
+          "matched_issues": [],
+          "matched_terms": [
+            "陳以信"
+          ],
+          "matched_basis": [
+            "candidate_match"
+          ],
+          "region_match": false,
+          "election_context_match": false,
+          "match_score": 0.65
+        }
+      },
+      {
+        "id": "1087",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "民進黨全代會　賴清德授戰旗展團結氣勢、首邀駐台使節",
+        "url": "https://www.cna.com.tw/news/aipl/202607190131.aspx",
+        "published_at": "2026-07-19T16:27:16+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "low",
+          "matched_people": [],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [],
+          "matched_terms": [
+            "民進黨"
+          ],
+          "matched_basis": [
+            "party_match"
+          ],
+          "region_match": false,
+          "election_context_match": false,
+          "match_score": 0.35
+        }
+      }
+    ],
+    "expected_cluster_count": 2,
+    "expected_relationship": "separate_event",
+    "expected_status": "context_only",
+    "expected_assertion_kinds": [
+      "actor_statement"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_04",
+    "coverage": "指控与回应",
+    "note": "真实新闻：谢龙介质疑与政院回应",
+    "articles": [
+      {
+        "id": "74",
+        "source_name": "聯合新聞網",
+        "category": "politics",
+        "title": "謝龍介質疑沒為毒油道歉爆口角 卓榮泰：今天是專案報告，不是專案道歉",
+        "url": "https://udn.com/news/story/6656/9627271?from=udn-catelistnews_ch2",
+        "published_at": "2026-07-14T16:34:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [
+            "謝龍介"
+          ],
+          "matched_parties": [],
+          "matched_issues": [],
+          "matched_terms": [
+            "謝龍介"
+          ],
+          "matched_basis": [
+            "candidate_match"
+          ],
+          "region_match": false,
+          "election_context_match": false,
+          "match_score": 0.65
+        }
+      },
+      {
+        "id": "791",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "政院：中聯案有查廠有流向有下架　盧秀燕指控不實",
+        "url": "https://www.cna.com.tw/news/aipl/202607170337.aspx",
+        "published_at": "2026-07-17T14:44:49+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "low",
+          "matched_people": [],
+          "matched_parties": [],
+          "matched_issues": [
+            "選舉"
+          ],
+          "matched_terms": [
+            "選舉"
+          ],
+          "matched_basis": [
+            "issue_match"
+          ],
+          "region_match": false,
+          "election_context_match": true,
+          "match_score": 0.35
+        }
+      }
+    ],
+    "expected_cluster_count": 2,
+    "expected_relationship": "related_event",
+    "expected_status": "hold",
+    "expected_assertion_kinds": [
+      "allegation",
+      "actor_statement"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_05",
+    "coverage": "正式提名（构造样本，按真实模式）",
+    "note": "构造：民进党正式提名陈亭妃",
+    "articles": [
+      {
+        "id": "s_0501",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "民進黨正式提名陳亭妃參選台南市長",
+        "url": "https://www.cna.com.tw/news/aipl/202601210099.aspx",
+        "published_at": "2026-01-21T10:00:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "陳亭妃"
+          ],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [
+            "提名"
+          ],
+          "matched_terms": [
+            "陳亭妃",
+            "民進黨",
+            "提名"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "party_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 1.0
+        }
+      },
+      {
+        "id": "s_0502",
+        "source_name": "自由時報",
+        "category": "politics",
+        "title": "民進黨正式提名陳亭妃參選台南市長",
+        "url": "https://news.ltn.com.tw/news/politics/breakingnews/9999999",
+        "published_at": "2026-01-21T10:05:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "陳亭妃"
+          ],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [
+            "提名"
+          ],
+          "matched_terms": [
+            "陳亭妃",
+            "民進黨",
+            "提名"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "party_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 1.0
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "duplicate_candidate",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_formal_match": "likely_duplicate",
+    "must_not_merge_with": [
+      "golden_22"
+    ]
+  },
+  {
+    "case_id": "golden_06",
+    "coverage": "竞选活动",
+    "note": "真实新闻：王世坚加入沈伯洋竞选总部",
+    "articles": [
+      {
+        "id": "908",
+        "source_name": "東森新聞",
+        "category": "politics",
+        "title": "王世堅宣布加入沈伯洋團隊！擔任「競選總部副主委」",
+        "url": "https://news.ebc.net.tw/news/politics/561790",
+        "published_at": "2026-07-18T09:20:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [
+            "王世堅"
+          ],
+          "matched_parties": [],
+          "matched_issues": [
+            "競選"
+          ],
+          "matched_terms": [
+            "王世堅",
+            "競選"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 0.65
+        }
+      },
+      {
+        "id": "954",
+        "source_name": "聯合新聞網",
+        "category": "politics",
+        "title": "王世堅接任競選總部副主委！沈伯洋讚敢言敢諫",
+        "url": "https://udn.com/news/story/124652/9635868",
+        "published_at": "2026-07-18T12:17:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [
+            "王世堅",
+            "沈伯洋"
+          ],
+          "matched_parties": [],
+          "matched_issues": [
+            "競選"
+          ],
+          "matched_terms": [
+            "王世堅",
+            "沈伯洋",
+            "競選"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 0.65
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "review_required",
+    "expected_assertion_kinds": [
+      "observed_fact",
+      "actor_statement"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_07",
+    "coverage": "蓝白合作讨论",
+    "note": "真实新闻：柯文哲谈蓝白合作",
+    "articles": [
+      {
+        "id": "2058",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "談藍白合作 柯文哲：民眾黨說不定有更強總統候選人",
+        "url": "https://www.cna.com.tw/news/aipl/202607260068.aspx",
+        "published_at": "2026-07-26T12:36:35+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "low",
+          "matched_people": [],
+          "matched_parties": [
+            "民眾黨"
+          ],
+          "matched_issues": [
+            "選舉"
+          ],
+          "matched_terms": [
+            "民眾黨",
+            "選舉"
+          ],
+          "matched_basis": [
+            "party_match",
+            "issue_match"
+          ],
+          "region_match": false,
+          "election_context_match": true,
+          "match_score": 0.35
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "auto_reject",
+    "expected_assertion_kinds": [
+      "actor_statement"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_08",
+    "coverage": "民调报道",
+    "note": "构造：台南市长民调公布",
+    "articles": [
+      {
+        "id": "s_0801",
+        "source_name": "風傳媒",
+        "category": "politics",
+        "title": "台南市長最新民調公布 陳亭妃支持度領先謝龍介",
+        "url": "https://www.storm.mg/article/99999901",
+        "published_at": "2026-07-20T15:00:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "陳亭妃",
+            "謝龍介"
+          ],
+          "matched_parties": [],
+          "matched_issues": [
+            "民調",
+            "支持度"
+          ],
+          "matched_terms": [
+            "陳亭妃",
+            "謝龍介",
+            "民調",
+            "支持度"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 1.0
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "review_required",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_09",
+    "coverage": "灾害治理议题",
+    "note": "真实新闻：刘世芳视察替代役训练",
+    "articles": [
+      {
+        "id": "651",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "視察替代役訓練　劉世芳盼防救災戰力助社會韌性",
+        "url": "https://www.cna.com.tw/news/aipl/202607170198.aspx",
+        "published_at": "2026-07-17T08:23:44+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "low",
+          "matched_people": [],
+          "matched_parties": [],
+          "matched_issues": [
+            "選舉"
+          ],
+          "matched_terms": [
+            "選舉"
+          ],
+          "matched_basis": [
+            "region_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 0.35
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "review_required",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_10",
+    "coverage": "明显非选情新闻",
+    "note": "真实新闻：阿富汗洪灾（无台南匹配）",
+    "articles": [
+      {
+        "id": "1612",
+        "source_name": "中央社",
+        "category": "international",
+        "title": "阿富汗東北部遭遇洪災20死逾80傷　超過百人失蹤",
+        "url": "https://www.cna.com.tw/news/aopl/202607210004.aspx",
+        "published_at": "2026-07-21T02:17:04+08:00",
+        "summary": "",
+        "match": null
+      }
+    ],
+    "expected_cluster_count": 0,
+    "expected_relationship": "separate_event",
+    "expected_status": "auto_reject",
+    "expected_assertion_kinds": [],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_11",
+    "coverage": "已存在正式事件（构造）",
+    "note": "构造：与正式事件高度重复",
+    "articles": [
+      {
+        "id": "s_1101",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "民進黨正式提名陳亭妃參選台南市長",
+        "url": "https://www.cna.com.tw/news/aipl/202601219999.aspx",
+        "published_at": "2026-01-21T11:00:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "陳亭妃"
+          ],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [
+            "提名"
+          ],
+          "matched_terms": [
+            "陳亭妃",
+            "民進黨",
+            "提名"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "party_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 1.0
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "duplicate_candidate",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_formal_match": "likely_duplicate",
+    "must_not_merge_with": [
+      "golden_05"
+    ]
+  },
+  {
+    "case_id": "golden_12",
+    "coverage": "可能作为subevent的新闻",
+    "note": "构造：林俊宪评论正式集会（候选应为possible_subevent建议）",
+    "articles": [
+      {
+        "id": "s_1201",
+        "source_name": "聯合新聞網",
+        "category": "politics",
+        "title": "林俊憲：725凱道集會是政黨對決 還端走蔣萬安焦點",
+        "url": "https://udn.com/news/story/6656/99999912",
+        "published_at": "2026-07-26T14:08:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [
+            "林俊憲"
+          ],
+          "matched_parties": [],
+          "matched_issues": [
+            "選舉"
+          ],
+          "matched_terms": [
+            "林俊憲",
+            "選舉"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "issue_match"
+          ],
+          "region_match": false,
+          "election_context_match": true,
+          "match_score": 0.65
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "context_only",
+    "expected_assertion_kinds": [
+      "actor_statement"
+    ],
+    "expected_formal_match": "possible_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_13",
+    "coverage": "同主题但独立事件",
+    "note": "真实新闻：台南市长选情观点 vs 台南议员选区初探",
+    "articles": [
+      {
+        "id": "1978",
+        "source_name": "Newtalk新聞",
+        "category": "politics",
+        "title": "黃博郎觀點》台南市長選情冷清背後的結構賽局  藍綠雙方的路徑選擇與派系邊界",
+        "url": "https://newtalk.tw/news/view/2026-07-21/1048571",
+        "published_at": "2026-07-21T19:31:19+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [],
+          "matched_parties": [],
+          "matched_issues": [
+            "選情",
+            "派系"
+          ],
+          "matched_terms": [
+            "台南",
+            "選情",
+            "派系"
+          ],
+          "matched_basis": [
+            "region_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 0.65
+        }
+      },
+      {
+        "id": "827",
+        "source_name": "聯合新聞網",
+        "category": "politics",
+        "title": "選情初探／台南議員第四選區 綠營「山區巡守員」挑戰周家根基",
+        "url": "https://udn.com/news/story/124652/9635139",
+        "published_at": "2026-07-18T00:00:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [],
+          "matched_parties": [],
+          "matched_issues": [
+            "選情",
+            "選區"
+          ],
+          "matched_terms": [
+            "台南",
+            "選情",
+            "選區"
+          ],
+          "matched_basis": [
+            "region_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 0.65
+        }
+      }
+    ],
+    "expected_cluster_count": 2,
+    "expected_relationship": "separate_event",
+    "expected_status": "hold",
+    "expected_assertion_kinds": [
+      "media_interpretation"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_14",
+    "coverage": "新闻日期不等于事件日期",
+    "note": "构造：昨日出席（报道日7/20，事件日7/19）",
+    "articles": [
+      {
+        "id": "s_1401",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "陳亭妃昨日出席台南競選總部揭牌儀式",
+        "url": "https://www.cna.com.tw/news/aipl/99999914.aspx",
+        "published_at": "2026-07-20T12:00:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "陳亭妃"
+          ],
+          "matched_parties": [],
+          "matched_issues": [
+            "競選"
+          ],
+          "matched_terms": [
+            "陳亭妃",
+            "競選"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 1.0
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "review_required",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "expected_event_date": "2026-07-19",
+    "expected_event_date_basis": "explicit_in_title",
+    "expected_event_date_confidence": "medium"
+  },
+  {
+    "case_id": "golden_15",
+    "coverage": "来源转载（同题多源）",
+    "note": "构造：中央社原创+东森转载同题",
+    "articles": [
+      {
+        "id": "s_1501",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "陳亭妃宣布參選台南市長",
+        "url": "https://www.cna.com.tw/news/aipl/99999915.aspx",
+        "published_at": "2026-07-10T09:00:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "陳亭妃"
+          ],
+          "matched_parties": [],
+          "matched_issues": [
+            "競選"
+          ],
+          "matched_terms": [
+            "陳亭妃",
+            "競選"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 1.0
+        }
+      },
+      {
+        "id": "s_1502",
+        "source_name": "東森新聞",
+        "category": "politics",
+        "title": "陳亭妃宣布參選台南市長",
+        "url": "https://news.ebc.net.tw/news/politics/99999915",
+        "published_at": "2026-07-10T10:00:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "陳亭妃"
+          ],
+          "matched_parties": [],
+          "matched_issues": [
+            "競選"
+          ],
+          "matched_terms": [
+            "陳亭妃",
+            "競選"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 1.0
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "review_required",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_16",
+    "coverage": "匿名消息",
+    "note": "真实新闻：传王定宇不再选立委",
+    "articles": [
+      {
+        "id": "1833",
+        "source_name": "風傳媒",
+        "category": "politics",
+        "title": "傳王定宇不再選立委　要讓陳柏惟接棒？黃揚明揭民進黨派系角力：人選是「他」",
+        "url": "https://www.storm.mg/article/11150695",
+        "published_at": "2026-07-21T15:25:53+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "王定宇"
+          ],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [
+            "派系"
+          ],
+          "matched_terms": [
+            "王定宇",
+            "民進黨",
+            "派系"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "party_match",
+            "issue_match"
+          ],
+          "region_match": false,
+          "election_context_match": true,
+          "match_score": 1.0
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "context_only",
+    "expected_assertion_kinds": [
+      "uncertain_report"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [
+      "golden_20"
+    ]
+  },
+  {
+    "case_id": "golden_17",
+    "coverage": "媒体评论",
+    "note": "真实新闻：黄博郎观点",
+    "articles": [
+      {
+        "id": "1978",
+        "source_name": "Newtalk新聞",
+        "category": "politics",
+        "title": "黃博郎觀點》台南市長選情冷清背後的結構賽局  藍綠雙方的路徑選擇與派系邊界",
+        "url": "https://newtalk.tw/news/view/2026-07-21/1048571",
+        "published_at": "2026-07-21T19:31:19+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [],
+          "matched_parties": [],
+          "matched_issues": [
+            "選情",
+            "派系"
+          ],
+          "matched_terms": [
+            "台南",
+            "選情",
+            "派系"
+          ],
+          "matched_basis": [
+            "region_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 0.65
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "hold",
+    "expected_assertion_kinds": [
+      "media_interpretation"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [
+      "golden_13"
+    ]
+  },
+  {
+    "case_id": "golden_18",
+    "coverage": "重复URL",
+    "note": "真实新闻：联合新闻网同一文章带/不带追踪参数",
+    "articles": [
+      {
+        "id": "89",
+        "source_name": "聯合新聞網",
+        "category": "politics",
+        "title": "【重磅快評】民進黨無理卡桃園2年 藉輝達找到了下台階",
+        "url": "https://udn.com/news/story/7238/9626502?from=udn-catelistnews_ch2",
+        "published_at": "2026-07-14T11:55:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "low",
+          "matched_people": [],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [],
+          "matched_terms": [
+            "民進黨"
+          ],
+          "matched_basis": [
+            "party_match"
+          ],
+          "region_match": false,
+          "election_context_match": false,
+          "match_score": 0.35
+        }
+      },
+      {
+        "id": "189",
+        "source_name": "聯合新聞網",
+        "category": "politics",
+        "title": "【重磅快評】民進黨無理卡桃園2年 藉輝達找到了下台階",
+        "url": "https://udn.com/news/story/7238/9626502",
+        "published_at": "2026-07-14T11:55:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "low",
+          "matched_people": [],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [],
+          "matched_terms": [
+            "民進黨"
+          ],
+          "matched_basis": [
+            "party_match"
+          ],
+          "region_match": false,
+          "election_context_match": false,
+          "match_score": 0.35
+        }
+      }
+    ],
+    "expected_cluster_count": 2,
+    "expected_relationship": "separate_event",
+    "expected_status": "auto_reject",
+    "expected_assertion_kinds": [],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_19",
+    "coverage": "字段不完整新闻",
+    "note": "构造：无标题、无来源、无URL",
+    "articles": [
+      {
+        "id": "s_1901",
+        "source_name": "",
+        "category": "politics",
+        "title": "",
+        "url": "",
+        "published_at": "2026-07-15T08:00:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "low",
+          "matched_people": [],
+          "matched_parties": [],
+          "matched_issues": [],
+          "matched_terms": [],
+          "matched_basis": [
+            "issue_match"
+          ],
+          "region_match": false,
+          "election_context_match": true,
+          "match_score": 0.35
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "auto_reject",
+    "expected_assertion_kinds": [
+      "unknown"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_20",
+    "coverage": "聚类边界困难样本（同人物不同动作）",
+    "note": "真实新闻：王定宇交棒 vs 传王定宇不再选立委",
+    "articles": [
+      {
+        "id": "1122",
+        "source_name": "自由時報",
+        "category": "politics",
+        "title": "綠營權力核心重組！泛賴系中常委強勢過半 王定宇交棒林智鴻",
+        "url": "https://news.ltn.com.tw/news/politics/breakingnews/5510702",
+        "published_at": "2026-07-19T20:02:47+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [
+            "王定宇"
+          ],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [
+            "派系"
+          ],
+          "matched_terms": [
+            "王定宇",
+            "民進黨",
+            "派系"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "party_match",
+            "issue_match"
+          ],
+          "region_match": false,
+          "election_context_match": true,
+          "match_score": 0.65
+        }
+      },
+      {
+        "id": "1833",
+        "source_name": "風傳媒",
+        "category": "politics",
+        "title": "傳王定宇不再選立委　要讓陳柏惟接棒？黃揚明揭民進黨派系角力：人選是「他」",
+        "url": "https://www.storm.mg/article/11150695",
+        "published_at": "2026-07-21T15:25:53+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "王定宇"
+          ],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [
+            "派系"
+          ],
+          "matched_terms": [
+            "王定宇",
+            "民進黨",
+            "派系"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "party_match",
+            "issue_match"
+          ],
+          "region_match": false,
+          "election_context_match": true,
+          "match_score": 1.0
+        }
+      }
+    ],
+    "expected_cluster_count": 2,
+    "expected_relationship": "related_event",
+    "expected_status": "hold",
+    "expected_assertion_kinds": [
+      "uncertain_report",
+      "unknown"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_21",
+    "coverage": "表态不得升级为事实",
+    "note": "真实新闻：陈以信表态公投",
+    "articles": [
+      {
+        "id": "1250",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "陳以信：公投案　國民黨中央以重啟核電優先",
+        "url": "https://www.cna.com.tw/news/aipl/202607200059.aspx",
+        "published_at": "2026-07-20T11:21:40+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "陳以信"
+          ],
+          "matched_parties": [
+            "國民黨"
+          ],
+          "matched_issues": [],
+          "matched_terms": [
+            "陳以信",
+            "國民黨"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "party_match"
+          ],
+          "region_match": false,
+          "election_context_match": false,
+          "match_score": 1.0
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "context_only",
+    "expected_assertion_kinds": [
+      "actor_statement"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_22",
+    "coverage": "初选与提名不得合并",
+    "note": "构造：初选结果 vs 正式提名",
+    "articles": [
+      {
+        "id": "s_2201",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "民進黨台南市長初選結果出爐 陳亭妃勝出",
+        "url": "https://www.cna.com.tw/news/aipl/202601159999.aspx",
+        "published_at": "2026-01-15T14:00:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "陳亭妃"
+          ],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [
+            "初選"
+          ],
+          "matched_terms": [
+            "陳亭妃",
+            "民進黨",
+            "初選"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "party_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 1.0
+        }
+      },
+      {
+        "id": "s_2202",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "民進黨正式提名陳亭妃參選台南市長",
+        "url": "https://www.cna.com.tw/news/aipl/202601219999.aspx",
+        "published_at": "2026-01-21T10:00:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "陳亭妃"
+          ],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [
+            "提名"
+          ],
+          "matched_terms": [
+            "陳亭妃",
+            "民進黨",
+            "提名"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "party_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 1.0
+        }
+      }
+    ],
+    "expected_cluster_count": 2,
+    "expected_relationship": "possible_subevent",
+    "expected_status": "review_required",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_23",
+    "coverage": "县市长选举与议员提名不得合并",
+    "note": "构造：市长提名 vs 议员提名",
+    "articles": [
+      {
+        "id": "s_2301",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "民進黨正式提名陳亭妃參選台南市長",
+        "url": "https://www.cna.com.tw/news/aipl/202601219999.aspx",
+        "published_at": "2026-01-21T10:00:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "high",
+          "matched_people": [
+            "陳亭妃"
+          ],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [
+            "提名"
+          ],
+          "matched_terms": [
+            "陳亭妃",
+            "民進黨",
+            "提名"
+          ],
+          "matched_basis": [
+            "candidate_match",
+            "party_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 1.0
+        }
+      },
+      {
+        "id": "s_2302",
+        "source_name": "自由時報",
+        "category": "politics",
+        "title": "民進黨台南市議員提名 南區新人出線",
+        "url": "https://news.ltn.com.tw/news/politics/breakingnews/99999923",
+        "published_at": "2026-06-20T10:00:00+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "medium",
+          "matched_people": [],
+          "matched_parties": [
+            "民進黨"
+          ],
+          "matched_issues": [
+            "提名"
+          ],
+          "matched_terms": [
+            "台南",
+            "民進黨",
+            "提名"
+          ],
+          "matched_basis": [
+            "region_match",
+            "party_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 0.65
+        }
+      }
+    ],
+    "expected_cluster_count": 2,
+    "expected_relationship": "separate_event",
+    "expected_status": "review_required",
+    "expected_assertion_kinds": [
+      "observed_fact"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": []
+  },
+  {
+    "case_id": "golden_24",
+    "coverage": "未来计划日期",
+    "note": "真实新闻：国民党预告25日上凯道（报道日7/17）",
+    "articles": [
+      {
+        "id": "656",
+        "source_name": "中央社",
+        "category": "politics",
+        "title": "中聯油脂案　國民黨25日號召民眾上凱道",
+        "url": "https://www.cna.com.tw/news/aipl/202607170185.aspx",
+        "published_at": "2026-07-17T07:53:16+08:00",
+        "summary": "",
+        "match": {
+          "city": "tainan",
+          "relevance": "low",
+          "matched_people": [],
+          "matched_parties": [
+            "國民黨"
+          ],
+          "matched_issues": [
+            "選舉"
+          ],
+          "matched_terms": [
+            "國民黨",
+            "選舉"
+          ],
+          "matched_basis": [
+            "region_match",
+            "party_match",
+            "issue_match"
+          ],
+          "region_match": true,
+          "election_context_match": true,
+          "match_score": 0.35
+        }
+      }
+    ],
+    "expected_cluster_count": 1,
+    "expected_relationship": "same_event",
+    "expected_status": "hold",
+    "expected_assertion_kinds": [
+      "planned_action"
+    ],
+    "expected_formal_match": "no_match",
+    "must_not_merge_with": [],
+    "expected_event_date": "2026-07-25",
+    "expected_event_date_basis": "explicit_in_title",
+    "expected_event_date_confidence": "high"
+  }
+]

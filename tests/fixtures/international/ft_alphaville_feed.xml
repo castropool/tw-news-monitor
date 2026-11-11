@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>FT Alphaville</title>
+    <link>https://www.ft.com/alphaville</link>
+    <description>FT Alphaville RSS</description>
+    <language>en-gb</language>
+    <item>
+      <title>TSMC &amp; the next semiconductor cycle</title>
+      <link>https://www.ft.com/content/11111111-1111-1111-1111-111111111111?utm_source=rss</link>
+      <description><![CDATA[What Taiwan's largest chipmaker says about demand &amp; capacity.]]></description>
+      <pubDate>Fri, 14 Aug 2026 07:30:00 -0400</pubDate>
+      <guid isPermaLink="false">11111111-1111-1111-1111-111111111111</guid>
+    </item>
+    <item>
+      <title>Markets without a teaser</title>
+      <link>https://www.ft.com/content/22222222-2222-2222-2222-222222222222</link>
+      <pubDate>Tue, 11 Aug 2026 08:00:00 +0000</pubDate>
+      <guid isPermaLink="false">22222222-2222-2222-2222-222222222222</guid>
+    </item>
+  </channel>
+</rss>

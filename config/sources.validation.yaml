@@ -1,0 +1,26 @@
+# ══════════════════════════════════════════════════════════════════
+# 国际媒体免费监测层 Phase I — 隔离真实采集验收专用配置（仅验收用）
+#
+# 本文件只被 scripts/run_international_validation.py 读取；不接入生产
+# Scheduler，不影响 config/sources.yaml。条目字段与生产 sources.yaml 中
+# reuters_international / ft_alphaville 完全一致（type/url/enabled/category），
+# 仅抽取这两条国际源，避免验收时触碰任何国内源/生产配置。
+# ══════════════════════════════════════════════════════════════════
+sources:
+- access_level: metadata_only
+  category: international
+  enabled: true
+  id: reuters_international
+  language: en
+  name: Reuters
+  type: reuters
+  url: https://www.reuters.com/arc/outboundfeeds/news-sitemap-index/?outputType=xml
+- access_level: public
+  category: international
+  enabled: true
+  id: ft_alphaville
+  language: en
+  name: Financial Times
+  section: alphaville
+  type: ft_alphaville
+  url: https://ftalphaville.ft.com/feed/
