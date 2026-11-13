@@ -2,7 +2,19 @@
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import pytest
+
+import app.deepseek_analysis as deepseek_module
 from app.deepseek_analysis import DeepSeekClient
+
+
+@pytest.fixture(autouse=True)
+def recorded_backoff(monkeypatch):
+    """Record retry backoff waits instead of sleeping for real."""
+    waits = []
+    monkeypatch.setattr(deepseek_module.time, "sleep", waits.append)
+    return waits
+
 
 class TestDeepSeekMock:
     def test_timeout(self, monkeypatch):

@@ -118,9 +118,10 @@ def _parse_time(value: Any) -> datetime | None:
 def social_items(db: Database) -> list[dict[str, Any]]:
     """All canonical posts enriched with person display data and category."""
     repo = SocialRepository(db)
+    persons = {p["person_id"]: p for p in repo.list_persons()}
     items = []
     for post in canonical_posts(repo):
-        person = repo.get_person(post.get("person_id")) or {}
+        person = persons.get(post.get("person_id")) or {}
         item = dict(post)
         item["person_display_name"] = person.get("display_name") or person.get("canonical_name")
         item["person_canonical_name"] = person.get("canonical_name")

@@ -127,6 +127,16 @@ def build_word_digest(
     election_articles: list[Article] = []
     election_urls: set[str] = set()
     if election_enabled:
+        # Resolve each candidate's annotation once (caller-supplied first,
+        # deterministic recompute otherwise); routing and grouping below
+        # then reuse it instead of re-classifying the same article.
+        resolved_annotations = dict(election_annotations or {})
+        for a in election_candidate_articles:
+            if a.url not in resolved_annotations:
+                resolved_annotations[a.url] = _election_annotation_for(
+                    a, election_config, election_entities, None
+                )
+        election_annotations = resolved_annotations
         election_articles = [
             a for a in election_candidate_articles
             if _is_election_article(a, election_config, election_entities, election_annotations)
