@@ -240,7 +240,7 @@ def test_downstream_refresh_markers(tmp_path):
     marker = json.loads((batch_dir / "downstream_refresh_request.json").read_text(encoding="utf-8"))
     assert marker["snapshot_refresh_required"] is True
     assert marker["coverage_refresh_required"] is True
-    assert marker["assessment_refresh_required"] is True
+    assert "assessment_refresh_required" not in marker
     repo.close()
 
 

@@ -5,7 +5,6 @@ import sqlite3
 
 import pytest
 
-from app.assessment.assessment_trigger import run_mock_assessment
 from app.election_candidates.publication_pipeline import rollback_batch
 from app.election_context.formal_state_hash import formal_state_business_hash_from_db
 from app.election_context.run_post_publication_pipeline import (
@@ -20,12 +19,11 @@ from app.election_context.snapshot_pipeline import (
 from .phase3_helpers import make_phase3_env
 
 
-def _run(env, run_date=None, **over):
+def _run(env, **over):
     return run_post_publication_pipeline(
         env["repo"], env["config"],
         publication_batch_id=env["batch_id"],
         request_path=env["request_path"],
-        run_date=run_date,
         **over,
     )
 
@@ -39,23 +37,21 @@ def _active_snapshot_id(config):
     return row[0]
 
 
-def test_case_a_no_change_pending(tmp_path):
+def test_case_a_no_change(tmp_path):
     env = make_phase3_env(tmp_path, event_type="primary_registration")
     before_active = _active_snapshot_id(env["config"])
-    manifest = _run(env, run_date="2026-08-08")
+    manifest = _run(env)
     assert manifest["coverage"]["status"] == "committed"
     assert manifest["snapshot"]["status"] == "no_change"
     assert manifest["snapshot"]["changed"] is False
     assert _active_snapshot_id(env["config"]) == before_active
-    assert manifest["assessment"]["status"] == "pending"
-    assert manifest["assessment"]["eligible"] is False
     assert manifest["network_calls"] == 0
     env["repo"].close()
 
 
 def test_case_b_deterministic_auto_activate(tmp_path):
     env = make_phase3_env(tmp_path, event_type="primary_result")
-    manifest = _run(env, run_date="2026-08-08")
+    manifest = _run(env)
     assert manifest["snapshot"]["status"] == "committed"
     assert manifest["snapshot"]["changed"] is True
     assert manifest["snapshot"]["active_snapshot_id"] == manifest["snapshot"]["candidate_snapshot_id"]
@@ -63,14 +59,11 @@ def test_case_b_deterministic_auto_activate(tmp_path):
     env["repo"].close()
 
 
-def test_case_c_analytical_pending_review_blocks_assessment(tmp_path):
+def test_case_c_analytical_pending_review_no_auto_activation(tmp_path):
     env = make_phase3_env(tmp_path, event_type="campaign_event")
-    manifest = _run(env, run_date="2026-08-09")
+    manifest = _run(env)
     assert manifest["snapshot"]["status"] == "pending_review"
-    assert manifest["assessment"]["status"] == "blocked"
     assert _active_snapshot_id(env["config"]) == manifest["snapshot"]["previous_snapshot_id"]
-    trigger = env["repo"].get_trigger(manifest["assessment"]["trigger_id"])
-    assert trigger["status"] == "blocked"
     env["repo"].close()
 
 
@@ -85,7 +78,7 @@ def test_case_d_coverage_failure_keeps_facts_and_old_coverage(tmp_path, monkeypa
 
     monkeypatch.setattr(rpp, "build_coverage", boom)
     with pytest.raises(RuntimeError, match="coverage failure"):
-        _run(env, run_date="2026-08-08")
+        _run(env)
     assert formal_state_business_hash_from_db(env["config"].path("formal_db")) == before_hash
     assert _active_coverage(env["config"]) == old_coverage
     batch = env["repo"].get_refresh_batch_by_publication(env["batch_id"])
@@ -104,7 +97,7 @@ def test_case_e_snapshot_failure_keeps_coverage_and_active(tmp_path, monkeypatch
 
     monkeypatch.setattr(rpp, "commit_snapshot", boom)
     with pytest.raises(RuntimeError, match="snapshot staging failure"):
-        _run(env, run_date="2026-08-08")
+        _run(env)
     assert _active_snapshot_id(env["config"]) == before_active
     batch = env["repo"].get_refresh_batch_by_publication(env["batch_id"])
     assert batch["status"] == "failed"
@@ -153,64 +146,10 @@ def test_case_f_snapshot_journal_recovery(tmp_path):
     env["repo"].close()
 
 
-def test_case_g_assessment_failure_does_not_rollback_snapshot(tmp_path, monkeypatch):
-    env = make_phase3_env(
-        tmp_path, event_type="primary_result", event_date="2026-07-31T12:00:00+08:00"
-    )
-    import app.election_context.run_post_publication_pipeline as rpp
-
-    def boom(*args, **kwargs):
-        raise RuntimeError("injected mock assessment failure")
-
-    monkeypatch.setattr(rpp, "run_mock_assessment", boom)
-    manifest = _run(env, run_date="2026-08-09")
-    assert manifest["snapshot"]["status"] == "committed"
-    assert manifest["assessment"]["status"] == "failed"
-    assert manifest["retry_required"] is True
-    assert _active_snapshot_id(env["config"]) == manifest["snapshot"]["candidate_snapshot_id"]
-    trigger = env["repo"].get_trigger(manifest["assessment"]["trigger_id"])
-    assert trigger["status"] == "failed"
-    env["repo"].update_trigger_status(trigger["trigger_id"], "eligible")
-    retried = run_mock_assessment(
-        env["config"], {**trigger, "status": "eligible"},
-        env["config"].path("post_publication_root") / "retry" / "assessment",
-    )
-    assert retried["assessment_run_id"]
-    env["repo"].close()
-
-
-def test_case_h_report_day_full_coverage_final(tmp_path):
-    env = make_phase3_env(
-        tmp_path, event_type="primary_registration", event_date="2026-07-31T12:00:00+08:00"
-    )
-    manifest = _run(env, run_date="2026-08-09")
-    assert manifest["assessment"]["eligible"] is True
-    assert manifest["assessment"]["status"] == "generated"
-    assert manifest["network_calls"] == 0
-    assert manifest["production_real_snapshot_activation_performed"] is False
-    env["repo"].close()
-
-
-def test_case_i_report_day_incomplete_draft(tmp_path):
-    env = make_phase3_env(
-        tmp_path, event_type="primary_registration", event_date="2026-07-27T12:00:00+08:00"
-    )
-    manifest = _run(env, run_date="2026-08-09")
-    assert manifest["assessment"]["eligible"] is False
-    assert manifest["assessment"]["status"] == "pending"
-    trigger = env["repo"].get_trigger(manifest["assessment"]["trigger_id"])
-    report = run_mock_assessment(
-        env["config"], trigger, env["config"].path("post_publication_root") / "draft" / "assessment"
-    )
-    assert report["generation_mode"] == "draft_with_data_gap"
-    assert report["final_report_allowed"] is False
-    env["repo"].close()
-
-
 def test_case_j_duplicate_consumption_idempotent(tmp_path):
     env = make_phase3_env(tmp_path, event_type="primary_result")
-    first = _run(env, run_date="2026-08-08")
-    second = _run(env, run_date="2026-08-08")
+    first = _run(env)
+    second = _run(env)
     assert second["reused"] is True
     assert second["refresh_batch_id"] == first["refresh_batch_id"]
     assert second["snapshot"]["active_snapshot_id"] == first["snapshot"]["active_snapshot_id"]
@@ -223,28 +162,6 @@ def test_case_j_duplicate_consumption_idempotent(tmp_path):
     env["repo"].close()
 
 
-def test_case_k_same_period_new_facts_supersede(tmp_path):
-    env = make_phase3_env(tmp_path, event_type="primary_registration")
-    manifest = _run(env, run_date="2026-08-08")
-    from app.assessment.assessment_trigger import create_trigger
-    newer = create_trigger(
-        env["repo"], env["config"],
-        refresh_batch_id="dr_newer",
-        formal_state_hash="hash_newer",
-        coverage_manifest={"facts_cutoff": "2026-07-31", "coverage_version": "v2"},
-        snapshot_id="tn_state_v1",
-        run_date="2026-08-08",
-    )
-    rows = env["repo"].get_triggers_for_period(
-        env["config"].canonical_election_id,
-        newer["period_start"], newer["period_end"],
-    )
-    old = [r for r in rows if r["formal_state_hash"] != "hash_newer"]
-    assert old and old[0]["status"] == "superseded"
-    assert manifest["assessment"]["trigger_id"] in [r["trigger_id"] for r in rows]
-    env["repo"].close()
-
-
 def test_case_l_rollback_publication_rejects_refresh(tmp_path):
     env = make_phase3_env(tmp_path, event_type="primary_registration")
     rollback_batch(
@@ -252,26 +169,27 @@ def test_case_l_rollback_publication_rejects_refresh(tmp_path):
         "local_reviewer",
     )
     with pytest.raises(ValueError, match="invalid refresh request"):
-        _run(env, run_date="2026-08-08")
+        _run(env)
     env["repo"].close()
 
 
 def test_manifest_required_keys(tmp_path):
     env = make_phase3_env(tmp_path, event_type="primary_registration")
-    manifest = _run(env, run_date="2026-08-08")
+    manifest = _run(env)
     for key in (
         "pipeline_version", "refresh_batch_id", "publication_batch_id",
-        "formal_state_hash", "coverage", "snapshot", "assessment",
+        "formal_state_hash", "coverage", "snapshot",
         "network_calls", "production_real_snapshot_activation_performed",
     ):
         assert key in manifest
+    assert "assessment" not in manifest
     assert manifest["pipeline_version"] == "0.1.0"
     env["repo"].close()
 
 
 def test_manifest_file_written(tmp_path):
     env = make_phase3_env(tmp_path, event_type="primary_registration")
-    manifest = _run(env, run_date="2026-08-08")
+    manifest = _run(env)
     run_dir = (
         env["config"].path("post_publication_root")
         / manifest["refresh_batch_id"]
@@ -284,7 +202,7 @@ def test_manifest_file_written(tmp_path):
 
 def test_snapshot_artifacts_written(tmp_path):
     env = make_phase3_env(tmp_path, event_type="primary_result")
-    manifest = _run(env, run_date="2026-08-08")
+    manifest = _run(env)
     run_dir = (
         env["config"].path("post_publication_root")
         / manifest["refresh_batch_id"]
@@ -297,7 +215,7 @@ def test_snapshot_artifacts_written(tmp_path):
 
 def test_downstream_journal_steps(tmp_path):
     env = make_phase3_env(tmp_path, event_type="primary_registration")
-    manifest = _run(env, run_date="2026-08-08")
+    manifest = _run(env)
     run_dir = (
         env["config"].path("post_publication_root")
         / manifest["refresh_batch_id"]
@@ -307,7 +225,7 @@ def test_downstream_journal_steps(tmp_path):
     for key in (
         "request_validated", "coverage_started", "coverage_committed",
         "snapshot_candidate_started", "snapshot_candidate_complete",
-        "assessment_trigger_created", "completed",
+        "completed",
     ):
         assert steps.get(key) is True
     env["repo"].close()
@@ -332,18 +250,17 @@ def test_recovery_gate_blocks_unfinished_downstream(tmp_path):
     gate = phase3_recovery_gate(env["config"])
     assert gate["recovery_required"] is True
     with pytest.raises(ValueError, match="recovery gate"):
-        _run(env, run_date="2026-08-08")
+        _run(env)
     env["repo"].close()
 
 
 def test_refresh_batch_status_completed(tmp_path):
     env = make_phase3_env(tmp_path, event_type="primary_registration")
-    manifest = _run(env, run_date="2026-08-08")
+    manifest = _run(env)
     batch = env["repo"].get_refresh_batch(manifest["refresh_batch_id"])
     assert batch["status"] == "completed"
     assert batch["coverage_result"]
     assert batch["snapshot_result"] == "no_change"
-    assert batch["assessment_trigger_result"]
     assert batch["finished_at"]
     env["repo"].close()
 
@@ -358,14 +275,14 @@ def test_failure_isolation_coverage_does_not_rollback_facts(tmp_path, monkeypatc
 
     monkeypatch.setattr(rpp, "build_coverage", boom)
     with pytest.raises(RuntimeError):
-        _run(env, run_date="2026-08-08")
+        _run(env)
     assert formal_state_business_hash_from_db(env["config"].path("formal_db")) == before
     env["repo"].close()
 
 
 def test_real_production_flags_false(tmp_path):
     env = make_phase3_env(tmp_path, event_type="primary_registration")
-    manifest = _run(env, run_date="2026-08-08")
+    manifest = _run(env)
     assert manifest["production_real_snapshot_activation_performed"] is False
     assert manifest["network_calls"] == 0
     env["repo"].close()

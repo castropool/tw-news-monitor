@@ -190,7 +190,7 @@ def main() -> int:
     parser.add_argument("--write", action="store_true")
     parser.add_argument(
         "--output",
-        default="data/reports/tainan_2026/deployment_validation/security_scan_summary.json",
+        default="data/security_scan_summary.json",
     )
     args = parser.parse_args()
 

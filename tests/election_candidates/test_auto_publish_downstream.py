@@ -1,7 +1,7 @@
 """Auto-publish -> post-publication downstream wiring tests.
 
 Covers the deterministic gate chain: committed batch -> snapshot activation ->
-coverage activation (staging -> atomic) -> R2 selector picks the new ready
+coverage activation (staging -> atomic) -> coverage selector picks the new ready
 version.  Every failure marks ``downstream_failed``, stops the round, feeds the
 circuit breaker and never leaves a selectable half-product.  All fixtures are
 tmp_path isolated; nothing touches production data or installs tasks.
@@ -16,9 +16,9 @@ import sqlite3
 import pytest
 
 import app.election_candidates.auto_publish_candidates as auto_pub
-from app.assessment.evidence_pack_builder import select_coverage_version
 from app.election_candidates.auto_publish_candidates import AutoPublishManifest, run_auto_publish
 from app.election_candidates.auto_publish_gate import AutoPublishPolicy
+from app.election_context.coverage_activation import select_coverage_version
 from app.election_context.formal_state_hash import (
     formal_state_business_hash_from_db,
     formal_state_business_hash_from_seed_dir,
@@ -100,7 +100,7 @@ def test_happy_path_publish_snapshot_coverage_selector(pub_env):
     # snapshot activated in the formal DB
     assert _active_snapshot_id(config) == pub["snapshot_id"]
 
-    # R2 selector picks exactly the newly activated coverage
+    # coverage selector picks exactly the newly activated coverage
     seed = config.path("events_seed").parent
     path, name, preflight, validation = select_coverage_version(seed)
     assert name == pub["coverage_version"]

@@ -1,7 +1,7 @@
 """Phase 3 real Tainan read-only dry-run + quality gate generation.
 
 Allowed on the real environment: inspection, validate, dry-run, preflight.
-No real coverage/snapshot/assessment writes are performed.
+No real coverage/snapshot writes are performed.
 """
 
 from __future__ import annotations
@@ -11,14 +11,12 @@ import hashlib
 import json
 import sqlite3
 import sys
-from datetime import date
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.assessment.assessment_trigger import create_trigger
 from app.election_candidates.config import load_config
 from app.election_context.bootstrap_v2 import run_bootstrap_v2
 from app.election_context.coverage_builder import build_coverage, compute_coverage_payload
@@ -69,22 +67,6 @@ def _counts(config) -> dict[str, int]:
     }
     conn.close()
     return out
-
-
-class NullTriggerRepo:
-    """Read-only stand-in so create_trigger can preview without persisting."""
-
-    def get_trigger(self, trigger_id: str):
-        return None
-
-    def insert_trigger(self, trigger: dict):
-        self.inserted = trigger
-
-    def supersede_triggers(self, *args, **kwargs):
-        pass
-
-    def update_trigger_status(self, *args, **kwargs):
-        pass
 
 
 def build_migration_differences(old: dict, new: dict) -> list[dict]:
@@ -300,32 +282,6 @@ def main():
         json.dumps(snapshot_preview, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
-    # ---- Assessment trigger preview (no persistence) ----
-    null_repo = NullTriggerRepo()
-    trigger = create_trigger(
-        null_repo,
-        config,
-        refresh_batch_id="real_dry_run",
-        formal_state_hash=formal_hash,
-        coverage_manifest=new_coverage["manifest"],
-        snapshot_id=active["snapshot_id"],
-        run_date=date.today(),
-    )
-    trigger_preview = {
-        "trigger_id": trigger["trigger_id"],
-        "period_start": trigger["period_start"],
-        "period_end": trigger["period_end"],
-        "status": trigger["status"],
-        "trigger_reason": trigger["trigger_reason"],
-        "eligible": trigger["status"] == "eligible",
-        "facts_cutoff": new_coverage["coverage"]["facts_cutoff"],
-        "snapshot_id": active["snapshot_id"],
-        "persisted": False,
-    }
-    (OUT / "real_assessment_trigger_preview.json").write_text(
-        json.dumps(trigger_preview, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-
     # ---- Formal state read-only validation + bootstrap reproducibility ----
     tmp_db = OUT / "tmp_rebuild" / "election_context_rebuilt.db"
     tmp_db.parent.mkdir(parents=True, exist_ok=True)
@@ -373,47 +329,18 @@ def main():
     # ---- Gates ----
     cov_golden = coverage_golden_accuracy()
     snap_golden = snapshot_golden_accuracy()
-    trigger_golden = json.loads((GOLDEN_DIR / "golden_trigger_cases.json").read_text(encoding="utf-8"))
     preflight = {
         "coverage_builder_ready": True,
         "coverage_production_ready": real_comparison["coverage_production_ready"],
         "snapshot_pipeline_ready": True,
         "snapshot_auto_activation_ready": True,
-        "assessment_trigger_ready": True,
-        "assessment_pipeline_integrated": True,
         "formal_state_ready": formal_validation["formal_state_ready"],
         "automatic_recovery_ready": True,
-        "production_llm_ready": False,
-        "production_delivery_ready": False,
-        "production_end_to_end_ready": False,
         "errors": [],
         "warnings": migration if migration else [],
     }
     (OUT / "phase3_production_preflight.json").write_text(
         json.dumps(preflight, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-
-    entry_gate = {
-        "phase4_entry_ready": True,
-        "candidate_pipeline_ready": True,
-        "publication_pipeline_ready": True,
-        "formal_state_ready": formal_validation["formal_state_ready"],
-        "automatic_recovery_ready": True,
-        "coverage_pipeline_ready": True,
-        "snapshot_pipeline_ready": True,
-        "assessment_trigger_ready": True,
-        "assessment_pipeline_ready": True,
-        "offline_end_to_end_ready": args.pytest_failed == 0,
-        "production_llm_ready": False,
-        "production_delivery_ready": False,
-        "blockers": [
-            "deployment DeepSeek live validation pending",
-            "deployment Feishu validation pending",
-            "real production scheduler not installed",
-        ],
-    }
-    (OUT / "phase4_entry_gate.json").write_text(
-        json.dumps(entry_gate, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
     after = {
@@ -440,15 +367,11 @@ def main():
         "snapshot_recovery_ready": True,
         "unsupported_state_change_count": 0,
         "double_active_snapshot_count": 0,
-        "assessment_trigger_ready": True,
-        "assessment_period_logic_ready": True,
-        "assessment_pipeline_integrated": True,
         "fixture_end_to_end_ready": args.pytest_failed == 0,
         "offline_end_to_end_ready": args.pytest_failed == 0,
         "production_real_candidate_commit_performed": False,
         "production_real_snapshot_activation_performed": False,
         "production_real_coverage_commit_performed": False,
-        "production_real_assessment_delivery_performed": False,
         "news_db_unchanged": unchanged,
         "election_watch_db_unchanged": unchanged,
         "formal_facts_unchanged": unchanged,
@@ -458,7 +381,6 @@ def main():
         "metrics": {
             **cov_golden,
             **snap_golden,
-            "trigger_golden_count": len(trigger_golden),
             "golden_case_skipped_count": 0,
         },
         "coverage_production_ready": real_comparison["coverage_production_ready"],
@@ -471,7 +393,6 @@ def main():
     print(json.dumps({
         "real_coverage_rebuild_comparison": real_comparison,
         "snapshot_preview": snapshot_preview,
-        "trigger_preview": trigger_preview,
         "formal_validation": formal_validation,
         "unchanged": unchanged,
         "new_tests": args.new_tests,

@@ -214,8 +214,7 @@ def rss_summary_from_entry(entry, max_length: int = DEFAULT_MAX_LENGTH) -> str |
 def deepseek_available() -> bool:
     """Whether the summarizer's LLM endpoint is configured.
 
-    The summarizer is fully independent from the election assessment
-    pipeline: it enables itself from ``SUMMARIZER_API_KEY`` (any non-empty
+    The summarizer enables itself from ``SUMMARIZER_API_KEY`` (any non-empty
     placeholder works - the local Command Code gateway does not validate
     keys) and falls back to ``DEEPSEEK_API_KEY`` only for older .env files.
     """
@@ -227,8 +226,6 @@ def deepseek_available() -> bool:
 def _load_deepseek_client() -> DeepSeekClient | None:
     """Build the summarizer's LLM client.
 
-    The summarizer resolves its endpoint independently from the election
-    assessment pipeline so the two can point at different providers:
     ``SUMMARIZER_BASE_URL`` / ``SUMMARIZER_MODEL`` win when set (e.g. a local
     Command Code gateway + ``deepseek/deepseek-v4-flash``), otherwise they
     fall back to the shared ``DEEPSEEK_*`` variables.

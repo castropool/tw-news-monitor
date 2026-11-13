@@ -76,7 +76,6 @@ if (-not $SkipBackup) {
     Backup-Path (Join-Path $ProductionDir "app\election_context\snapshot_pipeline.py") "app\election_context\snapshot_pipeline.py"
     Backup-Path (Join-Path $ProductionDir "app\election_context\snapshot_validator.py") "app\election_context\snapshot_validator.py"
     Backup-Path (Join-Path $ProductionDir "app\election_context\run_post_publication_pipeline.py") "app\election_context\run_post_publication_pipeline.py"
-    Backup-Path (Join-Path $ProductionDir "app\assessment") "app\assessment"
     Backup-Path (Join-Path $ProductionDir "scripts\install_candidate_monitor_task.ps1") "scripts\install_candidate_monitor_task.ps1"
     Backup-Path (Join-Path $ProductionDir "scripts\status_candidate_monitor_task.ps1") "scripts\status_candidate_monitor_task.ps1"
     Backup-Path (Join-Path $ProductionDir "scripts\run_candidate_monitor_now.ps1") "scripts\run_candidate_monitor_now.ps1"
@@ -90,7 +89,6 @@ if (-not $SkipBackup) {
 
 # 新增/覆盖（repository.py 为纯新增方法的覆盖，其余均为新增文件）
 Deploy-Item (Join-Path $ProjectDir "app\election_candidates") "app\election_candidates" -Overwrite
-Deploy-Item (Join-Path $ProjectDir "app\assessment") "app\assessment" -Overwrite
 foreach ($name in @(
     "repository.py",
     "bootstrap_v2.py",

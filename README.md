@@ -1,9 +1,11 @@
 # tw-news-monitor-simple — 台湾新闻监测 + 选情事实底表系统
 
-本项目是一个运行在 Windows 上的台湾政治新闻监测与「选情辅助研判」一体化系统，由两大子系统构成：
+本项目是一个运行在 Windows 上的台湾政治新闻监测与选情事实监测系统，由两大子系统构成：
 
 1. **新闻采集与推送子系统**：定时采集台湾政治/财经/国际新闻，去重入库，生成摘要与 Word 简报，推送至控制台 / 飞书 / Telegram。
-2. **选情事实底表子系统**（`election_context`）：面向「2026 年台南市长选举」的可验证事实库——从研究资料包经人工裁决 → 转换预览 → 发布门禁 → 正式入库 → 覆盖矩阵 → 态势快照 → 研判报告，全链路留痕、可审计、可回滚。
+2. **选情事实底表子系统**（`election_context`）：面向「2026 年台南市长选举」的可验证事实库——从研究资料包经人工裁决 → 转换预览 → 发布门禁 → 正式入库 → 覆盖矩阵 → 态势快照，全链路留痕、可审计、可回滚。
+
+> 选情研判（台南/新北分析报告生成、人工终审与交付）功能已从本项目移除；`data/` 下已生成的历史报告与正式事实数据保留，不再由代码生成或读取。
 
 当前正式数据基线（2026-08-01）：
 
@@ -179,8 +181,6 @@ event_import_rtXX_*/ → import_preflight / import_validation / post_release_rec
 fact_coverage_*/ v1 → v2 → v3 → v4（ledger / 时间矩阵 / 主题矩阵 / gap对账 / backlog / closure_record / blocker_triage）
    ↓ 快照
 snapshot_release_candidate_*.json → snapshot_validation → 原子发布（supersede 旧 active）
-   ↓ 研判报告
-data/reports/tainan_2026/tainan_election_assessment_*.md + _evidence.json
 ```
 
 关键约束（历史教训固化为门禁）：
@@ -211,13 +211,12 @@ data/reports/tainan_2026/tainan_election_assessment_*.md + _evidence.json
 
 ---
 
-## 四、选情研判子系统（实时扫描 + 报告）
+## 四、选情新闻扫描（实时扫描）
 
 - `election_watch.py`：扫描 `news.db` 新文章，`ElectionClassifier`（`config/election_watch.yaml` 关键词规则）识别涉台南选举文章，打分 relevance，写入 `election_fact_store`（事实库）。
 - `election_classifier.py`：城市/人物/政党/议题匹配 + 选举上下文判定。
 - `election_fact_store.py`：扫描状态与匹配事实存储（增量扫描、幂等）。
-- `deepseek_analysis.py`：可选调用 DeepSeek API 做深度分析（`DEEPSEEK_API_KEY`）。
-- `election_report.py`：汇总事实库 + 人工补充事实（`config/election_manual_facts.json`）+ 风格配置（`config/election_analysis_style.yaml`），经 `election_quality_check.py` 质检后生成报告。
+- `deepseek_analysis.py`：OpenAI 兼容的 DeepSeek 客户端（供文章梗概 `summarizer.py` 使用）。
 - `election_event_merge.py`：将同事件的多篇文章聚合为事件。
 
 ---
@@ -236,14 +235,13 @@ tw-news-monitor-simple/
 │   ├── freshness.py importance.py article_identity.py source_registry.py time_utils.py lock.py
 │   ├── summarizer.py            # 文章梗概（RSS 导语 + DeepSeek 批量 + meta 兜底）
 │   ├── diagnose.py              # 采集诊断
-│   ├── election_classifier.py election_watch.py election_fact_store.py election_report.py
-│   ├── election_quality_check.py election_event_merge.py election_utils.py deepseek_analysis.py
+│   ├── election_classifier.py election_watch.py election_fact_store.py
+│   ├── election_event_merge.py election_utils.py deepseek_analysis.py
 │   └── election_context/        # 选情事实底表子系统
 │       ├── models.py repository.py bootstrap.py importer.py retriever.py
 │       ├── state_builder.py audit.py poll_validator.py
 │       └── validate_*.py        # 各阶段门禁
-├── config/                      # sources.yaml / election_watch.yaml / importance_rules.yaml /
-│                                # election_analysis_style.yaml / election_manual_facts.json
+├── config/                      # sources.yaml / election_watch.yaml / importance_rules.yaml 等
 ├── data/
 │   ├── news.db                  # 新闻库（勿删！去重状态在此）
 │   ├── election_context.db      # 选情事实底表生产库
@@ -254,10 +252,10 @@ tw-news-monitor-simple/
 │   │   ├── event_import_rtXX_*/      # 正式入库报告（验证/对账/幂等/审计）
 │   │   └── fact_coverage_*/          # 覆盖矩阵 v1-v4
 │   ├── research/tainan_2026/         # 研究资料包（人工裁决输入）
-│   ├── reports/tainan_2026/          # 选情研判报告 + 证据映射
+│   ├── reports/tainan_2026/          # 历史研判报告归档（功能已移除，仅保留数据）
 │   ├── backup_rtXX_pre_import/       # 导入前备份
 │   └── diagnostics/                  # 采集诊断输出
-├── prompts/                     # DeepSeek 分析提示词模板
+├── prompts/                     # summarize.md 文章梗概提示词
 ├── tests/                       # 629+ 个测试（含 election_context 门禁测试）
 ├── *.bat / *.ps1                # 计划任务安装/状态/卸载
 ├── requirements.txt
@@ -276,7 +274,7 @@ tw-news-monitor-simple/
 | `FEISHU_APP_ID` / `FEISHU_APP_SECRET` / `FEISHU_CHAT_ID` | 飞书 App 机器人 |
 | `FEISHU_WEBHOOK_URL` | 飞书 Webhook（旧渠道） |
 | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | Telegram |
-| `DEEPSEEK_API_KEY` | 选举评估等深度分析 API（摘要链路不依赖它） |
+| `DEEPSEEK_API_KEY` / `DEEPSEEK_BASE_URL` / `DEEPSEEK_MODEL` | 旧版 .env 兼容：未设置 `SUMMARIZER_*` 时文章梗概回退使用；本地 Command Code 网关（`app.cmd_gateway`）的上游端点 |
 | `SUMMARIZER_MODE` / `SUMMARIZER_MAX_LENGTH` / `SUMMARIZER_BATCH_SIZE` | 文章梗概：模式（rss/llm/meta/hybrid/none）、长度上限、LLM 批量大小 |
 | `SUMMARIZER_CONTENT_CHARS` / `SUMMARIZER_RETRY_HOURS` | 正文截取字符数（默认800）、抓取失败重试间隔（小时） |
 | `SUMMARIZER_BASE_URL` / `SUMMARIZER_MODEL` | 摘要 LLM 端点（默认本地 Command Code 网关 `http://127.0.0.1:8765/v1` + `deepseek/deepseek-v4-flash`；未设置时回退 `DEEPSEEK_*`） |

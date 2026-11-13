@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.assessment.security_scan import scan_files, scan_text
+from app.security_scan import scan_files, scan_text
 
 
 class TestSecurityScan:

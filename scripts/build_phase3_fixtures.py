@@ -2,10 +2,9 @@
 
 Writes tests/fixtures/post_publication_pipeline/:
   - README.md
-  - case_catalog.json            (end-to-end Cases A-L)
+  - case_catalog.json            (end-to-end cases)
   - golden_coverage_cases.json   (20 cases, Phase 3.5 authoritative semantics)
   - golden_snapshot_cases.json   (20 cases)
-  - golden_trigger_cases.json    (15 cases)
 
 And tests/fixtures/election_candidates/coverage_semantic_golden_v1.json
 (30 coverage semantic cases: 20 calibration + 10 holdout).
@@ -292,56 +291,6 @@ def build_snapshot_cases() -> list[dict]:
     ]
 
 
-def build_trigger_cases() -> list[dict]:
-    return [
-        {"case_id": "trg_01_day9", "run_date": "2026-08-09", "facts_cutoff": "2026-07-31",
-         "expected_start": "2026-07-16", "expected_end": "2026-07-31",
-         "expected_eligible": True, "expected_status": "eligible"},
-        {"case_id": "trg_02_day22", "run_date": "2026-08-22", "facts_cutoff": "2026-08-15",
-         "expected_start": "2026-08-01", "expected_end": "2026-08-15",
-         "expected_eligible": True, "expected_status": "eligible"},
-        {"case_id": "trg_03_day8_pending", "run_date": "2026-08-08", "facts_cutoff": "2026-07-31",
-         "expected_start": "2026-08-01", "expected_end": "2026-08-15",
-         "expected_eligible": False, "expected_status": "pending", "expected_reason": "not_reporting_day"},
-        {"case_id": "trg_04_day10_pending", "run_date": "2026-08-10", "facts_cutoff": "2026-07-31",
-         "expected_start": "2026-08-01", "expected_end": "2026-08-15",
-         "expected_eligible": False, "expected_status": "pending", "expected_reason": "not_reporting_day"},
-        {"case_id": "trg_05_day21_pending", "run_date": "2026-08-21", "facts_cutoff": "2026-08-15",
-         "expected_start": "2026-08-16", "expected_end": "2026-08-31",
-         "expected_eligible": False, "expected_status": "pending", "expected_reason": "not_reporting_day"},
-        {"case_id": "trg_06_day23_pending", "run_date": "2026-08-23", "facts_cutoff": "2026-08-15",
-         "expected_start": "2026-08-16", "expected_end": "2026-08-31",
-         "expected_eligible": False, "expected_status": "pending", "expected_reason": "not_reporting_day"},
-        {"case_id": "trg_07_month_end", "run_date": "2026-08-31", "facts_cutoff": "2026-08-31",
-         "expected_start": "2026-08-16", "expected_end": "2026-08-31",
-         "expected_eligible": False, "expected_status": "pending", "expected_reason": "not_reporting_day"},
-        {"case_id": "trg_08_leap_feb_22", "run_date": "2028-02-22", "facts_cutoff": "2028-02-15",
-         "expected_start": "2028-02-01", "expected_end": "2028-02-15",
-         "expected_eligible": True, "expected_status": "eligible"},
-        {"case_id": "trg_09_leap_feb_9", "run_date": "2028-02-09", "facts_cutoff": "2028-01-31",
-         "expected_start": "2028-01-16", "expected_end": "2028-01-31",
-         "expected_eligible": True, "expected_status": "eligible"},
-        {"case_id": "trg_10_non_leap_feb_9", "run_date": "2027-02-09", "facts_cutoff": "2027-01-31",
-         "expected_start": "2027-01-16", "expected_end": "2027-01-31",
-         "expected_eligible": True, "expected_status": "eligible"},
-        {"case_id": "trg_11_coverage_gap_report_day", "run_date": "2026-08-09", "facts_cutoff": "2026-07-30",
-         "expected_start": "2026-07-16", "expected_end": "2026-07-31",
-         "expected_eligible": False, "expected_status": "pending",
-         "expected_reason": "report_day_coverage_insufficient_draft_allowed"},
-        {"case_id": "trg_12_snapshot_pending_blocked", "run_date": "2026-08-09", "facts_cutoff": "2026-07-31",
-         "snapshot_pending": True, "expected_eligible": False, "expected_status": "blocked"},
-        {"case_id": "trg_13_duplicate_same_hash", "run_date": "2026-08-09", "facts_cutoff": "2026-07-31",
-         "expected_start": "2026-07-16", "expected_end": "2026-07-31",
-         "duplicate_same_hash": True, "expected_status": "eligible", "expected_eligible": True},
-        {"case_id": "trg_14_new_hash_supersede", "run_date": "2026-08-08", "facts_cutoff": "2026-08-15",
-         "expected_start": "2026-08-01", "expected_end": "2026-08-15",
-         "supersede_old": True, "expected_status": "pending", "expected_eligible": False},
-        {"case_id": "trg_15_manual", "run_date": "2026-08-08", "facts_cutoff": "2026-08-15",
-         "manual": True, "expected_start": "2026-08-01", "expected_end": "2026-08-15",
-         "expected_eligible": True, "expected_status": "eligible"},
-    ]
-
-
 def build_semantic_cases() -> list[dict]:
     """30 coverage semantic golden cases (20 calibration + 10 holdout)."""
     cal = [
@@ -506,23 +455,18 @@ def build_case_catalog() -> dict:
         "pipeline": "post_publication_pipeline",
         "fixture_kind": "isolated_test_fixture",
         "cases": {
-            "A": "new event -> coverage updated -> snapshot no change -> non-report day -> assessment pending",
+            "A": "new event -> coverage updated -> snapshot no change",
             "B": "new event changes deterministic snapshot field -> candidate -> validator pass -> auto activate",
-            "C": "new event touches analytical snapshot field -> review_required -> no auto activation -> assessment blocked",
+            "C": "new event touches analytical snapshot field -> review_required -> no auto activation",
             "D": "new event published but coverage rebuild fails -> facts stay -> old coverage stays -> refresh failed",
             "E": "coverage succeeds, snapshot staging fails -> coverage retained -> active snapshot unchanged",
             "F": "snapshot commit interrupted -> journal detected -> recovery -> exactly one active",
-            "G": "snapshot succeeds, mock assessment fails -> no snapshot rollback -> trigger retry",
-            "H": "report day + full coverage -> mock assessment final format generated",
-            "I": "report day + incomplete coverage -> draft_with_data_gap -> no formal delivery",
-            "J": "duplicate consumption of same refresh request -> no duplicate coverage/snapshot/trigger",
-            "K": "new facts in same period -> old pending trigger superseded",
+            "J": "duplicate consumption of same refresh request -> no duplicate coverage/snapshot",
             "L": "refresh request after publication rollback -> consumption rejected",
         },
         "production_real_commit_performed": False,
         "production_real_snapshot_activation_performed": False,
         "production_real_coverage_commit_performed": False,
-        "production_real_assessment_delivery_performed": False,
     }
 
 
@@ -534,9 +478,6 @@ def main():
     )
     (OUT / "golden_snapshot_cases.json").write_text(
         json.dumps(build_snapshot_cases(), ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    (OUT / "golden_trigger_cases.json").write_text(
-        json.dumps(build_trigger_cases(), ensure_ascii=False, indent=2), encoding="utf-8"
     )
     (OUT / "case_catalog.json").write_text(
         json.dumps(build_case_catalog(), ensure_ascii=False, indent=2), encoding="utf-8"
@@ -552,8 +493,7 @@ def main():
                 "本目录仅用于隔离测试，不引用真实 `news.db`、真实 `election_context.db` 或真实候选库。",
                 "- `golden_coverage_cases.json`：20 组 Coverage 黄金案例（Phase 3.5 权威语义）",
                 "- `golden_snapshot_cases.json`：20 组 Snapshot 黄金案例",
-                "- `golden_trigger_cases.json`：15 组 Assessment Trigger 黄金案例",
-                "- `case_catalog.json`：端到端 Cases A–L 定义",
+                "- `case_catalog.json`：端到端案例定义",
                 "",
                 "另见 `tests/fixtures/election_candidates/coverage_semantic_golden_v1.json`：",
                 "30 组 Coverage 语义黄金案例（20 calibration + 10 holdout）。",

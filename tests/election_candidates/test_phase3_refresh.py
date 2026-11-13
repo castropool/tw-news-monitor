@@ -140,7 +140,6 @@ def test_refresh_batch_status_initial_pending(tmp_path):
     assert batch["status"] == "pending"
     assert batch["coverage_refresh_required"] == 1
     assert batch["snapshot_refresh_required"] == 1
-    assert batch["assessment_refresh_required"] == 1
     env["repo"].close()
 
 

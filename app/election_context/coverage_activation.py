@@ -5,7 +5,7 @@ Contract:
   validator) may be atomically renamed into the seed coverage root as
   ``fact_coverage_<date>_v<n>``.
 - In-progress artifacts live under ``<coverage_root>/staging/<version>`` and are
-  never selectable by R2's ``select_coverage_version`` (subdirectory + name).
+  never selectable by ``select_coverage_version`` (subdirectory + name).
 - Any failure moves the staged artifact into ``<coverage_root>/staging/failed/``
   and re-raises; the previously active coverage stays selectable.
 - Idempotent: activating the exact same version + business hash is a no-op
@@ -18,12 +18,55 @@ Contract:
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from app.time_utils import TAIPEI
+
+COVERAGE_DIR_RE = re.compile(r"^fact_coverage_(\d{8})_v(\d+)$")
+
+
+class CoverageSelectionError(RuntimeError):
+    """No activated, validated coverage version is available."""
+
+
+def select_coverage_version(seed_root: Path) -> tuple[Path, str, dict, dict]:
+    """Return the latest activated coverage directory that passed validation.
+
+    Only direct children named ``fact_coverage_<date>_v<n>`` with
+    ``coverage_preflight.json`` (``preflight_ready``) and
+    ``coverage_validation.json`` (``coverage_ready``) qualify; staging and
+    isolated failures are never selected.
+    """
+    candidates = []
+    for child in sorted(Path(seed_root).iterdir()):
+        if not child.is_dir():
+            continue
+        m = COVERAGE_DIR_RE.match(child.name)
+        if not m:
+            continue
+        preflight_path = child / "coverage_preflight.json"
+        validation_path = child / "coverage_validation.json"
+        if not (preflight_path.exists() and validation_path.exists()):
+            continue
+        preflight = json.loads(preflight_path.read_text(encoding="utf-8"))
+        validation = json.loads(validation_path.read_text(encoding="utf-8"))
+        if not (
+            preflight.get("preflight_ready") is True
+            and validation.get("coverage_ready") is True
+        ):
+            continue
+        candidates.append(
+            (int(m.group(1)), int(m.group(2)), child.name, child, preflight, validation)
+        )
+    if not candidates:
+        raise CoverageSelectionError("未找到任何 ready 的正式覆盖版本")
+    candidates.sort(key=lambda x: (x[0], x[1]))
+    _d, _v, name, path, preflight, validation = candidates[-1]
+    return path, name, preflight, validation
 
 
 def _atomic_write(path: Path, data: bytes) -> None:

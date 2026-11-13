@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.assessment.security_scan import scan_text
+from app.security_scan import scan_text
 
 
 OUT = ROOT / "data/election_candidates/tainan_2026/phase_f1"

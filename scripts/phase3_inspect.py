@@ -1,4 +1,4 @@
-"""Phase 3 read-only inspection of coverage/snapshot/assessment surfaces."""
+"""Phase 3 read-only inspection of coverage/snapshot surfaces."""
 
 from __future__ import annotations
 
@@ -48,8 +48,6 @@ def main():
 
     dependency_map = {
         "coverage.depends_on": ["election_events.occurred_at", "event_sources", "election_polls.fieldwork_json", "poll_source_links"],
-        "final_report_allowed_source": "app/assessment/generation_eligibility.py (facts_cutoff >= period_end)",
-        "evidence_pack_uses": ["coverage_version", "facts_cutoff", "poll_cutoff", "known_gaps"],
         "snapshot.depends_on": ["coverage", "election_events", "election_polls"],
     }
     (OUT / "coverage_dependency_map.json").write_text(
@@ -108,24 +106,11 @@ def main():
         json.dumps(snapshot_dependency, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
-    trigger_assessment = {
-        "period_helper": "app/assessment/reporting_period.py::scheduled_period_for",
-        "generation_eligibility": "app/assessment/generation_eligibility.py::build_generation_eligibility",
-        "run_days": [9, 22],
-        "period_rules": {"9": "previous_month_16_to_end", "22": "current_month_01_to_15"},
-        "production_llm_ready": False,
-        "mock_only": True,
-    }
-    (OUT / "assessment_trigger_assessment.json").write_text(
-        json.dumps(trigger_assessment, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-
     lines = [
         "# Phase 3 输入核查",
         "",
         f"- coverage 现有版本：{coverage.get('coverage_version')}",
         f"- facts_cutoff：{coverage.get('facts_cutoff')}；poll_cutoff：{coverage.get('poll_cutoff')}",
-        f"- 周期规则：9日=previous_month_16_to_end；22日=current_month_01_to_15（复用 reporting_period）",
         "- coverage 可确定性重建字段：facts_cutoff/poll_cutoff/latest_event_date/latest_poll_field_end",
         "- 需人工/研究标注：known_gaps、coverage_status、周期范围",
     ]

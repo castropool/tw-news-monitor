@@ -282,7 +282,6 @@ def run_downstream_for_batch(
     config,
     policy: AutoPublishPolicy,
     batch_id: str,
-    run_date: str,
 ) -> dict[str, Any]:
     """Run the post-publication snapshot/coverage activation for one committed
     batch.
@@ -314,15 +313,8 @@ def run_downstream_for_batch(
         config,
         publication_batch_id=batch_id,
         request_path=request_path,
-        run_date=run_date,
-        manual=False,
         allow_real_snapshot=policy.auto_activate_snapshots,
     )
-    if manifest.get("retry_required"):
-        raise RuntimeError(
-            "downstream incomplete: "
-            f"assessment={manifest.get('assessment', {}).get('status', '')}"
-        )
     snapshot = manifest.get("snapshot", {})
     coverage = manifest.get("coverage", {})
     return {
@@ -566,7 +558,7 @@ def run_auto_publish(config, args) -> dict[str, Any]:
                     )
                     try:
                         ds = run_downstream_for_batch(
-                            repo, config, policy, latest.get("batch_id", ""), run_date
+                            repo, config, policy, latest.get("batch_id", "")
                         )
                     except Exception as exc:  # noqa: BLE001 - downstream gate failure
                         _handle_downstream_failure(
@@ -696,7 +688,7 @@ def run_auto_publish(config, args) -> dict[str, Any]:
             #     facts are never rolled back.  check-only never reaches here.
             try:
                 ds = run_downstream_for_batch(
-                    repo, config, policy, outcome["batch_id"], run_date
+                    repo, config, policy, outcome["batch_id"]
                 )
             except Exception as exc:  # noqa: BLE001 - downstream gate failure
                 _handle_downstream_failure(cid, business_hash, outcome, str(exc))

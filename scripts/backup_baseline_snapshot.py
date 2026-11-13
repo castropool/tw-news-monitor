@@ -74,7 +74,6 @@ def main() -> None:
         "app/database.py",
         "app/models.py",
         "app/election_watch.py",
-        "app/election_report.py",
         "app/election_event_merge.py",
         "app/election_fact_store.py",
         "app/election_classifier.py",
@@ -86,8 +85,6 @@ def main() -> None:
 
     config_files = [
         "config/election_watch.yaml",
-        "config/election_assessment.yaml",
-        "config/election_manual_facts.json",
         "config/sources.yaml",
     ]
 

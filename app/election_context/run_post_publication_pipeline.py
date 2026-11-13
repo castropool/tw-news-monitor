@@ -7,7 +7,6 @@ successful transactions):
     C. coverage activation     (coverage_activation: validated coverage enters
                                the selectable seed area, staging->atomic rename)
     D. snapshot activation     (snapshot_pipeline)
-    E. assessment generation   (assessment_trigger + mock/assessment pipeline)
 """
 
 from __future__ import annotations
@@ -19,7 +18,6 @@ from typing import Any
 
 from app.time_utils import TAIPEI
 
-from app.assessment.assessment_trigger import create_trigger, run_mock_assessment
 from app.election_candidates.publication_recovery import recovery_gate
 from app.election_context.coverage_activation import activate_coverage
 from app.election_context.coverage_builder import build_coverage, write_coverage
@@ -87,7 +85,6 @@ def phase3_recovery_gate(config) -> dict[str, Any]:
                         "coverage_started",
                         "snapshot_candidate_started",
                         "snapshot_commit_started",
-                        "assessment_trigger_created",
                     )
                 )
                 done = steps.get("completed") or steps.get("failed")
@@ -113,8 +110,6 @@ def run_post_publication_pipeline(
     *,
     publication_batch_id: str,
     request_path: str | Path,
-    run_date=None,
-    manual: bool = False,
     allow_real_snapshot: bool = False,
 ) -> dict[str, Any]:
     existing = repo.get_refresh_batch_by_publication(publication_batch_id)
@@ -185,7 +180,7 @@ def run_post_publication_pipeline(
             raise RuntimeError(f"coverage invalid: {cov_validation['errors']}")
         # Activation gate: only a fully validated coverage may enter the
         # selectable seed area; staging->atomic rename, failures isolated to
-        # <coverage_root>/staging/failed and never selectable by R2.
+        # <coverage_root>/staging/failed and never selectable.
         cov_activation = activate_coverage(
             config,
             coverage_result,
@@ -320,63 +315,11 @@ def run_post_publication_pipeline(
         journal["error_summary"] = str(exc)
         _write_downstream_journal(config, batch["refresh_batch_id"], journal)
         raise
-    repo.upsert_refresh_batch(batch)
 
-    trigger = create_trigger(
-        repo,
-        config,
-        refresh_batch_id=batch["refresh_batch_id"],
-        formal_state_hash=coverage_result["formal_state_hash"],
-        coverage_manifest=coverage_manifest,
-        snapshot_id=active_snapshot_id,
-        run_date=run_date,
-        manual=manual,
-    )
-    journal["steps"]["assessment_trigger_created"] = True
-    _write_downstream_journal(config, batch["refresh_batch_id"], journal)
-
-    assessment_status = trigger["status"]
-    assessment_run_id = ""
-    error_summary = ""
-    if snapshot_status == "pending_review":
-        assessment_status = "blocked"
-        repo.update_trigger_status(
-            trigger["trigger_id"],
-            "blocked",
-            "snapshot pending review blocks formal report",
-        )
-    elif trigger["status"] == "eligible":
-        try:
-            report = run_mock_assessment(config, trigger, run_dir / "assessment")
-            assessment_run_id = report.get("assessment_run_id", "")
-            assessment_status = "generated"
-            repo.update_trigger_status(
-                trigger["trigger_id"],
-                "generated",
-                assessment_run_id=assessment_run_id,
-            )
-        except Exception as exc:
-            assessment_status = "failed"
-            error_summary = f"assessment_failed: {exc}"
-            repo.update_trigger_status(trigger["trigger_id"], "failed", error_summary)
-
-    batch["assessment_trigger_result"] = json.dumps(
-        {
-            "trigger_id": trigger["trigger_id"],
-            "status": assessment_status,
-            "assessment_run_id": assessment_run_id,
-        },
-        ensure_ascii=False,
-    )
-    batch["status"] = "completed" if assessment_status != "failed" else "failed"
+    batch["status"] = "completed"
     batch["finished_at"] = datetime.now(TAIPEI).isoformat()
-    if error_summary:
-        batch["error_summary"] = error_summary
     repo.upsert_refresh_batch(batch)
-    journal["steps"]["completed"] = assessment_status != "failed"
-    journal["steps"]["failed"] = assessment_status == "failed"
-    if error_summary:
-        journal["error_summary"] = error_summary
+    journal["steps"]["completed"] = True
     _write_downstream_journal(config, batch["refresh_batch_id"], journal)
 
     manifest = {
@@ -402,15 +345,8 @@ def run_post_publication_pipeline(
             "active_snapshot_id": active_snapshot_id,
             "changed": candidate.get("snapshot_change_required", False),
         },
-        "assessment": {
-            "trigger_id": trigger["trigger_id"],
-            "eligible": trigger["status"] == "eligible",
-            "status": assessment_status,
-            "assessment_run_id": assessment_run_id,
-        },
         "network_calls": 0,
         "production_real_snapshot_activation_performed": False,
-        "retry_required": assessment_status == "failed",
     }
     (run_dir / "post_publication_pipeline_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"

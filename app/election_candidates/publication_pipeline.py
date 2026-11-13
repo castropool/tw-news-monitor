@@ -474,7 +474,6 @@ def _write_diff_and_audit(
         "new_source_ids": [s["source_id"] for s in preview.get("new_sources", [])],
         "snapshot_refresh_required": True,
         "coverage_refresh_required": True,
-        "assessment_refresh_required": True,
         "requested_at": now,
     }
     (batch_dir / "downstream_refresh_request.json").write_text(

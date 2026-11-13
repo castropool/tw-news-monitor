@@ -62,8 +62,7 @@ def write_publication_audit_md(
     lines += ["", "## 十一、下游待刷新事项", ""]
     lines.append(
         f"- snapshot_refresh_required={downstream.get('snapshot_refresh_required')}；"
-        f"coverage_refresh_required={downstream.get('coverage_refresh_required')}；"
-        f"assessment_refresh_required={downstream.get('assessment_refresh_required')}"
+        f"coverage_refresh_required={downstream.get('coverage_refresh_required')}"
     )
     lines += ["", "## 十二、回滚信息", ""]
     lines.append(f"- {json.dumps(rollback_info, ensure_ascii=False)}")

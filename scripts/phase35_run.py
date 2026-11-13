@@ -15,7 +15,6 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.assessment.assessment_trigger import create_trigger
 from app.election_candidates.config import load_config
 from app.election_context.bootstrap_v2 import run_bootstrap_v2
 from app.election_context.coverage_builder import build_coverage, compute_coverage_payload
@@ -87,20 +86,6 @@ def _matrix_blocking_gaps() -> list[dict]:
     return gaps
 
 
-class NullTriggerRepo:
-    def get_trigger(self, trigger_id: str):
-        return None
-
-    def insert_trigger(self, trigger: dict):
-        self.inserted = trigger
-
-    def supersede_triggers(self, *args, **kwargs):
-        pass
-
-    def update_trigger_status(self, *args, **kwargs):
-        pass
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--pytest-passed", type=int, default=0)
@@ -145,9 +130,6 @@ def main():
         "active_snapshot_id": active["snapshot_id"],
         "old_coverage": old_coverage,
         "v4_preflight": v4_preflight,
-        "reporting_period_helper": "app/assessment/reporting_period.py::scheduled_period_for",
-        "evidence_pack_acceptance": "app/assessment/generation_eligibility.py::build_generation_eligibility",
-        "assessment_preflight": "app/assessment/deployment_preflight.py",
         "coverage_acceptance_rules": "config/coverage_acceptance_rules.yaml",
         "frozen_at": "2026-08-08T00:00:00",
     }
@@ -186,15 +168,6 @@ def main():
          "status": "current", "is_current_formal_rule": True, "conflict": False},
         {"source_file": "config/coverage_acceptance_rules.yaml",
          "rule": "unified acceptance rules (no_event_day_is_gap=false, poll absence non-blocking)",
-         "status": "current", "is_current_formal_rule": True, "conflict": False},
-        {"source_file": "app/assessment/generation_eligibility.py",
-         "rule": "final_report_allowed requires facts_cutoff>=period_end",
-         "status": "current", "is_current_formal_rule": True, "conflict": False},
-        {"source_file": "app/assessment/evidence_pack_builder.py",
-         "rule": "facts_cutoff read from active coverage/preflight; uncovered_range=cutoff+1..end",
-         "status": "current", "is_current_formal_rule": True, "conflict": False},
-        {"source_file": "app/assessment/deployment_preflight.py",
-         "rule": "period coverage blocks final if facts_cutoff<period_end",
          "status": "current", "is_current_formal_rule": True, "conflict": False},
         {"source_file": "app/election_context/validate_fact_coverage.py",
          "rule": "legacy v1-v3 validator hardcoded facts_cutoff=2026-07-27; matrix-based statuses",
@@ -527,40 +500,13 @@ def main():
         "coverage_production_ready": True,
         "snapshot_pipeline_ready": True,
         "snapshot_auto_activation_ready": True,
-        "assessment_trigger_ready": True,
-        "assessment_pipeline_integrated": True,
         "formal_state_ready": formal_hash == seed_hash,
         "automatic_recovery_ready": True,
-        "production_llm_ready": False,
-        "production_delivery_ready": False,
-        "production_end_to_end_ready": False,
         "errors": [],
         "warnings": [],
     }
-    entry_gate = {
-        "phase4_entry_ready": True,
-        "candidate_pipeline_ready": True,
-        "publication_pipeline_ready": True,
-        "formal_state_ready": formal_hash == seed_hash,
-        "automatic_recovery_ready": True,
-        "coverage_pipeline_ready": True,
-        "snapshot_pipeline_ready": True,
-        "assessment_trigger_ready": True,
-        "assessment_pipeline_ready": True,
-        "offline_end_to_end_ready": args.pytest_failed == 0,
-        "production_llm_ready": False,
-        "production_delivery_ready": False,
-        "blockers": [
-            "deployment DeepSeek live validation pending",
-            "deployment Feishu validation pending",
-            "real production scheduler not installed",
-        ],
-    }
     (VALIDATION / "phase3_production_preflight.json").write_text(
         json.dumps(preflight, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    (VALIDATION / "phase4_entry_gate.json").write_text(
-        json.dumps(entry_gate, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     phase3_gate = {
         "coverage_builder_ready": True,
@@ -576,15 +522,11 @@ def main():
         "snapshot_recovery_ready": True,
         "unsupported_state_change_count": 0,
         "double_active_snapshot_count": 0,
-        "assessment_trigger_ready": True,
-        "assessment_period_logic_ready": True,
-        "assessment_pipeline_integrated": True,
         "fixture_end_to_end_ready": args.pytest_failed == 0,
         "offline_end_to_end_ready": args.pytest_failed == 0,
         "production_real_candidate_commit_performed": False,
         "production_real_snapshot_activation_performed": False,
         "production_real_coverage_commit_performed": False,
-        "production_real_assessment_delivery_performed": False,
         "news_db_unchanged": unchanged_after,
         "election_watch_db_unchanged": unchanged_after,
         "formal_facts_unchanged": unchanged_after,

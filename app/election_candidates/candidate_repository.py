@@ -244,37 +244,12 @@ CREATE TABLE IF NOT EXISTS downstream_refresh_batches (
     status TEXT NOT NULL,
     coverage_refresh_required INTEGER DEFAULT 0,
     snapshot_refresh_required INTEGER DEFAULT 0,
-    assessment_refresh_required INTEGER DEFAULT 0,
     coverage_result TEXT,
     snapshot_result TEXT,
-    assessment_trigger_result TEXT,
     created_at TEXT NOT NULL,
     started_at TEXT,
     finished_at TEXT,
     error_summary TEXT
-)
-"""
-
-CREATE_ASSESSMENT_TRIGGER_QUEUE = """
-CREATE TABLE IF NOT EXISTS assessment_trigger_queue (
-    trigger_id TEXT PRIMARY KEY,
-    election_id TEXT NOT NULL,
-    period_start TEXT NOT NULL,
-    period_end TEXT NOT NULL,
-    refresh_batch_id TEXT,
-    formal_state_hash TEXT,
-    coverage_version TEXT,
-    facts_cutoff TEXT,
-    snapshot_id TEXT,
-    trigger_reason TEXT,
-    status TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    eligible_at TEXT,
-    started_at TEXT,
-    finished_at TEXT,
-    assessment_run_id TEXT,
-    error_summary TEXT,
-    UNIQUE (election_id, period_start, period_end, formal_state_hash)
 )
 """
 
@@ -387,7 +362,6 @@ class CandidateRepository:
             CREATE_PUBLICATION_ITEMS,
             CREATE_PUBLICATION_AUDIT_LOG,
             CREATE_DOWNSTREAM_REFRESH_BATCHES,
-            CREATE_ASSESSMENT_TRIGGER_QUEUE,
             CREATE_DAILY_REVIEW_COMPLETION,
         ]:
             self.conn.execute(ddl)
@@ -775,8 +749,8 @@ class CandidateRepository:
             "refresh_batch_id", "publication_batch_id", "election_id", "formal_state_hash",
             "previous_coverage_version", "previous_snapshot_id",
             "requested_period_start", "requested_period_end", "status",
-            "coverage_refresh_required", "snapshot_refresh_required", "assessment_refresh_required",
-            "coverage_result", "snapshot_result", "assessment_trigger_result",
+            "coverage_refresh_required", "snapshot_refresh_required",
+            "coverage_result", "snapshot_result",
             "created_at", "started_at", "finished_at", "error_summary",
         ]
         placeholders = ",".join("?" for _ in cols)
@@ -801,81 +775,6 @@ class CandidateRepository:
             (refresh_batch_id,),
         ).fetchone()
         return dict(row) if row else None
-
-    def insert_trigger(self, trigger: dict[str, Any]):
-        self.conn.execute(
-            """INSERT OR IGNORE INTO assessment_trigger_queue
-               (trigger_id, election_id, period_start, period_end, refresh_batch_id,
-                formal_state_hash, coverage_version, facts_cutoff, snapshot_id, trigger_reason, status,
-                created_at, eligible_at, started_at, finished_at, assessment_run_id, error_summary)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-            (
-                trigger["trigger_id"],
-                trigger["election_id"],
-                trigger["period_start"],
-                trigger["period_end"],
-                trigger.get("refresh_batch_id", ""),
-                trigger.get("formal_state_hash", ""),
-                trigger.get("coverage_version", ""),
-                trigger.get("facts_cutoff", ""),
-                trigger.get("snapshot_id", ""),
-                trigger.get("trigger_reason", ""),
-                trigger.get("status", "pending"),
-                trigger.get("created_at", ""),
-                trigger.get("eligible_at", ""),
-                trigger.get("started_at", ""),
-                trigger.get("finished_at", ""),
-                trigger.get("assessment_run_id", ""),
-                trigger.get("error_summary", ""),
-            ),
-        )
-        self.conn.commit()
-
-    def supersede_triggers(self, election_id: str, period_start: str, period_end: str, keep_trigger_id: str):
-        self.conn.execute(
-            "UPDATE assessment_trigger_queue SET status='superseded' "
-            "WHERE election_id=? AND period_start=? AND period_end=? "
-            "AND status='pending' AND trigger_id!=?",
-            (election_id, period_start, period_end, keep_trigger_id),
-        )
-        self.conn.commit()
-
-    def get_trigger(self, trigger_id: str) -> dict[str, Any] | None:
-        row = self.conn.execute(
-            "SELECT * FROM assessment_trigger_queue WHERE trigger_id=?", (trigger_id,)
-        ).fetchone()
-        return dict(row) if row else None
-
-    def update_trigger_status(
-        self,
-        trigger_id: str,
-        status: str,
-        error_summary: str = "",
-        assessment_run_id: str = "",
-    ):
-        from datetime import datetime
-        from app.time_utils import TAIPEI
-
-        now = datetime.now(TAIPEI).isoformat()
-        self.conn.execute(
-            "UPDATE assessment_trigger_queue SET status=?, error_summary=?, "
-            "assessment_run_id=CASE WHEN ? != '' THEN ? ELSE assessment_run_id END, "
-            "finished_at=CASE WHEN ? IN ('generated','failed','superseded','blocked') "
-            "THEN ? ELSE finished_at END WHERE trigger_id=?",
-            (status, error_summary, assessment_run_id, assessment_run_id,
-             status, now, trigger_id),
-        )
-        self.conn.commit()
-
-    def get_triggers_for_period(
-        self, election_id: str, period_start: str, period_end: str
-    ) -> list[dict[str, Any]]:
-        rows = self.conn.execute(
-            "SELECT * FROM assessment_trigger_queue WHERE election_id=? "
-            "AND period_start=? AND period_end=? ORDER BY created_at, trigger_id",
-            (election_id, period_start, period_end),
-        ).fetchall()
-        return [dict(r) for r in rows]
 
     def upsert_daily_review_completion(self, row: dict[str, Any]):
         cols = [

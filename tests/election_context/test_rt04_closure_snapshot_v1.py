@@ -10,7 +10,6 @@ SEED = BASE / 'data' / 'election_seed' / 'tainan_2026'
 DB_PATH = BASE / 'data' / 'election_context.db'
 V3 = SEED / 'fact_coverage_20260727_v3'
 V4 = SEED / 'fact_coverage_20260801_v4'
-REPORTS = BASE / 'data' / 'reports' / 'tainan_2026'
 
 
 def load_jsonl(path):
@@ -270,22 +269,6 @@ def test_snapshot_publish_idempotent():
     assert active_raw['snapshot_id'] == 'tn_state_20260811_v2'
     # v2 recorded exactly once in history
     assert sum(1 for h in history if h.get('snapshot_id') == 'tn_state_20260727_v2') == 1
-
-
-# ─── 23. report evidence mapping ───
-def test_report_evidence_mapping():
-    ev = read_json(REPORTS / 'tainan_election_assessment_20260801_v1_evidence.json')
-    claims = ev['evidence_claims']
-    assert claims
-    events = {e['event_id'] for e in load_jsonl(SEED / 'events.jsonl')}
-    for c in claims:
-        assert c['claim_id'] and c['claim_text']
-        for eid in c['supporting_event_ids']:
-            assert eid in events, f'{c["claim_id"]} refs non-formal {eid}'
-    md = (REPORTS / 'tainan_election_assessment_20260801_v1.md').read_text(encoding='utf-8')
-    assert '7月以来台南市长选情最新变化及后续走势研判' in md
-    n_chars = len(md.replace('\n', '').replace(' ', ''))
-    assert 1800 <= n_chars <= 2500, f'length {n_chars}'
 
 
 # ─── 24. formal hashes unchanged ───

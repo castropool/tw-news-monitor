@@ -154,8 +154,6 @@ def execute_review_and_publish(
                 config,
                 publication_batch_id=batch_id,
                 request_path=request_path,
-                run_date=None,
-                manual=True,
                 allow_real_snapshot=False,
             )
             result["downstream_refresh_status"] = downstream.get(
