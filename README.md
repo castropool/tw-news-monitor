@@ -79,6 +79,7 @@ config/sources.yaml
 | `reuters` | ReutersCollector | Reuters 官方新闻 sitemap，仅元数据 |
 | `ft_alphaville` | FTAlphavilleCollector | FT Alphaville 官方 RSS，仅 feed 摘要 |
 | `wsj_rss` | WSJRSSCollector | WSJ 官方冻结 RSS，Phase I 默认停用 |
+| `google_news_rss` | GoogleNewsRSSCollector | Google 新闻 RSS 检索（民调 / 地下赌盘专题），发布媒体作 `source_name` |
 
 采集器规则：单来源上限 20 条、空标题/空 URL 跳过、统一设置超时与 User-Agent、不抓取正文、单来源故障不中断整体。
 采集器本身不做关键词过滤；关注范围过滤由 `config/content_filter.yaml` 统一执行。生产默认 `exclude_from_delivery`：命中经济栏目里的彩票开奖、美食消费、营销活动、职场生活等社会琐事的文章仍保留在历史库，但不进入摘要、Word 或通知；特殊环境可切换为 `drop_before_save`。
@@ -90,6 +91,28 @@ config/sources.yaml
 - 国际稿全部可按 URL 入库，但只有新鲜且与台湾/两岸/涉台国际政策相关的文章进入简报。跨媒体近似事件只在显示层合并，数据库不删除各媒体 URL。
 - `metadata_only`、`newsletter` 以及其他显式国际 access level 不进入正文或 meta-description 网络抓取。
 - 独立真实验收见 `validation/international_phase1/`，不会使用生产数据库、Scheduler 或飞书。
+
+### 民调与地下赌盘专题（`category: poll` / `betting`）
+
+- 来源：`config/sources.yaml` 中 `poll_*`（台湾民意基金会、美丽岛电子报国政民调、TVBS、台湾指标、远见、联合报、选举民调、最新民调）与 `betting_*`（地下赌盘、选举赌盘、签赌查缉、博弈网站查缉）共 12 个 Google 新闻 zh-TW 检索 feed（近 7 天）。走与其他新闻相同的采集、URL/identity 去重、入库、时效、重要度与交付链路。
+- 相关性门禁（`app/special_topics/` + `config/special_topics.yaml`）：检索 feed 难免混入无关结果，统一在去重后判定；不相关条目照常入库但 `delivery_eligible=0`、`filter_reason=topic_relevance`，不进入摘要/Word/飞书。采集器本身不做关键词过滤。
+- 结构化标注写入 `news_topics`（`topic=poll` / `betting`，`metadata_json`）：民调为发布机构、关键百分比、样本数、抽样误差、调查期间；赌盘为类型（选举赌盘/运动签赌/线上博弈/查缉执法/洗钱金流）与是否涉及选举。只复述原文，不推断。
+- 展示：飞书文本摘要与 Word 各有「民调」「地下赌盘」小节，每条附一行标注（如 `民调机构：台灣民意基金會｜关键数据：賴清德聲望42.3%…`）。这两类始终留在自己的小节，不会被改路由到「九合一」或「国际媒体」。
+
+### KOL 社群动态（`app/social_monitor/`）
+
+- 名单：`config/kol_social_sources.yaml` 收录 20 位台湾本地/涉台 KOL（时事解说、两岸与国际评论、各光谱政治评论员），与 `config/political_social_sources.yaml` 共用社群监测架构（账号、帖子去重与修订、跨平台合并、原始快照），以 `person_category=kol` 区分。
+- **账号须先验证才会采集**（沿用政治人物社群的安全规则）。名单中的账号标识是候选值，需在联网的部署机执行：
+
+  ```
+  python -m app.social_monitor.cli verify --account-id kol_mindi_youtube --url https://www.youtube.com/@<handle>
+  python -m app.social_monitor.cli verify --category kol        # 批量验证所有尚未验证的账号（缺候选标识的只报告原因，不写入）
+  python -m app.social_monitor.cli list --category kol          # 查看验证状态
+  ```
+
+  YouTube：解析频道 ID → 读取公开频道 feed → 标题须与名单姓名/别名匹配；有 `feed_url` 的账号（Podcast、Blog/Substack，或运营方自建 RSS 桥接的 Facebook/Threads/X）：feed 标题或作者须匹配。结果写入 `data/social_monitor/account_verifications.json`，不匹配一律不记为已验证。Facebook/Threads/X 官方适配器未实现，没有 `feed_url` 时无法采集。
+- 采集：常规新闻任务（`python -m app.main`）每轮按 `config/social_monitor.yaml` 的 `news_run` 采集到期的已验证 KOL 账号（分级间隔，单轮上限 30 个），失败不影响新闻交付；也可手动 `python -m app.social_monitor.cli collect --category kol`。
+- 展示：Word 新增「KOL 社群动态」小节（与「政治人物社群动态」分开），飞书文本摘要追加「KOL动态」小节；只取最近 24 小时、通过相关性筛选的帖子（`kol_delivery`：窗口、Word 上限 30、飞书上限 10）。
 
 ### 去重机制（`article_identity.py`）
 

@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from ..database import Database
-from .adapters import ADAPTERS
+from .adapters import ADAPTERS, FeedAdapter
 from .models import SocialPost, utc_now_iso
 from .normalize import normalize_social_text
 from .registry import collectable_accounts
@@ -55,6 +55,8 @@ class SocialCollector:
         account_id: str | None = None,
         since: datetime | None = None,
         dry_run: bool = False,
+        person_category: str | None = None,
+        account_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         run_id = f"social_run_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')}"
         if not dry_run:
@@ -66,11 +68,20 @@ class SocialCollector:
             "errors": [], "warnings": [],
         }
         accounts = collectable_accounts(
-            self.repo, platform=platform, person_id=person_id, account_id=account_id
+            self.repo, platform=platform, person_id=person_id, account_id=account_id,
+            person_category=person_category,
         )
+        if account_ids is not None:
+            wanted = set(account_ids)
+            accounts = [a for a in accounts if a["account_id"] in wanted]
         for account in accounts:
             summary["accounts_attempted"] += 1
-            adapter_cls = self.adapters.get(account["platform"])
+            # An explicit feed (podcast, blog, RSS bridge) always wins over the
+            # platform adapter; the post keeps the account's platform label.
+            if account.get("feed_url"):
+                adapter_cls = self.adapters.get("feed", FeedAdapter)
+            else:
+                adapter_cls = self.adapters.get(account["platform"])
             if adapter_cls is None:
                 summary["accounts_failed"] += 1
                 summary["warnings"].append(f"{account['account_id']}: platform adapter not available")

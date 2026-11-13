@@ -20,6 +20,8 @@ from .summarizer import clean_summary_text
 from .time_utils import TAIPEI, format_article_publish_time
 from .election2026.classifier import classify_article as classify_election_article
 from .election2026.models import ElectionAnnotation
+from .special_topics import is_dedicated_topic_article
+from .special_topics.render import special_topic_line
 
 CATEGORY_NAMES = {
     "politics": "政治新闻",
@@ -27,9 +29,11 @@ CATEGORY_NAMES = {
     "military": "军武动态",
     "international": "国际及两岸新闻",
     "religion": "宗教",
+    "poll": "民调动态",
+    "betting": "地下赌盘动态",
 }
-CATEGORY_ORDER = ["politics", "economy", "military", "international", "religion"]
-CATEGORY_NUMBERS = ["（一）", "（二）", "（三）", "（四）", "（五）"]
+CATEGORY_ORDER = ["politics", "economy", "poll", "betting", "military", "international", "religion"]
+CATEGORY_NUMBERS = ["（一）", "（二）", "（三）", "（四）", "（五）", "（六）", "（七）"]
 HYPERLINK_REL_TYPE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"
 
 def _add_article_publish_time(doc, article, label: str = "发布时间") -> None:
@@ -59,6 +63,7 @@ def build_word_digest(
     military_topic_urls: set[str] | None = None,
     military_event_config: dict | None = None,
     social_items: list[dict] | None = None,
+    special_topics_config: dict | None = None,
 ) -> Path:
     if not articles:
         raise ValueError("No articles to generate Word digest")
@@ -109,6 +114,11 @@ def build_word_digest(
         ]
     else:
         election_candidate_articles = media_articles
+    # Poll / betting items keep their dedicated sections (an election poll or
+    # election betting story is not moved into 九合一).
+    election_candidate_articles = [
+        a for a in election_candidate_articles if not is_dedicated_topic_article(a)
+    ]
 
     # 九合一选举专题：启用配置时，从国内媒体稿中摘出九合一新闻，
     # 其余仍进（一）~（五）分类小节。专题展示采用 election-first 互斥路由：
@@ -186,10 +196,12 @@ def build_word_digest(
         intl_media_articles = [
             a for a in regular_media_articles
             if is_international_media(a.source_name, international_config)
+            and not is_dedicated_topic_article(a)
         ]
         domestic_media_articles = [
             a for a in regular_media_articles
-            if not is_international_media(a.source_name, international_config)
+            if is_dedicated_topic_article(a)
+            or not is_international_media(a.source_name, international_config)
         ]
     else:
         intl_media_articles = []
@@ -402,6 +414,13 @@ def build_word_digest(
                 run = p.add_run(display_title)
                 run.bold = True
                 run.font.size = Pt(12)
+
+                topic_line = special_topic_line(article, special_topics_config)
+                if topic_line:
+                    p = doc.add_paragraph()
+                    run = p.add_run(topic_line)
+                    run.font.size = Pt(10)
+                    run.font.color.rgb = RGBColor(0x1F, 0x4E, 0x79)
 
                 summary = clean_summary_text(article.summary)
                 if summary:

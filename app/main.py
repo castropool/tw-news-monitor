@@ -13,7 +13,7 @@ import json
 
 import yaml
 
-from .collectors import RSSCollector, UDNCollector, EBCCollector, CNAHtmlCollector, LtnRSSCollector, PresidentCollector, ZaobaoCollector, ReutersCollector, FTAlphavilleCollector, WSJRSSCollector, WSJNewsletterCollector, BloombergNewsletterCollector, LtnMilitaryCollector, NownewsMilitaryCollector, MNAMilitaryCollector
+from .collectors import RSSCollector, UDNCollector, EBCCollector, CNAHtmlCollector, LtnRSSCollector, PresidentCollector, ZaobaoCollector, ReutersCollector, FTAlphavilleCollector, WSJRSSCollector, WSJNewsletterCollector, BloombergNewsletterCollector, LtnMilitaryCollector, NownewsMilitaryCollector, MNAMilitaryCollector, GoogleNewsRSSCollector
 from .category_classifier import apply_content_classification
 from .content_filter import apply_content_filter, load_content_filter
 from .military import (
@@ -68,13 +68,24 @@ from .notification_candidates import (
 from .source_health import SourceHealthStore, SourceOutcome
 from .settings import get_settings, load_environment
 from .news_pipeline import run_delivery_core
-from .social_monitor.crosspost import canonical_posts
+from .social_monitor.news_run import (
+    collect_due_for_news_run,
+    kol_delivery_items,
+    social_items as social_monitor_items,
+)
 from .social_monitor.relevance import select_word_posts
-from .social_monitor.repository import SocialRepository
 from .pipeline_models import CollectionResult
 from .election2026.config import load_election_config as load_election2026_config
 from .election2026.config import load_entities as load_election2026_entities
 from .election2026.classifier import classify_articles as classify_election2026_articles
+from .special_topics import is_dedicated_topic_article
+from .special_topics.config import load_special_topics_config
+from .special_topics.gate import (
+    FILTER_REASON as TOPIC_FILTER_REASON,
+    TopicGateResult,
+    apply_topic_gate,
+    topic_rows,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +106,7 @@ COLLECTOR_MAP = {
     "ltn_military": LtnMilitaryCollector,
     "nownews_military": NownewsMilitaryCollector,
     "mna_military": MNAMilitaryCollector,
+    "google_news_rss": GoogleNewsRSSCollector,
 }
 
 _INTERNATIONAL_SOURCE_TYPES = {
@@ -155,6 +167,8 @@ def validate_sources_config(sources: list[dict], collector_map: dict) -> None:
         "military",
         "international",
         "religion",
+        "poll",
+        "betting",
     }
     errors = []
     seen_ids = set()
@@ -375,19 +389,31 @@ def _classify_and_persist_election2026(
 
 
 def _get_social_word_items(db: Database) -> list[dict]:
-    """Return canonical, Word-eligible social items without blocking Word."""
+    """Return canonical, Word-eligible social items without blocking Word.
+
+    Political persons keep the original selection; KOL posts are limited to
+    the recent delivery window (config/social_monitor.yaml kol_delivery).
+    Items carry ``person_category`` so Word renders separate sections.
+    """
     try:
-        repo = SocialRepository(db)
-        items = []
-        for post in canonical_posts(repo):
-            person = repo.get_person(post.get("person_id")) or {}
-            item = dict(post)
-            item["person_display_name"] = person.get("display_name") or person.get("canonical_name")
-            item["person_canonical_name"] = person.get("canonical_name")
-            items.append(item)
-        return select_word_posts(items)
+        items = social_monitor_items(db)
+        political = select_word_posts(
+            [i for i in items if i.get("person_category") != "kol"]
+        )
+        return political + kol_delivery_items(items)
     except Exception as exc:  # noqa: BLE001 - social section must never block legacy Word
         logger.warning("Social Word section lookup failed safely: %s", exc)
+        return []
+
+
+def _get_kol_feishu_items(db: Database | None) -> list[dict]:
+    """Recent KOL posts for the Feishu text digest (fail-safe)."""
+    if db is None:
+        return []
+    try:
+        return kol_delivery_items(social_monitor_items(db), for_feishu=True)
+    except Exception as exc:  # noqa: BLE001 - optional block must fail safely
+        logger.warning("KOL Feishu items lookup failed safely: %s", exc)
         return []
 
 
@@ -647,6 +673,7 @@ def collect_all(
     health_store: SourceHealthStore | None = None,
     election_config: dict | None = None,
     election_entities: dict | None = None,
+    special_topics_config: dict | None = None,
 ) -> CollectionResult:
     """Collect news, dedup by URL, save new ones.
 
@@ -846,6 +873,26 @@ def collect_all(
     else:
         candidates = filter_result.kept + filter_result.blocked
 
+    # Dedicated poll/betting topics: query-based feeds are gated centrally.
+    # Off-topic items are stored but never delivered (topic_relevance).
+    if special_topics_config is None:
+        special_topics_config = load_special_topics_config()
+    content_blocked = {b.url for b in filter_result.blocked}
+    try:
+        topic_gate = apply_topic_gate(
+            [a for a in candidates if a.url not in content_blocked],
+            special_topics_config,
+        )
+    except Exception as exc:  # noqa: BLE001 - topic gate must never stop collection
+        logger.warning("Special topic gate failed safely: %s", exc)
+        topic_gate = TopicGateResult()
+    if topic_gate.blocked:
+        logger.info(
+            "Special topic gate excluded %d off-topic items from delivery: %s",
+            len(topic_gate.blocked), [a.title[:40] for a in topic_gate.blocked[:5]],
+        )
+        filtered_from_delivery.extend(topic_gate.blocked)
+
     # Persist delivery eligibility on every saved article.  Articles blocked
     # by content_filter or military noise in exclude_from_delivery mode are
     # stored but marked ineligible so export/backfill/Word later honor the
@@ -854,6 +901,10 @@ def collect_all(
     content_blocked_urls = {a.url for a in filter_result.blocked}
     content_filter_version = str(
         (content_filter_config or {}).get("filter_version") or "current"
+    )
+    topic_blocked_urls = {a.url for a in topic_gate.blocked}
+    topic_filter_version = str(
+        (special_topics_config or {}).get("filter_version") or "current"
     )
     military_filter_version = str((military_config or {}).get("filter_version") or "current")
     for article in candidates:
@@ -865,6 +916,10 @@ def collect_all(
             article.delivery_eligible = False
             article.filter_reason = "content_filter"
             article.filter_version = content_filter_version
+        elif article.url in topic_blocked_urls:
+            article.delivery_eligible = False
+            article.filter_reason = TOPIC_FILTER_REASON
+            article.filter_version = topic_filter_version
 
     inserted = db.save_articles(candidates)
 
@@ -888,6 +943,14 @@ def collect_all(
                 db.save_military_topic(row["url"], source_type=row["source_type"])
         except Exception as exc:  # noqa: BLE001 - topic metadata is best-effort
             logger.warning("Military topic persistence failed: %s", exc)
+    special_topic_rows = topic_rows(
+        inserted, topic_gate.annotations, special_topics_config
+    )
+    if special_topic_rows:
+        try:
+            db.save_topics(special_topic_rows)
+        except Exception as exc:  # noqa: BLE001 - topic metadata is best-effort
+            logger.warning("Poll/betting topic persistence failed: %s", exc)
 
     result = CollectionResult(
         fetched_articles=fetched_articles,
@@ -1508,7 +1571,8 @@ def main() -> None:
 
             long_digest_articles = [
                 article for article in digest_articles
-                if not is_international_media(article.source_name, international_config)
+                if is_dedicated_topic_article(article)
+                or not is_international_media(article.source_name, international_config)
             ]
             if long_digest_articles:
                 digest = build_digest(
@@ -1516,6 +1580,7 @@ def main() -> None:
                     international_coverage=intl_coverage,
                     international_config=international_config,
                     include_international_media=False,
+                    kol_items=_get_kol_feishu_items(db),
                 )
             else:
                 digest = build_digest([], now)
@@ -1839,6 +1904,13 @@ def main() -> None:
         run_removed = collection.run_removed
         hist_id_dup = collection.historical_identity_duplicates
         filtered_count = collection.filtered_count
+        # KOL social updates: due, verified accounts only; never blocks news.
+        social_run = collect_due_for_news_run(db, project_root=project_root)
+        if social_run.get("status") == "ok" and social_run.get("accounts_attempted"):
+            print(
+                f"  [OK] KOL social: accounts={social_run.get('accounts_attempted')} "
+                f"new_posts={social_run.get('posts_new', 0)} failed={social_run.get('accounts_failed', 0)}"
+            )
         now = datetime.now(TAIPEI)
         delivery_input = list(inserted) + list(collection.promoted_delivery_articles)
 
@@ -1969,7 +2041,8 @@ def main() -> None:
             # event-candidate lane above.
             long_digest_articles = [
                 article for article in digest_articles
-                if not is_international_media(article.source_name, international_config)
+                if is_dedicated_topic_article(article)
+                or not is_international_media(article.source_name, international_config)
             ]
             if long_digest_articles:
                 digest = build_digest(
@@ -1977,6 +2050,7 @@ def main() -> None:
                     international_coverage=intl_coverage,
                     international_config=international_config,
                     include_international_media=False,
+                    kol_items=_get_kol_feishu_items(db),
                 )
                 stats = (
                     f"\n本轮收集：{total}条"
@@ -2043,7 +2117,8 @@ def main() -> None:
                                 # 非国际文章），排除不相关国际文章与 coverage 成员
                                 digest_urls = {
                                     a.url for a in digest_articles
-                                    if not is_international_media(
+                                    if is_dedicated_topic_article(a)
+                                    or not is_international_media(
                                         a.source_name, international_config
                                     )
                                 }

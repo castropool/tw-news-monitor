@@ -7,7 +7,10 @@ from datetime import datetime, timezone
 from typing import Any
 
 
-PLATFORMS = ("facebook", "threads", "instagram", "youtube", "x", "line", "tiktok", "telegram", "other")
+PLATFORMS = (
+    "facebook", "threads", "instagram", "youtube", "x", "line", "tiktok", "telegram",
+    "podcast", "blog", "other",
+)
 ACCOUNT_TYPES = (
     "personal_official",
     "office_official",
@@ -15,7 +18,11 @@ ACCOUNT_TYPES = (
     "campaign_official",
     "legislative_official",
     "other_official",
+    "creator_official",
 )
+# political: elected/appointed officials (政治人物社群动态);
+# kol: commentators / opinion leaders (KOL 社群动态).
+PERSON_CATEGORIES = ("political", "kol")
 ACCOUNT_STATUSES = ("active", "inactive", "unverified", "suspended", "deleted", "redirected", "unknown")
 VERIFICATION_STATUSES = ("verified", "unverified", "rejected", "pending")
 JURISDICTION_LEVELS = ("national", "city", "county", "district", "party", "other")
@@ -73,6 +80,7 @@ class PoliticalPerson:
     active_from: str | None = None
     active_to: str | None = None
     enabled: bool = True
+    person_category: str = "political"
 
 
 @dataclass(slots=True)
@@ -102,6 +110,9 @@ class SocialAccount:
     last_error_code: str | None = None
     created_at: str | None = None
     updated_at: str | None = None
+    # Optional feed (RSS/Atom) used to collect this account, e.g. a podcast
+    # feed, a blog/Substack feed or an operator-run RSS bridge.
+    feed_url: str | None = None
 
 
 @dataclass(slots=True)

@@ -9,7 +9,7 @@ from .article_identity import article_identity_key, prefer_richer_article
 from .models import Article
 
 logger = logging.getLogger(__name__)
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 IDENTITY_BACKFILL_BATCH = 500
 
 
@@ -277,7 +277,8 @@ class Database:
                 active_to TEXT,
                 enabled INTEGER NOT NULL DEFAULT 1,
                 created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
+                updated_at TEXT NOT NULL,
+                person_category TEXT NOT NULL DEFAULT 'political'
             );
 
             CREATE TABLE IF NOT EXISTS social_account (
@@ -306,6 +307,7 @@ class Database:
                 last_error_code TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
+                feed_url TEXT,
                 FOREIGN KEY(person_id) REFERENCES political_person(person_id)
             );
 
@@ -394,6 +396,16 @@ class Database:
             );
             """
         )
+        # Columns added after the first release are appended (repository rows
+        # are mapped positionally), so older databases upgrade in place.
+        for table, column, ddl in (
+            ("political_person", "person_category",
+             "person_category TEXT NOT NULL DEFAULT 'political'"),
+            ("social_account", "feed_url", "feed_url TEXT"),
+        ):
+            existing = {row[1] for row in self.conn.execute(f"PRAGMA table_info({table})")}
+            if column not in existing:
+                self.conn.execute(f"ALTER TABLE {table} ADD COLUMN {ddl}")
         indexes = [
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_social_account_platform_user "
             "ON social_account(platform, platform_user_id) "

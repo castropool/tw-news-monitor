@@ -2,6 +2,7 @@
 
 from .base import SocialAdapter, SocialAdapterError
 from .facebook import FacebookAdapter
+from .feed import FeedAdapter
 from .instagram import InstagramAdapter
 from .threads import ThreadsAdapter
 from .x import XAdapter
@@ -13,10 +14,13 @@ ADAPTERS = {
     "threads": ThreadsAdapter,
     "facebook": FacebookAdapter,
     "instagram": InstagramAdapter,
+    # Feed-only platforms: collected through the account's feed_url.
+    "podcast": FeedAdapter,
+    "blog": FeedAdapter,
 }
 
 __all__ = [
     "SocialAdapter", "SocialAdapterError", "ADAPTERS",
     "YouTubeAdapter", "XAdapter", "ThreadsAdapter",
-    "FacebookAdapter", "InstagramAdapter",
+    "FacebookAdapter", "InstagramAdapter", "FeedAdapter",
 ]

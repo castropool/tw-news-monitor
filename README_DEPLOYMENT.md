@@ -33,7 +33,17 @@
 | `Tainan Election Fact Auto Publisher`（每 30 分钟错峰） | `powershell -File scripts\install_auto_publish_task.ps1` | `scripts\status_auto_publish_task.ps1` | `scripts\uninstall_auto_publish_task.ps1` |
 | `New Taipei Election Fact Auto Publisher` | 同上加 `-Election new_taipei` | 同上加 `-TaskName "New Taipei Election Fact Auto Publisher"` | 同上加同样的 `-TaskName` |
 
-5. 手工立即运行新闻任务一次：`run_task_now.bat`，核对 Word 简报与飞书结果。
+5. 验证 KOL 账号（联网执行；未验证账号不会被采集）：
+
+   ```
+   python -m app.social_monitor.cli list --category kol
+   python -m app.social_monitor.cli verify --account-id <account_id> --url <YouTube 频道 URL 或 RSS feed URL>
+   ```
+
+   YouTube 账号由公开频道 feed 采集，无需 API Key；Facebook/Threads/X 账号需提供 RSS 桥接 feed URL 才能采集。
+   验证结果保存在 `data/social_monitor/account_verifications.json`（运行数据，勿删）。
+6. 手工立即运行新闻任务一次：`run_task_now.bat`，核对 Word 简报（含「民调动态」「地下赌盘动态」「KOL 社群动态」小节）与飞书结果。
+   民调与地下赌盘来源需能访问 `news.google.com`。
 
 ## 清理旧研判计划任务
 

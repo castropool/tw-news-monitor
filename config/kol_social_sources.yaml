@@ -1,0 +1,339 @@
+schema_version: "1.0"
+
+# KOL registry: 20 leading Taiwan-based / Taiwan-focused commentators and
+# opinion leaders, chosen to cover explainer channels, cross-strait and
+# international commentary, and political commentators across the spectrum.
+# Inclusion records who is monitored; it is not an endorsement.
+#
+# Shares the political social monitor's schema and safety rules:
+# - person_category defaults to "kol" for every person in this file;
+# - accounts are CANDIDATES until verified.  Collection only starts after
+#     python -m app.social_monitor.cli verify --account-id <id> [--url <channel/feed URL>]
+#   proves the identifier on a networked machine (YouTube channel feed or
+#   RSS feed whose title/author must match the names below).  Results are
+#   stored in data/social_monitor/account_verifications.json.
+# - youtube accounts are collected from the public channel feed (no API key
+#   needed; YOUTUBE_API_KEY optional).  facebook/threads/x accounts need a
+#   feed_url (e.g. an operator-run RSS bridge); their official adapters are
+#   not implemented and fail closed.
+# - canonical_url values below are left empty unless a candidate is known;
+#   supply the URL to the verify command instead of guessing.
+#
+# account_id convention: kol_<slug>_<platform>.  monitoring_priority is the
+# scheduling tier (config/social_monitor.yaml scheduling.tier_intervals_minutes).
+
+monitoring_defaults:
+  timezone: Asia/Taipei
+  backfill_days: 7
+
+persons:
+  - person_id: kol_shasha77
+    canonical_name: 志祺七七
+    display_name: 志祺七七
+    aliases: [張志祺, 志祺, shasha77]
+    current_role: 時事解說 YouTuber
+    focus: [時事解析, 公共政策]
+    monitoring_tier: 2
+    enabled: true
+    accounts:
+      - account_id: kol_shasha77_youtube
+        platform: youtube
+        account_type: creator_official
+        canonical_url: https://www.youtube.com/@shasha77
+        verification_status: pending
+        monitoring_priority: 2
+
+  - person_id: kol_mindi
+    canonical_name: 敏迪
+    display_name: 敏迪選讀
+    aliases: [敏迪選讀, Mindi World News, MindiWorld]
+    current_role: 國際新聞解說
+    focus: [國際新聞, 時事解析]
+    monitoring_tier: 2
+    enabled: true
+    accounts:
+      - account_id: kol_mindi_youtube
+        platform: youtube
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 2
+      - account_id: kol_mindi_facebook
+        platform: facebook
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_8jiong
+    canonical_name: 八炯
+    display_name: 八炯
+    aliases: [溫子渝, 八炯Ba Jiong]
+    current_role: 兩岸議題 YouTuber
+    focus: [兩岸, 統戰議題]
+    monitoring_tier: 2
+    enabled: true
+    accounts:
+      - account_id: kol_8jiong_youtube
+        platform: youtube
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 2
+
+  - person_id: kol_minnanwolf
+    canonical_name: 閩南狼
+    display_name: 閩南狼
+    aliases: [陳柏源]
+    current_role: 兩岸議題 YouTuber
+    focus: [兩岸, 統戰議題]
+    monitoring_tier: 2
+    enabled: true
+    accounts:
+      - account_id: kol_minnanwolf_youtube
+        platform: youtube
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 2
+
+  - person_id: kol_holger_chen
+    canonical_name: 陳之漢
+    display_name: 館長
+    aliases: [館長, 館長陳之漢, 飆捍]
+    current_role: 網路直播主
+    focus: [政治評論, 社會議題]
+    monitoring_tier: 2
+    enabled: true
+    accounts:
+      - account_id: kol_holger_chen_youtube
+        platform: youtube
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 2
+      - account_id: kol_holger_chen_facebook
+        platform: facebook
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_froggy
+    canonical_name: 呱吉
+    display_name: 呱吉
+    aliases: [邱威傑]
+    current_role: YouTuber、前台北市議員
+    focus: [政治評論, 公共政策]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_froggy_youtube
+        platform: youtube
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_fan_chi_fei
+    canonical_name: 范琪斐
+    display_name: 范琪斐
+    aliases: [范琪斐的美國時間]
+    current_role: 資深媒體人
+    focus: [美國, 國際, 台美關係]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_fan_chi_fei_youtube
+        platform: youtube
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_huang_wei_han
+    canonical_name: 黃暐瀚
+    display_name: 黃暐瀚
+    current_role: 政治評論員
+    focus: [國內政治, 選情]
+    monitoring_tier: 2
+    enabled: true
+    accounts:
+      - account_id: kol_huang_wei_han_facebook
+        platform: facebook
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 2
+
+  - person_id: kol_wu_tzu_chia
+    canonical_name: 吳子嘉
+    display_name: 吳子嘉
+    aliases: [董事長開講, 美麗島電子報董事長]
+    current_role: 美麗島電子報董事長
+    focus: [選情, 民調, 國內政治]
+    monitoring_tier: 2
+    enabled: true
+    accounts:
+      - account_id: kol_wu_tzu_chia_youtube
+        platform: youtube
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 2
+
+  - person_id: kol_tsai_cheng_yuan
+    canonical_name: 蔡正元
+    display_name: 蔡正元
+    current_role: 政治評論員、前立法委員
+    focus: [國內政治, 兩岸]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_tsai_cheng_yuan_youtube
+        platform: youtube
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_wang_hao
+    canonical_name: 汪浩
+    display_name: 汪浩
+    current_role: 政治評論員
+    focus: [國際, 兩岸, 國內政治]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_wang_hao_youtube
+        platform: youtube
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+      - account_id: kol_wang_hao_facebook
+        platform: facebook
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_yaita_akio
+    canonical_name: 矢板明夫
+    display_name: 矢板明夫
+    aliases: [Akio Yaita]
+    current_role: 日籍記者、評論員
+    focus: [日台關係, 中國, 兩岸]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_yaita_akio_facebook
+        platform: facebook
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+      - account_id: kol_yaita_akio_x
+        platform: x
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_yuan_chu_cheng
+    canonical_name: 苑舉正
+    display_name: 苑舉正
+    current_role: 大學教授、評論員
+    focus: [國內政治, 兩岸]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_yuan_chu_cheng_youtube
+        platform: youtube
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_tang_hsiang_lung
+    canonical_name: 唐湘龍
+    display_name: 唐湘龍
+    aliases: [唐湘龍時間]
+    current_role: 廣播主持人、評論員
+    focus: [國內政治, 兩岸]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_tang_hsiang_lung_youtube
+        platform: youtube
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_huang_kuang_chin
+    canonical_name: 黃光芹
+    display_name: 黃光芹
+    current_role: 資深媒體人
+    focus: [國內政治, 選情]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_huang_kuang_chin_youtube
+        platform: youtube
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_hsieh_han_ping
+    canonical_name: 謝寒冰
+    display_name: 謝寒冰
+    current_role: 政治評論員
+    focus: [國內政治]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_hsieh_han_ping_facebook
+        platform: facebook
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_li_cheng_hao
+    canonical_name: 李正皓
+    display_name: 李正皓
+    current_role: 政治評論員
+    focus: [國內政治, 選情]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_li_cheng_hao_facebook
+        platform: facebook
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_wang_jui_te
+    canonical_name: 王瑞德
+    display_name: 王瑞德
+    current_role: 政治評論員
+    focus: [國內政治]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_wang_jui_te_facebook
+        platform: facebook
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_lin_cho_shui
+    canonical_name: 林濁水
+    display_name: 林濁水
+    current_role: 政治評論員、前立法委員
+    focus: [國內政治, 兩岸]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_lin_cho_shui_facebook
+        platform: facebook
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3
+
+  - person_id: kol_lu_chiu_yuan
+    canonical_name: 呂秋遠
+    display_name: 呂秋遠
+    current_role: 律師、作家
+    focus: [社會議題, 法律, 公共政策]
+    monitoring_tier: 3
+    enabled: true
+    accounts:
+      - account_id: kol_lu_chiu_yuan_facebook
+        platform: facebook
+        account_type: creator_official
+        verification_status: pending
+        monitoring_priority: 3

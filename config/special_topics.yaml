@@ -1,0 +1,143 @@
+# Dedicated information-source topics delivered as their own digest/Word
+# sections: published opinion polls and underground betting developments.
+#
+# Collection itself is configured in config/sources.yaml (category: poll /
+# betting).  This file drives the central relevance gate (applied after
+# dedup, before save; non-matching items are stored but excluded from
+# delivery, filter_reason=topic_relevance) and the deterministic annotations
+# persisted to news_topics (topic=poll / topic=betting).
+#
+# Word lists are Traditional-Chinese first; Simplified variants are listed
+# where commonly used.  Matching is plain substring matching on title+summary.
+filter_version: "special_topics_v1"
+
+poll:
+  enabled: true
+  # An item must contain at least one of these to be delivered as a poll item.
+  required_keywords:
+    - 民調
+    - 民调
+    - 民意調查
+    - 民意调查
+    - 調查顯示
+    - 调查显示
+    - 滿意度
+    - 满意度
+    - 支持度
+    - 聲望
+    - 声望
+    - 信任度
+    - 好感度
+    - 施政評價
+    - 民意基金會
+  # Items matching these are not poll releases (e.g. product surveys).
+  exclude_keywords:
+    - 消費者信心
+    - 消费者信心
+    - 市場調查報告
+  pollsters:
+    - name: 台灣民意基金會
+      aliases: [台灣民意基金會, 臺灣民意基金會, 民意基金會, TPOF, 游盈隆]
+    - name: 美麗島電子報
+      aliases: [美麗島電子報, 美丽岛电子报, 國政民調, 国政民调]
+    - name: TVBS民調中心
+      aliases: [TVBS民調, TVBS 民調, TVBS民調中心, TVBS民调]
+    - name: 台灣指標民調
+      aliases: [台灣指標民調, 臺灣指標民調, 台灣指標, TISR]
+    - name: 遠見民調中心
+      aliases: [遠見民調, 远见民调, 遠見雜誌, 遠見民調中心]
+    - name: 聯合報民調中心
+      aliases: [聯合報民調, 联合报民调, 聯合報系民意調查中心]
+    - name: 趨勢民調
+      aliases: [趨勢民調, 趋势民调]
+    - name: 新台灣國策智庫
+      aliases: [新台灣國策智庫, 國策智庫]
+    - name: 匯流民調
+      aliases: [匯流民調, 汇流民调, 匯流新聞網]
+    - name: 鏡新聞民調
+      aliases: [鏡新聞民調, 镜新闻民调, 鏡民調]
+    - name: 艾普羅民調
+      aliases: [艾普羅民調, 艾普罗民调]
+    - name: 震傳媒民調
+      aliases: [震傳媒民調, Z民調, 山水民調]
+  # Labels recognised immediately before a percentage figure.
+  figure_labels:
+    - 滿意度
+    - 满意度
+    - 不滿意
+    - 不满意
+    - 支持度
+    - 不支持
+    - 支持
+    - 反對
+    - 反对
+    - 贊成
+    - 赞成
+    - 信任
+    - 不信任
+    - 聲望
+    - 好感度
+    - 政黨認同
+    - 認同
+    - 領先
+    - 得票率
+  max_figures: 6
+
+betting:
+  enabled: true
+  required_keywords:
+    - 地下賭盤
+    - 地下赌盘
+    - 賭盤
+    - 赌盘
+    - 簽賭
+    - 签赌
+    - 組頭
+    - 组头
+    - 地下簽賭
+    - 賭博
+    - 赌博
+    - 賭場
+    - 赌场
+    - 博弈
+    - 賠率
+    - 赔率
+    - 賭金
+    - 赌金
+    - 下注
+  exclude_keywords:
+    - 運彩中獎
+    - 运彩中奖
+    - 公益彩券
+    - 威力彩
+    - 大樂透
+    - 大乐透
+  # Keywords marking an item as election-related betting.
+  election_keywords:
+    - 選舉
+    - 选举
+    - 大選
+    - 大选
+    - 九合一
+    - 市長
+    - 市长
+    - 縣長
+    - 县长
+    - 議員
+    - 议员
+    - 立委
+    - 候選人
+    - 候选人
+    - 當選
+    - 当选
+    - 選情
+    - 选情
+    - 罷免
+    - 罢免
+    - 公投
+  subtypes:
+    election_betting: [選舉賭盤, 选举赌盘, 選舉簽賭, 选举签赌, 押注候選人, 賭選舉]
+    sports_betting: [職棒, 职棒, 簽賭球賽, 球賽, 球赛, 運動賭博, 运动赌博, 簽賭網, 世足, NBA, MLB]
+    online_gambling: [線上博弈, 线上博弈, 網路賭場, 网络赌场, 博弈網站, 博弈网站, 賭博網站, 赌博网站, 境外博弈]
+    enforcement: [查獲, 查获, 破獲, 破获, 起訴, 起诉, 搜索, 逮捕, 移送, 判刑, 檢方, 检方, 警方, 刑事局, 調查局, 调查局]
+    money_laundering: [洗錢, 洗钱, 金流, 地下匯兌, 地下汇兑]

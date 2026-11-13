@@ -66,6 +66,28 @@ The old `tw-news-monitor` had severe indentation and file-overwriting
 problems. This project is rebuilt from scratch without copying any
 Python code from the old project.
 
+## 民调 / 地下赌盘 / KOL 信息源（2026-11-13 上线）
+
+- 民调（`category: poll`）与地下赌盘（`category: betting`）是普通文章分类：
+  `config/sources.yaml` 的 `poll_*` / `betting_*`（`type: google_news_rss`，
+  `app/collectors/google_news.py`）→ 现有去重/入库/时效/重要度/摘要/Word/飞书链路。
+- 相关性门禁与标注集中在 `app/special_topics/`（纯本地确定性规则，配置
+  `config/special_topics.yaml`）：不相关条目入库但 `delivery_eligible=0`、
+  `filter_reason=topic_relevance`；标注写 `news_topics`（topic=poll/betting，
+  `metadata_json`）。Word/摘要渲染用同一纯函数重算标注行。poll/betting 永远
+  留在自己的小节：不改路由进「九合一」或「国际媒体」（`is_dedicated_topic_article`）。
+- KOL：`config/kol_social_sources.yaml`（20 人，`person_category=kol`）复用
+  `app/social_monitor/`。`political_person.person_category`、
+  `social_account.feed_url` 为追加列（行按位置映射，新列只能追加在末尾）。
+  只有已验证账号可采集：`python -m app.social_monitor.cli verify` 在联网机器
+  证明标识（YouTube 频道 feed / RSS feed 标题须匹配姓名），结果存
+  `data/social_monitor/account_verifications.json` 并在同步注册表时覆盖。
+  不要在配置里猜测账号标识或手工标 verified。
+- 常规新闻任务通过 `app/social_monitor/news_run.py` 采集到期 KOL 账号
+  （`config/social_monitor.yaml` 的 `news_run`），Word「KOL 社群动态」与飞书
+  文本「KOL动态」只取近 24 小时、通过相关性筛选的帖子（`kol_delivery`）。
+  所有社群步骤失败均不得阻断新闻交付。
+
 ## 选情研判功能已移除（2026-11-13）
 
 - 台南与新北的选情研判（research-driven 生产路径，以及 claim-centric /
