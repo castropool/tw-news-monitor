@@ -115,6 +115,18 @@ config/sources.yaml
 - 保留约 24 个月（`ARTICLE_TEXT_RETENTION_DAYS`，默认 730），过期只删正文，文章行保留；每次运行自动清理。
 - `ARTICLE_TEXT_FETCH_MAX`（默认 0）设为正数时，每次运行额外抓取最多该数量的、尚无正文的文章（如有 RSS 导语而未下载过的）。
 
+### 全文检索（`app/search.py`）
+
+- SQLite FTS5 索引标题、摘要与已存正文；每个汉字单独成词，查询词按相邻字短语匹配（`國防部` 不会匹配分散的三个字）。
+- 简体输入统一折为繁体，`国防部` 与 `國防部` 结果相同；多个词以空格分隔，须全部命中；标题命中排在前面。
+- 索引表懒创建（不在 `Database.connect()` 中），无 FTS5 的环境只会让检索不可用，不影响采集；每次检索前增量更新（首次在大库上需数十秒）。
+
+```
+python -m app.search 國防部 共機 --since 2026-11-01 --limit 20
+python -m app.search 民調 --category poll
+python -m app.search --rebuild
+```
+
 ### 时效与重要度
 
 - `freshness.py`：`app/main.py` 中固定 90 分钟时效窗口内的为 fresh；`NEWS_CATCHUP_ENABLED=true` 时可对窗口外的新文章做补发（`NEWS_CATCHUP_MAX_MINUTES`，默认 720，且必须大于 90）。
