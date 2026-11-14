@@ -160,6 +160,19 @@ python -m app.military.pla_activity --backfill-days 730
 - 纯统计、无模型调用：每个指标（共机、逾越中线、共舰、公务船、气球）与前 90 天比较，给出 z 分数；z≥2 且不低于 P90 记「异常偏高」，z≤-1.5 且不高于 P10 记「异常偏低」；前 90 天有数据少于 30 天时不出旗标（基线不足）。
 - 周视图：本周合计/日均/单日最高、本周对基线倍数、高于 P90 天数、90 日最小二乘趋势，以及缺报日期。`python -m app.military.pla_baseline --week-ending 2026-11-14`。
 
+### 试点：台海安全事实抽取（`app/pilot/claims.py`，表 `claims`）
+
+- 对试点分类（`PILOT_CATEGORIES`，默认 `military`）的文章，用 fast 档模型按 `prompts/claims_p4.md` 抽取分类断言（共军活动、演习、事件、表态、军购、政策等），每条须附原文**逐字**引文。
+- 引文在原文中找不到（仅容忍空白与全半角差异）、类型不合法、日期晚于文章、数量非法的断言标为无效并记原因，不进入研判。
+- 每篇文章按「正文版本 + 提示词版本」只抽一次；正文更新会重抽，已人工审核的断言保留。分析员用 `review` 标记 confirmed / rejected。
+- 常规任务中默认关闭（`PILOT_EXTRACTION_ENABLED=true` 开启，`PILOT_EXTRACTION_MAX_PER_RUN` 默认 10）；受月度 AI 预算约束。
+
+```
+python -m app.pilot.claims extract --days 7 --limit 20
+python -m app.pilot.claims list --days 7
+python -m app.pilot.claims review 12 confirmed --reviewer 你的名字
+```
+
 ### 时效与重要度
 
 - `freshness.py`：`app/main.py` 中固定 90 分钟时效窗口内的为 fresh；`NEWS_CATCHUP_ENABLED=true` 时可对窗口外的新文章做补发（`NEWS_CATCHUP_MAX_MINUTES`，默认 720，且必须大于 90）。
