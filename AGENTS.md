@@ -88,6 +88,20 @@ Python code from the old project.
   文本「KOL动态」只取近 24 小时、通过相关性筛选的帖子（`kol_delivery`）。
   所有社群步骤失败均不得阻断新闻交付。
 
+## 台海安全试点基础与 Program 4（2026-11-14）
+
+- 设计文档（需求与架构）在 claude.ai 文档中维护；本仓库按其 phase 0 / phase 1 实施。
+- 正文：`app/article_text.py` + 表 `article_texts`（保留 730 天）；国际媒体 `access_level` 条目永不抓正文。
+- 检索：`app/search.py`，FTS5 表 `article_search` 懒创建（不进 `Database.connect()`），汉字逐字成词 + 短语匹配，简体折为繁体。
+- AI：所有模型调用只走 `DeepSeekClient.analyze`（预算检查 → 缓存 → 调用 → 台账 `data/ai_usage.db`）；新代码用
+  `app/ai_client.make_client(task, "fast"|"strong")`，不要直接 new 客户端或绕过台账。
+- 共军动态：`app/military/pla_activity.py`（表 `pla_activity_daily`，按报告文字解析，未提及记 None 而非 0）；
+  `app/military/pla_baseline.py`（纯统计基线与异常）。
+- 试点：`app/pilot/claims.py`（断言须附原文逐字引文，校验失败存为 invalid）、`app/pilot/weekly.py`
+  （周报草稿、固定规则的假设指标、自动检查、分析员批准；只写本地文件，不发送）。
+- 新增的常规任务钩子（`PLA_ACTIVITY_ENABLED`、`PILOT_EXTRACTION_ENABLED`）默认关闭，且失败不得阻断新闻交付。
+- 测试：`tests/conftest.py` 把 AI 台账、周报目录指向临时目录，并关闭正文额外抓取；CI 见 `.github/workflows/tests.yml`。
+
 ## 选情研判功能已移除（2026-11-13）
 
 - 台南与新北的选情研判（research-driven 生产路径，以及 claim-centric /

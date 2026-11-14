@@ -43,6 +43,30 @@
 6. 手工立即运行新闻任务一次：`run_task_now.bat`，核对 Word 简报（含「民调动态」「地下赌盘动态」「KOL 社群动态」小节）与飞书结果。
    民调与地下赌盘来源需能访问 `news.google.com`。
 
+## 台海安全试点（Program 4）上线步骤
+
+以下均为可选，且只读写本机文件与 `news.db` 新表，不发送飞书：
+
+1. 首次运行后，`news.db` 会自动新增 `article_texts` 表（schema v8）；检索、共军日报、事实抽取的表在首次使用时创建。
+2. 验证国防部共军动态日报解析（需能访问 `www.mnd.gov.tw`）：
+
+   ```
+   python -m app.military.pla_activity --check
+   ```
+
+   与国防部网页核对数字；不一致时把输出交给开发者。核对无误后回填历史（约 15 分钟）并开启每日采集：
+
+   ```
+   python -m app.military.pla_activity --backfill-days 730
+   ```
+
+   在 `.env` 设 `PLA_ACTIVITY_ENABLED=true`。
+3. AI 花费：`python -m app.ai_usage` 查看本月预估花费（上限 `AI_MONTHLY_BUDGET_USD`，默认 15 美元）。
+4. 事实抽取（使用 AI 预算）：先手动 `python -m app.pilot.claims extract --days 7 --limit 10` 并用 `list` 抽查；满意后可设 `PILOT_EXTRACTION_ENABLED=true`。
+5. 周报草稿：`python -m app.pilot.weekly generate --week-ending <周日日期>`，编辑 `data/assessments/p4/<日期>/draft.md` 后 `approve`。
+
+回退：切回 `claude/optimize-hot-paths` 即可，新增表会被旧代码忽略。
+
 ## 清理已移除功能的旧计划任务
 
 旧版本可能已在部署电脑注册以下选情研判与候选事实自动发布任务；新代码不再包含其入口
