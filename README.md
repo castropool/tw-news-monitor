@@ -195,6 +195,18 @@ python -m app.pilot.weekly revision --week-ending 2026-11-22 --id 1 accept --rev
 
 - 修订建议（`app/pilot/revisions.py`）：新草稿与上一份已核准周报比较，按固定规则提出「建议修订」（第七节）：假设的指标净支持变号或变动 ≥2；上次要点所引事实之后被驳回或失效；共机活动在「偏高（≥1.3×）/正常/偏低（≤0.8×）」之间转换。每项写明理由，分析员逐项 accept / dismiss；仍有未决项时不能核准。
 
+### 研究计划 P1–P6（`app/programs/`，阶段 2–4，默认全部关闭）
+
+- 计划设置：`config/programs.yaml`（每个计划的长期问题、指标、至少三个竞争假设、文章归类规则）；`python -m app.programs.tagging --days 30` 把文章归入一个或多个计划（表 `program_tags`）。
+- 事实抽取：`python -m app.pilot.claims extract --program P1`；P1/P2/P3/P5/P6 的事实须标明性质（事实/转述/指控/解读/计划）与证据阶梯（表态→承诺→正式决定→资源投入→执行→效果）；未经确认的指控不进入草稿或列表。
+- 人物与机构记录：`python -m app.programs.registry seed|propose|list|review|add|end`；职务等正式关系可自动提议（显示「未确认」），派系、非正式结盟、传闻关系须分析员确认后才显示，且不会自动建立。
+- 周报草稿：`python -m app.programs.weekly generate --program P3`（证据阶梯表、模型填写并经检查的假设证据矩阵、自动检查、修订建议；与 P4 相同的批准规则，文件在 `data/assessments/<计划>/`）。
+- 研究助理：`python -m app.programs.assistant ask "问题"`（只依据检索到的记录回答并引用记录编号；记录不足时直接回答「证据不足」而不调用模型）；`... assistant eval` 用 `config/assistant_eval.yaml` 固定问题集评测。
+- 研究缺口与搜索提议：`python -m app.programs.leads gaps|propose|list|approve|reject|run`；只有分析员批准的搜索才会执行，且只限允许的来源（`LEADS_ALLOWED_HOSTS`，默认 news.google.com）。
+- 每日战略摘要：`python -m app.programs.daily`（共军异常、正式决定以上的事实、跨计划事件、待决修订；`DAILY_ALERT_CLASSES` 决定哪些算警示；只写本地文件）。
+- P4 回测：`python -m app.military.pla_backtest --since 2025-01-01 --until 2025-12-31`，以 `config/p4_incident_labels.yaml`（须分析员确认日期）计算异常旗标的召回率与精确率。
+- 各计划的新闻来源（`prog_*`）在 `config/sources.yaml` 中默认关闭。
+
 ### 时效与重要度
 
 - `freshness.py`：`app/main.py` 中固定 90 分钟时效窗口内的为 fresh；`NEWS_CATCHUP_ENABLED=true` 时可对窗口外的新文章做补发（`NEWS_CATCHUP_MAX_MINUTES`，默认 720，且必须大于 90）。
@@ -294,6 +306,8 @@ tw-news-monitor-simple/
 | `NEWS_DB_PATH` / `SOURCES_CONFIG_PATH` / `DATABASE_PATH` | 路径覆盖 |
 | `NEWS_CATCHUP_ENABLED` / `NEWS_CATCHUP_MAX_MINUTES` | 补发开关与窗口 |
 | `DISABLE_FEISHU_SEND` | 停用飞书发送 |
+| `PROGRAMS_TAGGING_ENABLED` / `PILOT_EXTRACTION_PROGRAMS` | 常规任务中的计划归类开关（默认关）、要抽取事实的计划（默认 `P4`） |
+| `ASSESSMENT_ROOT` / `LEADS_ALLOWED_HOSTS` / `DAILY_ALERT_CLASSES` | 各计划周报与每日摘要目录（默认 `data/assessments`）、搜索提议允许的来源、每日警示类别 |
 | `PLA_ACTIVITY_ENABLED` / `PLA_ACTIVITY_LIST_URL` | 国防部共军动态日报采集开关（默认关）、列表页地址（默认 `https://www.mnd.gov.tw/news/plaactlist`） |
 | `AI_MODEL_FAST` / `AI_MODEL_STRONG` / `AI_CACHE_ENABLED` / `AI_CACHE_DAYS` | 两档模型、AI 回答缓存开关与天数（默认开、30 天） |
 | `AI_MONTHLY_BUDGET_USD` / `AI_USAGE_DB_PATH` | AI 月度花费上限（默认 15 美元）、调用台账路径（默认 `data/ai_usage.db`） |

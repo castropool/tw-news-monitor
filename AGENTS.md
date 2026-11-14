@@ -106,6 +106,15 @@ Python code from the old project.
 - 新增的常规任务钩子（`PLA_ACTIVITY_ENABLED`、`PILOT_EXTRACTION_ENABLED`）默认关闭，且失败不得阻断新闻交付。
 - 测试：`tests/conftest.py` 把 AI 台账、周报目录指向临时目录，并关闭正文额外抓取；CI 见 `.github/workflows/tests.yml`。
 
+## 研究计划 P1–P6（阶段 2–4，2026-11-14）
+
+- `config/programs.yaml` 是计划、问题、指标与竞争假设的唯一来源；每个计划至少三个假设（加载时校验）。
+- 计划代码在 `app/programs/`：`tagging`（表 `program_tags`）、`registry`（`entities`/`relations`，有效期 + 来源必填；
+  `SENSITIVE_PREDICATES` 只在确认后显示、绝不自动建立）、`weekly`（非 P4 计划的周报）、`assistant`（只引用检索记录，
+  记录不足直接拒答）、`leads`（搜索须人工批准，只限允许主机）、`daily`（每日摘要与警示，只写本地文件）。
+- `app/pilot/claims.py` 支持所有计划：P4 用专用提示词与类型不变；其他计划须有 kind 与 ladder；指控（allegation）在确认前不进入任何草稿、列表或助理检索。
+- 新功能一律默认关闭；常规任务钩子失败不得阻断新闻交付。不要在没有分析员确认的情况下显示涉及具名个人的非正式关系或指控。
+
 ## 选情研判功能已移除（2026-11-13）
 
 - 台南与新北的选情研判（research-driven 生产路径，以及 claim-centric /
