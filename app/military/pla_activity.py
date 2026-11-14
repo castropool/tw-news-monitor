@@ -52,14 +52,23 @@ USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
-TIMEOUT = httpx.Timeout(20.0, connect=5.0)
+TIMEOUT = httpx.Timeout(30.0, connect=10.0)
 MAX_DETAIL_PAGES = 5
 REPORT_TITLE_RE = re.compile(r"臺海周邊海[、，,]?\s*空域動態")
-ROC_DATE_RE = re.compile(r"(?:中華)?民國\s*(\d{2,3})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日")
+# The live report writes the second date without 中華民國: "…0600時至115年11月14日…".
+ROC_DATE_RE = re.compile(r"(?:(?:中華)?民國\s*)?(\d{2,3})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日")
 AIRCRAFT_RE = re.compile(r"共機\s*(\d+)\s*架次")
 # A sortie count followed by 逾越/進入 before the sentence ends or another
 # count starts: "共機12架次逾越中線進入我北部…空域".
-CROSSED_RE = re.compile(r"(\d+)\s*架次(?:(?!架次)[^。；\n])*?(?:逾越|進入)")
+# Median-line / ADIZ crossings, most specific wording first:
+#  live:     "共機10架次(逾越中線進入中部、西南及東部空域計4架次)"  → 4
+#  direct:   "共機12架次逾越中線進入我北部…" / "(其中12架次逾越…)" → 12
+#  其中:     "其中12架次於…逾越中線"                                 → 12
+CROSSED_PATTERNS = (
+    re.compile(r"(?:逾越|進入)(?:(?!架次)[^。；\n])*?計\s*(\d+)\s*架次"),
+    re.compile(r"(\d+)\s*架次\s*(?:逾越|進入)"),
+    re.compile(r"其中\s*(\d+)\s*架次(?:(?!架次)[^。；\n])*?(?:逾越|進入)"),
+)
 VESSELS_RE = re.compile(r"共艦\s*(\d+)\s*艘")
 OFFICIAL_SHIPS_RE = re.compile(r"公務船\s*(\d+)\s*艘")
 BALLOONS_RE = re.compile(r"氣球\s*(\d+)\s*(?:顆|枚|個|架)")
@@ -107,7 +116,11 @@ def parse_report_text(text: str, source_url: str = "") -> PlaReport | None:
     start = BODY_START_RE.search(norm)
     body = norm[start.start():] if start else norm
     body = body[:3000]
-    dates = [d for d in (_roc_to_date(m) for m in ROC_DATE_RE.finditer(body)) if d]
+    # Dates come from the 一、日期 section only, so later dates in the text
+    # (announcements, footers) cannot shift the reporting window.
+    marks = list(SECTION_RE.finditer(body))
+    date_zone = body[: marks[1].start()] if len(marks) > 1 else body
+    dates = [d for d in (_roc_to_date(m) for m in ROC_DATE_RE.finditer(date_zone)) if d]
     if not dates:
         return None
     aircraft = _first_int(AIRCRAFT_RE, body)
@@ -118,7 +131,7 @@ def parse_report_text(text: str, source_url: str = "") -> PlaReport | None:
         vessels = 0
     if aircraft is None and vessels is None:
         return None
-    match = CROSSED_RE.search(body)
+    match = next((m for m in (p.search(body) for p in CROSSED_PATTERNS) if m), None)
     if match:
         crossed: int | None = int(match.group(1))
     elif aircraft == 0 or not re.search(r"逾越|進入", body):
@@ -176,14 +189,20 @@ def get_detail(client: httpx.Client, url: str) -> httpx.Response:
     """GET a detail page, trying the collapsed-path variant after a 404."""
     last: httpx.HTTPError | None = None
     for candidate in url_variants(url):
-        try:
-            response = client.get(candidate)
-            response.raise_for_status()
-            return response
-        except httpx.HTTPStatusError as exc:
-            last = exc
-            if exc.response.status_code != 404:
-                raise
+        for attempt in range(2):  # one retry on timeout: the MND site is slow at times
+            try:
+                response = client.get(candidate)
+                response.raise_for_status()
+                return response
+            except httpx.TimeoutException as exc:
+                last = exc
+                if attempt == 1:
+                    raise
+            except httpx.HTTPStatusError as exc:
+                last = exc
+                if exc.response.status_code != 404:
+                    raise
+                break
     assert last is not None
     raise last
 

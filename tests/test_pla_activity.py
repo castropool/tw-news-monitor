@@ -253,3 +253,37 @@ def test_fetch_falls_back_when_relative_links_resolve_too_deep():
     reports = pla.fetch_reports(client=mock_client(pages))
     assert [(r.report_date, r.source_url) for r in reports] == [
         ("2025-11-13", "https://www.mnd.gov.tw/news/plaact/88211")]
+
+
+# Verbatim text of report 88211 as served by www.mnd.gov.tw on 2026-11-14.
+LIVE_88211 = (
+    "一、日期:\n"
+    "中華民國115年11月13日(星期五)0600時至115年11月14日(星期六)0600時止。\n"
+    "二、活動動態:\n"
+    "迄0600時止,偵獲共機10架次(逾越中線進入中部、西南及東部空域計4架次)、共艦8艘及公務船3艘,持續在臺海周邊活動。"
+)
+
+
+def test_live_report_format():
+    r = pla.parse_report_text(LIVE_88211, "https://www.mnd.gov.tw/news/plaact/88211")
+    assert (r.period_start, r.period_end, r.report_date) == ("2026-11-13", "2026-11-14", "2026-11-14")
+    assert (r.aircraft, r.aircraft_crossed, r.vessels, r.official_ships, r.balloons) == (10, 4, 8, 3, None)
+
+
+def test_live_format_with_page_chrome_and_later_dates():
+    text = "國防部 首頁\n" + LIVE_88211 + "\n發布日期:115年11月14日\n更新日期:115年11月15日"
+    assert pla.parse_report_text(text).report_date == "2026-11-14"
+
+
+def test_detail_timeout_is_retried_once():
+    calls = []
+
+    def handler(request):
+        calls.append(str(request.url))
+        if len(calls) == 1:
+            raise httpx.ReadTimeout("slow", request=request)
+        return httpx.Response(200, text=detail_html(LIVE_88211))
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    assert pla.get_detail(client, "https://www.mnd.gov.tw/news/plaact/88211").status_code == 200
+    assert len(calls) == 2
