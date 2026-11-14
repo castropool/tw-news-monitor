@@ -99,6 +99,10 @@ Python code from the old project.
   `app/military/pla_baseline.py`（纯统计基线与异常）。
 - 试点：`app/pilot/claims.py`（断言须附原文逐字引文，校验失败存为 invalid）、`app/pilot/weekly.py`
   （周报草稿、固定规则的假设指标、自动检查、分析员批准；只写本地文件，不发送）。
+- 事件归并：`app/pilot/events.py` 复用 `app/military/events.py`（不要再写新的聚类器），并按共享的已核实事实合并事件。
+- 修订建议：`app/pilot/revisions.py` 与上一份已核准周报比较（固定规则，无模型）；有未决建议时不能核准。
+- 试点辅助来源：`config/sources.yaml` 中 `cga_*`、`jp_*`（Google News RSS，默认关闭）。
+- 服务器更新：`scripts/server_update.sh <branch> [commit]`（先备份、临时目录跑测试、通过才切换）。
 - 新增的常规任务钩子（`PLA_ACTIVITY_ENABLED`、`PILOT_EXTRACTION_ENABLED`）默认关闭，且失败不得阻断新闻交付。
 - 测试：`tests/conftest.py` 把 AI 台账、周报目录指向临时目录，并关闭正文额外抓取；CI 见 `.github/workflows/tests.yml`。
 
