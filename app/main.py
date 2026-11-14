@@ -71,6 +71,7 @@ from .settings import get_settings, load_environment
 from .news_pipeline import run_delivery_core
 from .military import pla_activity
 from .pilot import claims as pilot_claims
+from .programs import tagging as program_tagging
 from .social_monitor.news_run import (
     collect_due_for_news_run,
     kol_delivery_items,
@@ -1924,7 +1925,9 @@ def main() -> None:
         pla_run = pla_activity.collect_safe(db)
         if pla_run.get("status") == "ok":
             print(f"  [OK] PLA activity: parsed={pla_run.get('parsed')} stored={pla_run.get('stored')}")
-        # Program 4 pilot claim extraction (PILOT_EXTRACTION_ENABLED); never blocks news.
+        # Research-program tagging (PROGRAMS_TAGGING_ENABLED); never blocks news.
+        program_tagging.run_safe(db)
+        # Claim extraction (PILOT_EXTRACTION_ENABLED, PILOT_EXTRACTION_PROGRAMS); never blocks news.
         claims_run = pilot_claims.run_safe(db)
         if claims_run.get("status") in ("ok", "budget_exceeded"):
             print(f"  [OK] Pilot claims: {claims_run}")

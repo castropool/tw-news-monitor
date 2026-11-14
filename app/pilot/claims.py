@@ -42,18 +42,40 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / "claims_p4.md"
+GENERIC_PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / "claims_generic.md"
 CLAIM_TYPES = frozenset(
     {"pla_activity", "exercise", "incident", "statement", "arms", "policy", "other_security"}
 )
+GENERIC_CLAIM_TYPES = frozenset(
+    {"decision", "statement", "action", "agreement", "budget", "appointment", "vote", "investment", "visit", "other"}
+)
+KINDS = frozenset({"fact", "attributed_statement", "allegation", "interpretation", "plan"})
+LADDER = ("rhetoric", "commitment", "decision", "resources", "implementation", "effect")
 REVIEW_STATUSES = ("unreviewed", "confirmed", "rejected")
 MAX_SOURCE_CHARS = 6000
 MIN_QUOTE_CHARS = 6
 
 
-def prompt_version() -> str:
+def system_prompt(program: str = "P4") -> str:
+    """P4 keeps its dedicated prompt; other programs fill the generic one."""
+    if program == "P4":
+        return PROMPT_PATH.read_text(encoding="utf-8")
+    from ..programs import program as program_cfg
+
+    cfg = program_cfg(program)
+    questions = "\n".join(f"- {q['id']} {q['text']}" for q in cfg["questions"])
+    return GENERIC_PROMPT_PATH.read_text(encoding="utf-8").format(
+        program_name=f"{program} {cfg['name']}", program_id=program, questions=questions)
+
+
+def claim_types(program: str = "P4") -> frozenset:
+    return CLAIM_TYPES if program == "P4" else GENERIC_CLAIM_TYPES
+
+
+def prompt_version(program: str = "P4") -> str:
     try:
-        text = PROMPT_PATH.read_text(encoding="utf-8")
-    except OSError:
+        text = system_prompt(program)
+    except (OSError, KeyError, ValueError):
         return "missing"
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
 
@@ -86,6 +108,11 @@ def ensure_tables(conn: sqlite3.Connection) -> None:
             reviewed_at TEXT
         );
         CREATE INDEX IF NOT EXISTS idx_claims_article ON claims(article_url);
+        CREATE TABLE IF NOT EXISTS claim_questions (
+            claim_id INTEGER NOT NULL,
+            question_id TEXT NOT NULL,
+            PRIMARY KEY (claim_id, question_id)
+        );
         CREATE INDEX IF NOT EXISTS idx_claims_event_date ON claims(event_date);
         CREATE TABLE IF NOT EXISTS claim_extraction_runs (
             article_url TEXT NOT NULL,
@@ -100,6 +127,13 @@ def ensure_tables(conn: sqlite3.Connection) -> None:
         );
         """
     )
+    existing = {r[1] for r in conn.execute("PRAGMA table_info(claims)")}
+    for column, ddl in (("program", "program TEXT NOT NULL DEFAULT 'P4'"), ("kind", "kind TEXT"),
+                        ("ladder", "ladder TEXT")):
+        if column not in existing:
+            conn.execute(f"ALTER TABLE claims ADD COLUMN {ddl}")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_program ON claims(program)")
+    conn.commit()
 
 
 # ── validation ────────────────────────────────────────────────────────
@@ -145,6 +179,9 @@ class Claim:
     quote_start: int | None
     valid: bool
     reject_reason: str | None
+    kind: str | None = None
+    ladder: str | None = None
+    question_ids: tuple = ()
 
 
 def _text(value) -> str | None:
@@ -154,11 +191,22 @@ def _text(value) -> str | None:
     return value or None
 
 
-def validate(raw: dict, source: str, published: date | None) -> Claim:
+def validate(raw: dict, source: str, published: date | None, program: str = "P4") -> Claim:
     reasons: list[str] = []
     claim_type = str(raw.get("claim_type") or "").strip()
-    if claim_type not in CLAIM_TYPES:
+    if claim_type not in claim_types(program):
         reasons.append(f"claim_type:{claim_type or 'missing'}")
+    kind = _text(raw.get("kind"))
+    if kind is not None and kind not in KINDS:
+        reasons.append(f"kind:{kind}")
+    ladder = _text(raw.get("ladder"))
+    if ladder is not None and ladder not in LADDER:
+        reasons.append(f"ladder:{ladder}")
+    if program != "P4" and (kind is None or ladder is None):
+        reasons.append("kind_or_ladder_missing")
+    if kind == "attributed_statement" and not _text(raw.get("attribution")):
+        reasons.append("attribution_missing")
+    question_ids = tuple(str(q) for q in (raw.get("question_ids") or []) if str(q).startswith(program + "-Q"))
     quote = str(raw.get("quote") or "").strip()
     start = locate_quote(source, quote)
     if len(_norm(quote)) < MIN_QUOTE_CHARS:
@@ -201,6 +249,9 @@ def validate(raw: dict, source: str, published: date | None) -> Claim:
         quote_start=start,
         valid=not reasons,
         reject_reason=",".join(reasons) or None,
+        kind=kind,
+        ladder=ladder,
+        question_ids=question_ids,
     )
 
 
@@ -234,22 +285,30 @@ class SourceDoc:
         return hashlib.sha256(self.text.encode("utf-8")).hexdigest()
 
 
-def pending_sources(conn: sqlite3.Connection, *, days: int, limit: int, now: datetime | None = None) -> list[SourceDoc]:
+def pending_sources(conn: sqlite3.Connection, *, days: int, limit: int, now: datetime | None = None,
+                    program: str = "P4") -> list[SourceDoc]:
     ensure_tables(conn)
-    cats = sorted(inscope_categories())
     since = ((now or datetime.now(timezone.utc)) - timedelta(days=days)).date().isoformat()
-    marks = ",".join("?" * len(cats))
+    if program == "P4":
+        cats = sorted(inscope_categories())
+        marks = ",".join("?" * len(cats))
+        scope_sql, scope_params = f"a.category IN ({marks})", cats
+    else:
+        from ..programs.tagging import ensure_table as ensure_tags
+
+        ensure_tags(conn)
+        scope_sql, scope_params = "a.url IN (SELECT url FROM program_tags WHERE program = ?)", [program]
     rows = conn.execute(
         f"""
         SELECT a.url, a.title, a.summary, COALESCE(a.published_at, a.fetched_at), t.text
         FROM articles a LEFT JOIN article_texts t ON t.url = a.url
-        WHERE a.category IN ({marks}) AND a.delivery_eligible = 1
+        WHERE {scope_sql} AND a.delivery_eligible = 1
           AND COALESCE(a.published_at, a.fetched_at) >= ?
         ORDER BY COALESCE(a.published_at, a.fetched_at) DESC
         """,
-        (*cats, since),
+        (*scope_params, since),
     ).fetchall()
-    version = prompt_version()
+    version = prompt_version(program)
     done = {(r[0], r[1]) for r in conn.execute(
         "SELECT article_url, text_sha FROM claim_extraction_runs WHERE prompt_version = ? AND status = 'ok'",
         (version,),
@@ -273,43 +332,44 @@ def pending_sources(conn: sqlite3.Connection, *, days: int, limit: int, now: dat
     return out
 
 
-def _system_prompt() -> str:
-    return PROMPT_PATH.read_text(encoding="utf-8")
-
-
-def extract_one(doc: SourceDoc, client) -> tuple[str, list[Claim]]:
+def extract_one(doc: SourceDoc, client, program: str = "P4") -> tuple[str, list[Claim]]:
     user = json.dumps(
         {"url": doc.url, "published_date": doc.published.isoformat() if doc.published else None,
          "title": doc.title, "text": doc.text},
         ensure_ascii=False,
     )
-    result = client.analyze(_system_prompt(), user)
+    result = client.analyze(system_prompt(program), user)
     if result.get("status") != "success":
         return str(result.get("error") or "error"), []
-    return "ok", [validate(raw, doc.text, doc.published) for raw in parse_response(result)]
+    return "ok", [validate(raw, doc.text, doc.published, program) for raw in parse_response(result)]
 
 
 def save_claims(conn: sqlite3.Connection, doc: SourceDoc, status: str, claims: list[Claim], *,
-                model: str, now: datetime | None = None) -> None:
+                model: str, now: datetime | None = None, program: str = "P4") -> None:
     ensure_tables(conn)
     stamp = (now or datetime.now(timezone.utc)).isoformat()
-    version = prompt_version()
+    version = prompt_version(program)
     if status == "ok":
-        # A new text/prompt version replaces this article's unreviewed claims.
-        conn.execute(
-            "DELETE FROM claims WHERE article_url = ? AND review_status = 'unreviewed'", (doc.url,)
-        )
-        conn.executemany(
-            "INSERT INTO claims(article_url, claim_type, actor, action, target, location, event_date, "
-            "quantity, unit, attribution, quote, quote_start, source_field, valid, reject_reason, model, "
-            "prompt_version, extracted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
+        # A new text/prompt version replaces this article's unreviewed claims for this program.
+        stale = [r[0] for r in conn.execute(
+            "SELECT id FROM claims WHERE article_url = ? AND program = ? AND review_status = 'unreviewed'",
+            (doc.url, program))]
+        if stale:
+            marks = ",".join("?" * len(stale))
+            conn.execute(f"DELETE FROM claim_questions WHERE claim_id IN ({marks})", stale)
+            conn.execute(f"DELETE FROM claims WHERE id IN ({marks})", stale)
+        for c in claims:
+            cur = conn.execute(
+                "INSERT INTO claims(article_url, claim_type, actor, action, target, location, event_date, "
+                "quantity, unit, attribution, quote, quote_start, source_field, valid, reject_reason, model, "
+                "prompt_version, extracted_at, program, kind, ladder) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (doc.url, c.claim_type, c.actor, c.action, c.target, c.location, c.event_date, c.quantity,
                  c.unit, c.attribution, c.quote, c.quote_start, doc.field, int(c.valid), c.reject_reason,
-                 model, version, stamp)
-                for c in claims
-            ],
-        )
+                 model, version, stamp, program, c.kind, c.ladder),
+            )
+            conn.executemany("INSERT OR IGNORE INTO claim_questions(claim_id, question_id) VALUES (?, ?)",
+                             [(cur.lastrowid, q) for q in c.question_ids])
     conn.execute(
         "INSERT INTO claim_extraction_runs(article_url, text_sha, prompt_version, model, status, n_valid, "
         "n_rejected, ran_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(article_url, text_sha, prompt_version) "
@@ -322,18 +382,18 @@ def save_claims(conn: sqlite3.Connection, doc: SourceDoc, status: str, claims: l
 
 
 def run_extraction(conn: sqlite3.Connection, *, days: int = 7, limit: int = 20, client=None,
-                   now: datetime | None = None) -> dict:
+                   now: datetime | None = None, program: str = "P4") -> dict:
     if client is None:
         from ..ai_client import make_client
 
         client = make_client("extraction", "fast")
     if client is None:
         return {"status": "no_model_configured"}
-    docs = pending_sources(conn, days=days, limit=limit, now=now)
+    docs = pending_sources(conn, days=days, limit=limit, now=now, program=program)
     totals = {"status": "ok", "articles": 0, "valid": 0, "rejected": 0, "failed": 0}
     for doc in docs:
-        status, claims = extract_one(doc, client)
-        save_claims(conn, doc, status, claims, model=client.model, now=now)
+        status, claims = extract_one(doc, client, program)
+        save_claims(conn, doc, status, claims, model=client.model, now=now, program=program)
         if status != "ok":
             totals["failed"] += 1
             if status == "budget_exceeded":
@@ -352,7 +412,17 @@ def run_safe(db, **kw) -> dict:
         return {"status": "disabled"}
     try:
         limit = int(os.getenv("PILOT_EXTRACTION_MAX_PER_RUN", "10"))
-        return run_extraction(db.conn, days=2, limit=limit, **kw)
+        programs = [p.strip() for p in os.getenv("PILOT_EXTRACTION_PROGRAMS", "P4").split(",") if p.strip()]
+        results = {}
+        for program in programs:
+            results[program] = run_extraction(db.conn, days=2, limit=limit, program=program, **kw)
+            if results[program].get("status") in ("budget_exceeded", "no_model_configured"):
+                break
+        if len(programs) == 1:
+            return results[programs[0]]
+        statuses = {r.get("status") for r in results.values()}
+        status = "budget_exceeded" if "budget_exceeded" in statuses else next(iter(statuses)) if len(statuses) == 1 else "ok"
+        return {"status": status, "programs": results}
     except Exception as exc:  # noqa: BLE001
         logger.warning("Claim extraction failed safely: %s", exc)
         return {"status": "error", "error": str(exc)}
@@ -362,10 +432,21 @@ def run_safe(db, **kw) -> dict:
 
 
 def claims_between(conn: sqlite3.Connection, start: date, end: date, *, include_invalid: bool = False,
-                   include_rejected: bool = False) -> list[dict]:
-    """Claims whose event date (or article date when none) falls in [start, end]."""
+                   include_rejected: bool = False, program: str | None = "P4",
+                   include_unconfirmed_allegations: bool = False) -> list[dict]:
+    """Claims whose event date (or article date when none) falls in [start, end].
+
+    Allegations are left out unless an analyst confirmed them (the design's
+    rule for claims about named individuals).
+    """
     ensure_tables(conn)
     where = ["COALESCE(c.event_date, substr(COALESCE(a.published_at, a.fetched_at), 1, 10)) BETWEEN ? AND ?"]
+    params: list = [start.isoformat(), end.isoformat()]
+    if program is not None:
+        where.append("c.program = ?")
+        params.append(program)
+    if not include_unconfirmed_allegations:
+        where.append("(c.kind IS NULL OR c.kind != 'allegation' OR c.review_status = 'confirmed')")
     if not include_invalid:
         where.append("c.valid = 1")
     if not include_rejected:
@@ -374,12 +455,13 @@ def claims_between(conn: sqlite3.Connection, start: date, end: date, *, include_
         f"""
         SELECT c.id, c.claim_type, c.actor, c.action, c.target, c.location, c.event_date, c.quantity, c.unit,
                c.attribution, c.quote, c.source_field, c.valid, c.reject_reason, c.review_status,
-               a.url, a.title, a.source_name, COALESCE(a.published_at, a.fetched_at)
+               a.url, a.title, a.source_name, COALESCE(a.published_at, a.fetched_at),
+               c.program, c.kind, c.ladder
         FROM claims c JOIN articles a ON a.url = c.article_url
         WHERE {' AND '.join(where)}
         ORDER BY COALESCE(c.event_date, a.published_at), c.id
         """,
-        (start.isoformat(), end.isoformat()),
+        params,
     )
     keys = [d[0] for d in cur.description]
     return [dict(zip(keys, row)) for row in cur.fetchall()]
@@ -404,9 +486,11 @@ def main(argv: list[str] | None = None) -> int:
     ex = sub.add_parser("extract", help="extract claims from recent in-scope articles (uses the AI budget)")
     ex.add_argument("--days", type=int, default=7)
     ex.add_argument("--limit", type=int, default=20)
+    ex.add_argument("--program", default="P4", choices=("P1", "P2", "P3", "P4", "P5", "P6"))
     ls = sub.add_parser("list", help="list claims")
     ls.add_argument("--days", type=int, default=7)
     ls.add_argument("--all", action="store_true", help="include invalid and rejected claims")
+    ls.add_argument("--program", default="P4", choices=("P1", "P2", "P3", "P4", "P5", "P6"))
     rv = sub.add_parser("review", help="mark a claim confirmed or rejected")
     rv.add_argument("claim_id", type=int)
     rv.add_argument("status", choices=REVIEW_STATUSES)
@@ -424,11 +508,12 @@ def main(argv: list[str] | None = None) -> int:
 
     with Database(args.db or get_settings().news_db_path) as db:
         if args.cmd == "extract":
-            print(run_extraction(db.conn, days=args.days, limit=args.limit))
+            print(run_extraction(db.conn, days=args.days, limit=args.limit, program=args.program))
         elif args.cmd == "list":
             end = datetime.now(timezone.utc).date()
-            rows = claims_between(db.conn, end - timedelta(days=args.days), end,
-                                  include_invalid=args.all, include_rejected=args.all)
+            rows = claims_between(db.conn, end - timedelta(days=args.days), end, program=args.program,
+                                  include_invalid=args.all, include_rejected=args.all,
+                                  include_unconfirmed_allegations=args.all)
             for r in rows:
                 state = r["review_status"] if r["valid"] else f"INVALID({r['reject_reason']})"
                 qty = f" {r['quantity']}{r['unit'] or ''}" if r["quantity"] is not None else ""
