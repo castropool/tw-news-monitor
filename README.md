@@ -173,6 +173,18 @@ python -m app.pilot.claims list --days 7
 python -m app.pilot.claims review 12 confirmed --reviewer 你的名字
 ```
 
+### 试点：台海安全周报草稿（`app/pilot/weekly.py`）
+
+- 一周（截至 `--week-ending`）的草稿：共军活动数据与基线、本周有效事实（编号、逐字引文、来源）、三个竞争假设（H1 结构性上升 / H2 稳定基线上的触发型尖峰 / H3 训练与季节周期）按固定、可稽核的指标规则给出「支持/不支持/中性/资料不足」，以及资料缺口。
+- 研判要点（可选）由 strong 档模型依 `prompts/weekly_p4.md` 只根据上述内容撰写；自动检查：须引用存在的事实编号或数据表，文中数字须出现在所引内容中，否则在草稿中以「⚠ 自动检查」标出。带 ⚠ 的草稿不能批准。
+- 文件写在 `ASSESSMENT_DIR`（默认 `data/assessments/p4/<截止日>/`）：`generated.md`（原始生成）、`draft.md`（分析员编辑）、`meta.json`；批准时记录审核人与改动比例（试点门槛：连续四周仅小幅修改即批准）。**不发送飞书**。
+
+```
+python -m app.pilot.weekly generate --week-ending 2026-11-15
+python -m app.pilot.weekly approve --week-ending 2026-11-15 --reviewer 你的名字
+python -m app.pilot.weekly status
+```
+
 ### 时效与重要度
 
 - `freshness.py`：`app/main.py` 中固定 90 分钟时效窗口内的为 fresh；`NEWS_CATCHUP_ENABLED=true` 时可对窗口外的新文章做补发（`NEWS_CATCHUP_MAX_MINUTES`，默认 720，且必须大于 90）。

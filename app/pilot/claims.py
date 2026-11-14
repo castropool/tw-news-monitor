@@ -411,7 +411,8 @@ def main(argv: list[str] | None = None) -> int:
     rv.add_argument("claim_id", type=int)
     rv.add_argument("status", choices=REVIEW_STATUSES)
     rv.add_argument("--reviewer", required=True)
-    parser.add_argument("--db", help="news DB path (default: the configured news DB)")
+    for p in (ex, ls, rv):
+        p.add_argument("--db", help="news DB path (default: the configured news DB)")
     args = parser.parse_args(argv)
     try:
         sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]

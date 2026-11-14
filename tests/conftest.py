@@ -8,3 +8,4 @@ def _isolated_ai_ledger(tmp_path, monkeypatch):
     monkeypatch.delenv("AI_MONTHLY_BUDGET_USD", raising=False)
     # No real page downloads from end-to-end run tests.
     monkeypatch.setenv("ARTICLE_TEXT_INSCOPE_FETCH_MAX", "0")
+    monkeypatch.setenv("ASSESSMENT_DIR", str(tmp_path / "assessments"))
