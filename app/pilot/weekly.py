@@ -46,6 +46,7 @@ from pathlib import Path
 
 from ..military import pla_baseline as pb
 from . import claims as cl
+from . import events as pilot_events
 
 logger = logging.getLogger(__name__)
 
@@ -235,6 +236,7 @@ def build_draft(conn: sqlite3.Connection, week_ending: date, *, client=None, use
     view = pb.week_view(series, week_ending)
     start, end = date.fromisoformat(view.start), week_ending
     facts = cl.claims_between(conn, start, end)
+    events = pilot_events.week_events(conn, start, end, facts)
     data_md = pb.render_week_markdown(view)
     history_md = "\n".join(
         pb.render_history_markdown(pb.history(series, week_ending, m)) for m in ("aircraft", "aircraft_crossed")
@@ -258,11 +260,13 @@ def build_draft(conn: sqlite3.Connection, week_ending: date, *, client=None, use
                 "hypotheses": {k: v for k, v in HYPOTHESES.items()},
                 "indicators": [vars_(i) for i in indicators],
                 "facts": [_fact_payload(n, f) for n, f in enumerate(facts, 1)],
+                "events": pilot_events.events_payload(events),
             }
             judgments, error = draft_judgments(client, payload)
             critic(judgments, facts, data_md + "\n" + history_md, (view.start, view.end))
 
     md = _render(view, data_md + "\n\n### 歷史對照\n\n" + history_md, indicators, facts, judgments,
+                 events_md=pilot_events.render_events_markdown(events),
                  model=model, error=error, use_llm=use_llm,
                  now=now or datetime.now(timezone.utc), text_coverage=_text_coverage(conn, start, end))
     return Draft(view.start, view.end, md, model, error, len(facts), sum(1 for j in judgments if j.notes))
@@ -289,7 +293,8 @@ def _text_coverage(conn: sqlite3.Connection, start: date, end: date) -> tuple[in
     return int(row[0] or 0), int(row[1] or 0)
 
 
-def _render(view, data_md, indicators, facts, judgments, *, model, error, use_llm, now, text_coverage) -> str:
+def _render(view, data_md, indicators, facts, judgments, *, model, error, use_llm, now, text_coverage,
+            events_md: str = "") -> str:
     L: list[str] = [
         f"# 台海安全週報（草稿）{view.start} 至 {view.end}",
         "",
@@ -324,7 +329,7 @@ def _render(view, data_md, indicators, facts, judgments, *, model, error, use_ll
         if ind.direction in t:
             t[ind.direction] += 1
     L += ["", "合計：" + "；".join(f"{h} 支持 {t['支持']}、不支持 {t['不支持']}" for h, t in tally.items()),
-          "", f"> {RULES_NOTE}", "", "## 四、本週事實", ""]
+          "", f"> {RULES_NOTE}", "", "## 四、本週事實", "", "### 本週事件", "", events_md or "（無）", ""]
     if not facts:
         L.append("（本週無已抽取的有效事實。可執行 `python -m app.pilot.claims extract --days 7`。）")
     by_type: dict[str, list[tuple[int, dict]]] = {}
