@@ -1,3 +1,8 @@
+import pytest
+
+# validation/ is a local, gitignored release-tooling package; these tests run only where it exists.
+pytest.importorskip("validation.international_media", reason="validation/ package not present (gitignored)")
+
 from validation.international_media.security_scan import scan_paths, scan_text
 
 

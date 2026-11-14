@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 
 def test_gmail_dependencies_have_bounded_official_ranges():
     text = Path("requirements.txt").read_text(encoding="utf-8")
@@ -12,7 +14,10 @@ def test_gmail_dependencies_have_bounded_official_ranges():
 def test_dependency_record_is_explicit_and_gitless():
     import json
 
-    record = json.loads(Path("validation/international_media/dependency_versions.json").read_text(encoding="utf-8"))
+    path = Path("validation/international_media/dependency_versions.json")
+    if not path.exists():
+        pytest.skip("validation/ package not present (gitignored)")
+    record = json.loads(path.read_text(encoding="utf-8"))
     assert record["git_state"] == "absent"
     assert set(record["requirements"]) == {
         "google-api-python-client",

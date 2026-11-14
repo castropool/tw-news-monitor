@@ -6,6 +6,11 @@ from datetime import datetime, timedelta, timezone
 from app.main import COLLECTOR_MAP
 from app.models import Article
 from app.notification_candidates import NotificationDedupStore
+import pytest
+
+# validation/ is a local, gitignored release-tooling package; these tests run only where it exists.
+pytest.importorskip("validation.international_media", reason="validation/ package not present (gitignored)")
+
 from validation.international_media.run_isolated import (
     _deliver_event_candidates,
     load_runs,

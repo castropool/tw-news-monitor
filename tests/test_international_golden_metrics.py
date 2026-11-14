@@ -3,6 +3,11 @@
 import json
 from pathlib import Path
 
+import pytest
+
+# validation/ is a local, gitignored release-tooling package; these tests run only where it exists.
+pytest.importorskip("validation.international_media", reason="validation/ package not present (gitignored)")
+
 from validation.international_media.golden_metrics import evaluate_gold
 
 
