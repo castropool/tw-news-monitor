@@ -229,3 +229,27 @@ def test_missing_dates_lists_gaps(db):
 
     pla.save_reports(db.conn, [pla.parse_report_text(_report(d), "u") for d in (10, 12)])
     assert pla.missing_dates(db.conn, date(2025, 11, 10), date(2025, 11, 13)) == ["2025-11-11", "2025-11-13"]
+
+
+def test_links_honour_base_href():
+    html = ('<html><head><base href="/"></head><body>'
+            '<a href="news/plaact/88211">中共解放軍臺海周邊海、空域動態</a></body></html>')
+    assert pla.report_links(html, "https://www.mnd.gov.tw/news/plaactlist") == [
+        "https://www.mnd.gov.tw/news/plaact/88211"]
+
+
+def test_url_variants_collapse_repeated_segments():
+    assert pla.url_variants("https://www.mnd.gov.tw/news/news/plaact/1") == [
+        "https://www.mnd.gov.tw/news/news/plaact/1", "https://www.mnd.gov.tw/news/plaact/1"]
+    assert pla.url_variants("https://www.mnd.gov.tw/news/plaact/1") == ["https://www.mnd.gov.tw/news/plaact/1"]
+
+
+def test_fetch_falls_back_when_relative_links_resolve_too_deep():
+    # The production failure: list links "news/plaact/N" with no <base>,
+    # resolved to /news/news/plaact/N (404); real pages live at /news/plaact/N.
+    listing = '<a href="news/plaact/88211">中共解放軍臺海周邊海、空域動態</a>'
+    pages = {pla.DEFAULT_LIST_URL: listing,
+             "https://www.mnd.gov.tw/news/plaact/88211": detail_html(STANDARD)}
+    reports = pla.fetch_reports(client=mock_client(pages))
+    assert [(r.report_date, r.source_url) for r in reports] == [
+        ("2025-11-13", "https://www.mnd.gov.tw/news/plaact/88211")]

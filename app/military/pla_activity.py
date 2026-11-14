@@ -151,16 +151,55 @@ def page_text(html: str) -> str:
     return soup.get_text("\n", strip=True)
 
 
+def _page_base(soup: BeautifulSoup, page_url: str) -> str:
+    """URL relative links resolve against: the page's <base href> if any."""
+    tag = soup.find("base", href=True)
+    return urljoin(page_url, tag["href"].strip()) if tag else page_url
+
+
+def url_variants(url: str) -> list[str]:
+    """``url`` plus a copy with repeated path segments collapsed.
+
+    Guards against relative links resolved one directory too deep
+    (``/news/news/plaact/1`` → ``/news/plaact/1``).
+    """
+    from urllib.parse import urlsplit, urlunsplit
+
+    parts = urlsplit(url)
+    segments = parts.path.split("/")
+    collapsed = [seg for i, seg in enumerate(segments) if i == 0 or not seg or seg != segments[i - 1]]
+    alt = urlunsplit(parts._replace(path="/".join(collapsed)))
+    return [url] if alt == url else [url, alt]
+
+
+def get_detail(client: httpx.Client, url: str) -> httpx.Response:
+    """GET a detail page, trying the collapsed-path variant after a 404."""
+    last: httpx.HTTPError | None = None
+    for candidate in url_variants(url):
+        try:
+            response = client.get(candidate)
+            response.raise_for_status()
+            return response
+        except httpx.HTTPStatusError as exc:
+            last = exc
+            if exc.response.status_code != 404:
+                raise
+    assert last is not None
+    raise last
+
+
 def report_links(html: str, base_url: str) -> list[str]:
     """Detail links whose text (or title) names the daily report, page order."""
     soup = BeautifulSoup(html, "html.parser")
+    page_url = base_url
+    base_url = _page_base(soup, page_url)
     links: list[str] = []
     for anchor in soup.find_all("a", href=True):
         label = _normalize(anchor.get_text(" ", strip=True) + " " + str(anchor.get("title") or ""))
         if not REPORT_TITLE_RE.search(label):
             continue
         href = urljoin(base_url, anchor["href"].strip())
-        if href not in links and href.rstrip("/") != base_url.rstrip("/"):
+        if href not in links and href.rstrip("/") not in (base_url.rstrip("/"), page_url.rstrip("/")):
             links.append(href)
     return links
 
@@ -256,14 +295,13 @@ def fetch_reports(
             return [inline]
         for href in links[:max_pages]:
             try:
-                detail = client.get(href)
-                detail.raise_for_status()
+                detail = get_detail(client, href)
             except httpx.HTTPError as exc:
                 logger.warning("PLA activity detail fetch failed %s: %s", href, exc)
                 continue
-            report = parse_report_text(page_text(detail.text), href)
+            report = parse_report_text(page_text(detail.text), str(detail.url))
             if report is None:
-                logger.warning("PLA activity page not parsed: %s", href)
+                logger.warning("PLA activity page not parsed: %s", detail.url)
                 continue
             reports.append(report)
             if skip_dates_through and report.report_date <= skip_dates_through:
@@ -280,6 +318,7 @@ NEXT_LABELS = frozenset({"下一頁", "下一页", "下頁", "次頁", "next", "
 def next_page_link(html: str, base_url: str) -> str | None:
     """The list's "next page" link (rel=next, a next-like label or class)."""
     soup = BeautifulSoup(html, "html.parser")
+    base_url = _page_base(soup, base_url)
     for anchor in soup.find_all("a", href=True):
         href = anchor["href"].strip()
         if not href or href.startswith(("javascript:", "#")):
@@ -332,14 +371,13 @@ def backfill(
                 seen_links.add(href)
                 pause(delay_seconds)
                 try:
-                    detail = client.get(href)
-                    detail.raise_for_status()
+                    detail = get_detail(client, href)
                 except httpx.HTTPError as exc:
                     logger.warning("PLA backfill detail failed %s: %s", href, exc)
                     continue
-                report = parse_report_text(page_text(detail.text), href)
+                report = parse_report_text(page_text(detail.text), str(detail.url))
                 if report is None:
-                    logger.warning("PLA backfill page not parsed: %s", href)
+                    logger.warning("PLA backfill page not parsed: %s", detail.url)
                     continue
                 reports.append(report)
             if reports and min(r.report_date for r in reports) < since.isoformat():
@@ -393,6 +431,31 @@ def collect_safe(db, *, now: datetime | None = None, fetcher=None) -> dict:
         return {"status": "error", "error": str(exc)}
 
 
+def _print_diagnostics(list_url: str) -> None:
+    """What the parser saw, to send to the developer when --check fails."""
+    with httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT, follow_redirects=True) as client:
+        listing = client.get(list_url)
+        soup = BeautifulSoup(listing.text, "html.parser")
+        base = soup.find("base", href=True)
+        print(f"\n--- diagnostics ---\nlist final URL: {listing.url}  status {listing.status_code}")
+        print(f"<base href>: {base['href'] if base else '(none)'}")
+        matching = [a for a in soup.find_all("a", href=True)
+                    if REPORT_TITLE_RE.search(_normalize(a.get_text(' ', strip=True) + ' ' + str(a.get('title') or '')))]
+        print(f"report links found: {len(matching)}")
+        for a in matching[:3]:
+            print(f"  raw href: {a['href']!r}  text: {a.get_text(' ', strip=True)[:40]!r}")
+        links = report_links(listing.text, str(listing.url))
+        if links:
+            first = links[0]
+            for candidate in url_variants(first):
+                r = client.get(candidate)
+                print(f"GET {candidate} -> {r.status_code}")
+                if r.status_code == 200:
+                    print("detail text (first 600 chars):")
+                    print(page_text(r.text)[:600])
+                    break
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.military.pla_activity",
                                      description="MND daily PLA activity reports")
@@ -432,6 +495,7 @@ def main(argv: list[str] | None = None) -> int:
         reports = fetch_reports(args.url, max_pages=args.pages)
         if not reports:
             print("No reports parsed. The page layout may differ from what the parser expects.")
+            _print_diagnostics(args.url)
             return 1
         for r in reports:
             print({k: v for k, v in asdict(r).items() if k != "raw_text"})
