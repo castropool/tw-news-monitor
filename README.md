@@ -134,6 +134,18 @@ python -m app.search --rebuild
 - 本月（UTC 自然月）预估花费达到 `AI_MONTHLY_BUDGET_USD`（默认 15 美元）后拒绝调用，摘要按现有降级路径回退（导语/meta），新闻照常交付。台账读写失败不阻断调用。
 - 查看：`python -m app.ai_usage`（本月）或 `python -m app.ai_usage --month 2026-10`。
 
+### 国防部共军动态日报（`app/military/pla_activity.py`，表 `pla_activity_daily`）
+
+- 解析国防部每日「中共解放軍臺海周邊海、空域動態」：共机架次、逾越中线/进入空域架次、共舰、公务船、空飘气球，每个报告日一行（06:00–06:00 窗口的结束日）；国防部改稿时更新。
+- 解析基于报告文字而非网页样式；报告未提及的数字记为空（未知），只有写明「未偵獲」才记 0。
+- **尚未对线上网页验证**（开发环境无法访问 mnd.gov.tw），默认关闭。在能访问的机器上先检查：
+
+```
+python -m app.military.pla_activity --check
+```
+
+  结果正确后在 `.env` 设 `PLA_ACTIVITY_ENABLED=true`，常规任务每天最多抓取到当日报告为止；失败不影响新闻交付。查看已存数据：`python -m app.military.pla_activity --show 14`。
+
 ### 时效与重要度
 
 - `freshness.py`：`app/main.py` 中固定 90 分钟时效窗口内的为 fresh；`NEWS_CATCHUP_ENABLED=true` 时可对窗口外的新文章做补发（`NEWS_CATCHUP_MAX_MINUTES`，默认 720，且必须大于 90）。
@@ -233,6 +245,7 @@ tw-news-monitor-simple/
 | `NEWS_DB_PATH` / `SOURCES_CONFIG_PATH` / `DATABASE_PATH` | 路径覆盖 |
 | `NEWS_CATCHUP_ENABLED` / `NEWS_CATCHUP_MAX_MINUTES` | 补发开关与窗口 |
 | `DISABLE_FEISHU_SEND` | 停用飞书发送 |
+| `PLA_ACTIVITY_ENABLED` / `PLA_ACTIVITY_LIST_URL` | 国防部共军动态日报采集开关（默认关）、列表页地址（默认 `https://www.mnd.gov.tw/news/plaactlist`） |
 | `AI_MONTHLY_BUDGET_USD` / `AI_USAGE_DB_PATH` | AI 月度花费上限（默认 15 美元）、调用台账路径（默认 `data/ai_usage.db`） |
 | `ARTICLE_TEXT_STORE` / `ARTICLE_TEXT_RETENTION_DAYS` / `ARTICLE_TEXT_FETCH_MAX` | 正文存储开关（默认开）、保留天数（默认 730）、每次额外抓取上限（默认 0 = 不额外请求） |
 

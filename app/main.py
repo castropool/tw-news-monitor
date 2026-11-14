@@ -69,6 +69,7 @@ from .notification_candidates import (
 from .source_health import SourceHealthStore, SourceOutcome
 from .settings import get_settings, load_environment
 from .news_pipeline import run_delivery_core
+from .military import pla_activity
 from .social_monitor.news_run import (
     collect_due_for_news_run,
     kol_delivery_items,
@@ -1918,6 +1919,10 @@ def main() -> None:
                 f"  [OK] KOL social: accounts={social_run.get('accounts_attempted')} "
                 f"new_posts={social_run.get('posts_new', 0)} failed={social_run.get('accounts_failed', 0)}"
             )
+        # MND daily PLA activity counts (PLA_ACTIVITY_ENABLED); never blocks news.
+        pla_run = pla_activity.collect_safe(db)
+        if pla_run.get("status") == "ok":
+            print(f"  [OK] PLA activity: parsed={pla_run.get('parsed')} stored={pla_run.get('stored')}")
         now = datetime.now(TAIPEI)
         delivery_input = list(inserted) + list(collection.promoted_delivery_articles)
 
