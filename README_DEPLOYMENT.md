@@ -43,6 +43,23 @@
 6. 手工立即运行新闻任务一次：`run_task_now.bat`，核对 Word 简报（含「民调动态」「地下赌盘动态」「KOL 社群动态」小节）与飞书结果。
    民调与地下赌盘来源需能访问 `news.google.com`。
 
+## Linux 服务器一键更新（`scripts/server_update.sh`）
+
+在应用目录执行（会先备份 `data/*.db` 与 `.env`，在临时目录用新版本跑完测试，通过后才切换代码，期间暂停计时器）：
+
+```
+sudo PYTHON=<服务所用的 python> scripts/server_update.sh <分支> [预期提交前缀]
+```
+
+首次使用（当前部署版本还没有此脚本）：
+
+```
+git fetch origin <分支> && git show FETCH_HEAD:scripts/server_update.sh > /tmp/server_update.sh
+sudo PYTHON=<服务所用的 python> bash /tmp/server_update.sh <分支> [预期提交前缀]
+```
+
+测试失败、提交不符或服务器上有人改过受控文件时，脚本会停下且不切换代码；结尾打印回退命令。
+
 ## 台海安全试点（Program 4）上线步骤
 
 以下均为可选，且只读写本机文件与 `news.db` 新表，不发送飞书：
