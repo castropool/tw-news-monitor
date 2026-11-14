@@ -155,6 +155,11 @@ python -m app.military.pla_activity --backfill-days 730
 
   然后在 `.env` 设 `PLA_ACTIVITY_ENABLED=true`，常规任务每天最多抓取到当日报告为止；失败不影响新闻交付。查看已存数据：`python -m app.military.pla_activity --show 14`。
 
+### 共军动态基线与异常（`app/military/pla_baseline.py`）
+
+- 纯统计、无模型调用：每个指标（共机、逾越中线、共舰、公务船、气球）与前 90 天比较，给出 z 分数；z≥2 且不低于 P90 记「异常偏高」，z≤-1.5 且不高于 P10 记「异常偏低」；前 90 天有数据少于 30 天时不出旗标（基线不足）。
+- 周视图：本周合计/日均/单日最高、本周对基线倍数、高于 P90 天数、90 日最小二乘趋势，以及缺报日期。`python -m app.military.pla_baseline --week-ending 2026-11-14`。
+
 ### 时效与重要度
 
 - `freshness.py`：`app/main.py` 中固定 90 分钟时效窗口内的为 fresh；`NEWS_CATCHUP_ENABLED=true` 时可对窗口外的新文章做补发（`NEWS_CATCHUP_MAX_MINUTES`，默认 720，且必须大于 90）。

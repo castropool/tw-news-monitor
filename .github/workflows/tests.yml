@@ -11,9 +11,6 @@ jobs:
   pytest:
     name: pytest (${{ matrix.os }}, Python ${{ matrix.python }})
     runs-on: ${{ matrix.os }}
-    # Production runs on Windows; the Windows job is advisory until its
-    # first green run, because the suite has so far only run on Linux.
-    continue-on-error: ${{ matrix.os == 'windows-latest' }}
     strategy:
       fail-fast: false
       matrix:
