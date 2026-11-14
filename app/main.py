@@ -698,6 +698,9 @@ def collect_all(
     total_fetched = 0
     failed: list[str] = []
     military_source_types: dict[str, str] = {}
+    # research_only sources feed the research programs but never the digest.
+    research_only_urls: set[str] = set()
+    deliverable_source_urls: set[str] = set()
     military_before_save: list = []
     military_from_delivery: list = []
 
@@ -732,6 +735,10 @@ def collect_all(
                 print(f"  [ERR] {source['id']}: {error_message}")
                 continue
             articles = apply_content_classification(articles, source)
+            if source.get("research_only") is True:
+                research_only_urls.update(a.url for a in articles)
+            else:
+                deliverable_source_urls.update(a.url for a in articles)
             fetched_articles.extend(articles)
             total_fetched += len(articles)
             if is_military_source(source):
@@ -931,6 +938,10 @@ def collect_all(
             article.delivery_eligible = False
             article.filter_reason = TOPIC_FILTER_REASON
             article.filter_version = topic_filter_version
+        elif article.url in research_only_urls and article.url not in deliverable_source_urls:
+            article.delivery_eligible = False
+            article.filter_reason = "research_only"
+            article.filter_version = "1"
 
     inserted = db.save_articles(candidates)
 

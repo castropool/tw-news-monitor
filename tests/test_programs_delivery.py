@@ -100,3 +100,31 @@ def test_run_safe_never_raises(db, delivering):
 
     out = dl.run_safe(db, now=at_taipei(DAY, 7), notifier=Exploding())
     assert out.get("sent") == []
+
+
+def test_program_notifier_has_its_own_pause_switch(db, delivering, monkeypatch):
+    monkeypatch.setenv("DISABLE_FEISHU_SEND", "1")  # news digest stays off on this server
+    monkeypatch.setenv("PROGRAM_NOTIFIER", "feishu")
+    rec = RecordingNotifier()
+    assert len(dl.run(db, now=at_taipei(DAY, 7), notifier=rec)["sent"]) == 2
+    monkeypatch.setenv("PROGRAM_DISABLE_SEND", "1")
+    assert dl.sending_paused() is True
+
+
+def test_program_notifier_type_reaches_the_factory(db, delivering, monkeypatch):
+    seen = {}
+
+    def fake_factory(kind=None):
+        seen["kind"] = kind
+        return RecordingNotifier()
+
+    monkeypatch.setenv("PROGRAM_NOTIFIER", "feishu")
+    monkeypatch.setattr("app.notifier.create_notifier", fake_factory)
+    dl.run(db, now=at_taipei(DAY, 7))
+    assert seen["kind"] == "feishu"
+
+
+def test_missing_feishu_settings_never_stop_the_run(db, delivering, monkeypatch):
+    monkeypatch.setenv("PROGRAM_NOTIFIER", "feishu")
+    monkeypatch.delenv("FEISHU_WEBHOOK_URL", raising=False)
+    assert dl.run_safe(db, now=at_taipei(DAY, 7))["status"] == "notifier_not_configured"

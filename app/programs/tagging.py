@@ -63,8 +63,13 @@ def match(title: str, summary: str | None, category: str, cfg: dict | None = Non
             out[pid] = [f"strong:{t}" for t in strong]
             continue
         support = sorted({t for t in r.get("support") or [] if _fold(t) in text})
-        if len(support) >= int(r.get("min_support", 2)):
-            out[pid] = [f"support:{t}" for t in support]
+        if len(support) < int(r.get("min_support", 2)):
+            continue
+        required = r.get("require_any") or []
+        anchors = [t for t in required if _fold(t) in text]
+        if required and not anchors:
+            continue
+        out[pid] = [f"support:{t}" for t in support] + [f"actor:{t}" for t in anchors]
     return out
 
 
@@ -76,7 +81,7 @@ def tag_range(conn: sqlite3.Connection, since: datetime, until: datetime | None 
     stamp = (now or datetime.now(timezone.utc)).isoformat()
     until = until or (now or datetime.now(timezone.utc))
     rows = conn.execute(
-        "SELECT url, title, summary, category FROM articles WHERE delivery_eligible = 1 "
+        "SELECT url, title, summary, category FROM articles a WHERE (a.delivery_eligible = 1 OR a.filter_reason = 'research_only') "
         "AND COALESCE(published_at, fetched_at) >= ? AND COALESCE(published_at, fetched_at) <= ?",
         (since.isoformat()[:19], until.isoformat()[:19] + "~"),
     ).fetchall()

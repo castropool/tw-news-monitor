@@ -18,9 +18,14 @@ and does nothing until set:
     * the daily digest for yesterday, from ``DAILY_DIGEST_HOUR`` (default 8);
     * new alerts (classes in ``DAILY_ALERT_CLASSES``) for today and yesterday.
 
-Every message is sent at most once (table ``program_deliveries``), and
-``DISABLE_FEISHU_SEND`` still suppresses sending (nothing is marked sent,
-so it goes out once sending is re-enabled).  Never blocks news delivery.
+Every message is sent at most once (table ``program_deliveries``).
+
+Channel: the regular ``NOTIFIER`` by default, paused by ``DISABLE_FEISHU_SEND``.
+``PROGRAM_NOTIFIER=feishu`` gives these messages their own channel (paused
+only by ``PROGRAM_DISABLE_SEND``), so a server whose news digest is off or
+console-only can still deliver the strategic messages.  Held or failed
+messages are not marked sent and go out on a later run.  Never blocks news
+delivery.
 """
 
 from __future__ import annotations
@@ -50,6 +55,19 @@ def _int(name: str, default: int) -> int:
         return default
 
 
+def program_notifier_type() -> str | None:
+    value = os.getenv("PROGRAM_NOTIFIER", "").strip().lower()
+    return value or None
+
+
+def sending_paused() -> bool:
+    """With its own PROGRAM_NOTIFIER, only PROGRAM_DISABLE_SEND pauses program
+    messages (DISABLE_FEISHU_SEND then governs the news digest alone)."""
+    if program_notifier_type():
+        return _flag("PROGRAM_DISABLE_SEND")
+    return _flag("DISABLE_FEISHU_SEND")
+
+
 def ensure_table(conn: sqlite3.Connection) -> None:
     conn.execute(
         "CREATE TABLE IF NOT EXISTS program_deliveries (key TEXT PRIMARY KEY, kind TEXT NOT NULL, sent_at TEXT NOT NULL)"
@@ -66,7 +84,7 @@ def send_once(conn: sqlite3.Connection, key: str, kind: str, text: str, notifier
     """Send ``text`` unless ``key`` was sent before. Returns sent / duplicate / disabled / failed."""
     if already_sent(conn, key):
         return "duplicate"
-    if _flag("DISABLE_FEISHU_SEND"):
+    if sending_paused():
         return "disabled"
     try:
         ok = notifier.send_long(text)
@@ -166,7 +184,12 @@ def run(db, *, now: datetime | None = None, notifier=None) -> dict:
     if notifier is None:
         from ..notifier import create_notifier
 
-        notifier = create_notifier()
+        try:
+            notifier = create_notifier(program_notifier_type())
+        except SystemExit:  # the factory exits on missing Feishu settings; never stop the news run
+            logger.warning("Program delivery skipped: notifier %r is not configured", program_notifier_type())
+            result["status"] = "notifier_not_configured"
+            return result
     sent: list[str] = []
     for pid, week_end, text in approved_assessments():
         key = f"weekly:{pid}:{week_end}"

@@ -302,7 +302,7 @@ def pending_sources(conn: sqlite3.Connection, *, days: int, limit: int, now: dat
         f"""
         SELECT a.url, a.title, a.summary, COALESCE(a.published_at, a.fetched_at), t.text
         FROM articles a LEFT JOIN article_texts t ON t.url = a.url
-        WHERE {scope_sql} AND a.delivery_eligible = 1
+        WHERE {scope_sql} AND (a.delivery_eligible = 1 OR a.filter_reason = 'research_only')
           AND COALESCE(a.published_at, a.fetched_at) >= ?
         ORDER BY COALESCE(a.published_at, a.fetched_at) DESC
         """,

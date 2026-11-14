@@ -256,15 +256,16 @@ class TelegramNotifier(Notifier):
             return False
 
 
-def create_notifier() -> Notifier:
+def create_notifier(notifier_type: str | None = None) -> Notifier:
     """Factory to create notifier based on env config.
 
-    Raises SystemExit with a clear message if feishu or telegram is
-    selected but required env vars are missing.
+    ``notifier_type`` overrides ``NOTIFIER`` (used by the research-program
+    delivery's ``PROGRAM_NOTIFIER``).  Raises SystemExit with a clear message
+    if feishu or telegram is selected but required env vars are missing.
     """
     import os
 
-    notifier_type = os.getenv("NOTIFIER", "console").strip().lower()
+    notifier_type = (notifier_type or os.getenv("NOTIFIER", "console")).strip().lower()
 
     if notifier_type == "feishu":
         webhook = os.getenv("FEISHU_WEBHOOK_URL", "").strip()

@@ -135,7 +135,7 @@ python -m app.search --rebuild
 - 本月（UTC 自然月）预估花费达到 `AI_MONTHLY_BUDGET_USD`（默认 15 美元）后拒绝调用，摘要按现有降级路径回退（导语/meta），新闻照常交付。台账读写失败不阻断调用。
 - 查看：`python -m app.ai_usage`（本月）或 `python -m app.ai_usage --month 2026-10`。
 - 相同请求（模型+提示词完全一致）30 天内直接复用已存答案，记为 `cache_hit`、费用 0（`AI_CACHE_ENABLED=0` 关闭，`AI_CACHE_DAYS` 调整）。
-- 两档模型（`app/ai_client.py`）：`fast` 用于摘要/翻译/抽取（`AI_MODEL_FAST`，默认沿用 `SUMMARIZER_MODEL`），`strong` 用于周度研判草稿（`AI_MODEL_STRONG`，默认 `deepseek/deepseek-v4-pro`），走同一网关。
+- 两档模型（`app/ai_client.py`）：`fast` 用于摘要/翻译/抽取（`AI_MODEL_FAST`，默认沿用 `SUMMARIZER_MODEL`），`strong` 用于周度研判草稿与研究助理（`AI_MODEL_STRONG`；默认 `deepseek-v4-pro`，命名风格跟随 fast 模型：fast 带 `deepseek/` 前缀时才加前缀），走同一端点。
 
 ### 试点辅助来源：海巡署与日本统合幕僚监部（默认关闭）
 
@@ -157,6 +157,8 @@ python -m app.military.pla_activity --check
 ```
 python -m app.military.pla_activity --backfill-days 730
 ```
+
+  回填会把无法解析的页面连同文字样本存入 `pla_unparsed`；`--unparsed 10` 查看，`--text 2025-12-10 2026-01-15` 打印指定日期的已存报告原文与解析结果；修正解析后用 `--backfill-days 950 --fresh` 重读全部页面并覆盖旧行。
 
   然后在 `.env` 设 `PLA_ACTIVITY_ENABLED=true`，常规任务每天最多抓取到当日报告为止；失败不影响新闻交付。查看已存数据：`python -m app.military.pla_activity --show 14`。
 
@@ -205,11 +207,12 @@ python -m app.pilot.weekly revision --week-ending 2026-11-22 --id 1 accept --rev
 - 研究缺口与搜索提议：`python -m app.programs.leads gaps|propose|list|approve|reject|run`；只有分析员批准的搜索才会执行，且只限允许的来源（`LEADS_ALLOWED_HOSTS`，默认 news.google.com）。
 - 每日战略摘要：`python -m app.programs.daily`（共军异常、正式决定以上的事实、跨计划事件、待决修订；`DAILY_ALERT_CLASSES` 决定哪些算警示；只写本地文件）。
 - P4 回测：`python -m app.military.pla_backtest --since 2025-01-01 --until 2025-12-31`，以 `config/p4_incident_labels.yaml`（须分析员确认日期）计算异常旗标的召回率与精确率。
-- 各计划的新闻来源（`prog_*`）在 `config/sources.yaml` 中默认关闭。
+- 各计划的新闻来源（`prog_*`）标为 `research_only: true`：入库并供研究计划使用，但不进入新闻简报（`filter_reason=research_only`）；2026-11-14 服务器检查后已开启（`prog_p2_transit_visits` 仍关闭）。
 - 排程与飞书发送（`app/programs/delivery.py`，依设计文档决定：团队使用、发到现有飞书群）：
   - `WEEKLY_AUTO_DRAFT=true`：周日 `WEEKLY_DRAFT_HOUR`（默认 9 点，台北）起为 `WEEKLY_PROGRAMS`（默认 `P4`）生成截至周六的草稿；
   - `PROGRAM_DELIVERY_ENABLED=true`：经常规通知渠道（`NOTIFIER=feishu` 时即现有飞书群）发送：**已核准**的周报（草稿永不发送）、`DAILY_DIGEST_HOUR`（默认 8 点）起的前一日每日摘要、以及 `DAILY_ALERT_CLASSES` 中的即时警示；
   - 每条只发一次（表 `program_deliveries`）；`DISABLE_FEISHU_SEND` 仍可暂停发送，恢复后补发。
+  - `PROGRAM_NOTIFIER=feishu`：研判消息使用独立渠道（只受 `PROGRAM_DISABLE_SEND` 暂停），适用于新闻简报仍由另一台机器发送、本机只发研判消息的过渡期；飞书设置缺失时只跳过发送，不影响新闻任务。
 
 ### 时效与重要度
 

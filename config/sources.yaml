@@ -405,11 +405,11 @@ sources:
 
 # --- Program 4 pilot official-adjacent sources (category: military) ----
 # Coast Guard Administration and Japan Joint Staff developments via Google
-# News RSS (news reports of their releases). Off until checked on the server:
-# python -m app.main --dry-run with each enabled, then review the items.
+# News RSS (news reports of their releases). Enabled after the 2026-11-14
+# server check found them on-topic.
 - category: military
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: cga_china_coast_guard
   name: 海巡署·中國海警動態
   query: 海巡署 中國海警
@@ -420,7 +420,7 @@ sources:
   url: 'https://news.google.com/rss/search?q=%E6%B5%B7%E5%B7%A1%E7%BD%B2%20%E4%B8%AD%E5%9C%8B%E6%B5%B7%E8%AD%A6%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
 - category: military
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: cga_kinmen_waters
   name: 海巡署·金門限制水域
   query: 海巡署 金門 限制水域
@@ -431,7 +431,7 @@ sources:
   url: 'https://news.google.com/rss/search?q=%E6%B5%B7%E5%B7%A1%E7%BD%B2%20%E9%87%91%E9%96%80%20%E9%99%90%E5%88%B6%E6%B0%B4%E5%9F%9F%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
 - category: military
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: jp_joint_staff
   name: 日本統合幕僚監部·共軍動態
   query: 統合幕僚監部 中國
@@ -442,7 +442,7 @@ sources:
   url: 'https://news.google.com/rss/search?q=%E7%B5%B1%E5%90%88%E5%B9%95%E5%83%9A%E7%9B%A3%E9%83%A8%20%E4%B8%AD%E5%9C%8B%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
 - category: military
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: jp_mod_pla_vessels
   name: 日本防衛省·共艦通過
   query: 日本防衛省 中國軍艦
@@ -453,27 +453,31 @@ sources:
   url: 'https://news.google.com/rss/search?q=%E6%97%A5%E6%9C%AC%E9%98%B2%E8%A1%9B%E7%9C%81%20%E4%B8%AD%E5%9C%8B%E8%BB%8D%E8%89%A6%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
 
 # --- Research programs P1/P2/P3/P5/P6 (Google News RSS) --------------
-# Off until checked on the server; tagging routes their items to programs.
+# research_only: stored and used by the programs, never put in the news digest.
+# Enabled after the 2026-11-14 server check; prog_p2_transit_visits stays off (too few items).
 - category: international
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: prog_p1_us_china_taiwan
+  research_only: true
   name: 美中台關係動態
   query: 美中 台灣 白宮
   type: google_news_rss
   url: 'https://news.google.com/rss/search?q=%E7%BE%8E%E4%B8%AD%20%E5%8F%B0%E7%81%A3%20%E7%99%BD%E5%AE%AE%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
 - category: international
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: prog_p1_congress_taiwan
+  research_only: true
   name: 美國國會涉台法案
   query: 美國國會 台灣 法案
   type: google_news_rss
   url: 'https://news.google.com/rss/search?q=%E7%BE%8E%E5%9C%8B%E5%9C%8B%E6%9C%83%20%E5%8F%B0%E7%81%A3%20%E6%B3%95%E6%A1%88%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
 - category: politics
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: prog_p2_mofa
+  research_only: true
   name: 外交部動態
   query: 外交部 友邦
   type: google_news_rss
@@ -482,54 +486,61 @@ sources:
   collector: google_news_rss
   enabled: false
   id: prog_p2_transit_visits
+  research_only: true
   name: 出訪與過境
   query: 總統 出訪 過境
   type: google_news_rss
   url: 'https://news.google.com/rss/search?q=%E7%B8%BD%E7%B5%B1%20%E5%87%BA%E8%A8%AA%20%E9%81%8E%E5%A2%83%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
 - category: international
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: prog_p3_arms_sales
+  research_only: true
   name: 對台軍售與交付
   query: 對台軍售 交付
   type: google_news_rss
   url: 'https://news.google.com/rss/search?q=%E5%B0%8D%E5%8F%B0%E8%BB%8D%E5%94%AE%20%E4%BA%A4%E4%BB%98%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
 - category: international
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: prog_p3_allies
+  research_only: true
   name: 盟國涉台防衛態勢
   query: 日本 菲律賓 台海 防衛
   type: google_news_rss
   url: 'https://news.google.com/rss/search?q=%E6%97%A5%E6%9C%AC%20%E8%8F%B2%E5%BE%8B%E8%B3%93%20%E5%8F%B0%E6%B5%B7%20%E9%98%B2%E8%A1%9B%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
 - category: economy
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: prog_p5_semiconductor
+  research_only: true
   name: 半導體外交
   query: 台積電 美國 投資 政府
   type: google_news_rss
   url: 'https://news.google.com/rss/search?q=%E5%8F%B0%E7%A9%8D%E9%9B%BB%20%E7%BE%8E%E5%9C%8B%20%E6%8A%95%E8%B3%87%20%E6%94%BF%E5%BA%9C%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
 - category: economy
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: prog_p5_export_controls
+  research_only: true
   name: 出口管制與關稅
   query: 出口管制 台灣 半導體
   type: google_news_rss
   url: 'https://news.google.com/rss/search?q=%E5%87%BA%E5%8F%A3%E7%AE%A1%E5%88%B6%20%E5%8F%B0%E7%81%A3%20%E5%8D%8A%E5%B0%8E%E9%AB%94%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
 - category: politics
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: prog_p6_legislature
+  research_only: true
   name: 立法院表決與黨團
   query: 立法院 表決 黨團
   type: google_news_rss
   url: 'https://news.google.com/rss/search?q=%E7%AB%8B%E6%B3%95%E9%99%A2%20%E8%A1%A8%E6%B1%BA%20%E9%BB%A8%E5%9C%98%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
 - category: politics
   collector: google_news_rss
-  enabled: false
+  enabled: true
   id: prog_p6_party_affairs
+  research_only: true
   name: 政黨人事與提名
   query: 黨主席 提名 民進黨 國民黨
   type: google_news_rss

@@ -3,7 +3,9 @@
 - ``fast``: routine high-volume work (summaries, translation, extraction).
   Model: ``AI_MODEL_FAST``, else ``SUMMARIZER_MODEL``, else ``DEEPSEEK_MODEL``.
 - ``strong``: low-volume reasoning (weekly assessment drafting).
-  Model: ``AI_MODEL_STRONG`` (default ``deepseek/deepseek-v4-pro``).
+  Model: ``AI_MODEL_STRONG``; default ``deepseek-v4-pro``, written with the
+  ``deepseek/`` prefix only when the fast model uses one (the endpoint's
+  naming style).
 
 Endpoint and key are shared with the summarizer (``SUMMARIZER_BASE_URL`` /
 ``SUMMARIZER_API_KEY``, falling back to ``DEEPSEEK_*``), so both tiers go
@@ -34,14 +36,21 @@ def configured() -> bool:
 def model_for(tier: str) -> str:
     if tier not in TIERS:
         raise ValueError(f"unknown AI tier {tier!r}; expected one of {TIERS}")
-    if tier == "strong":
-        return os.getenv("AI_MODEL_STRONG", "").strip() or DEFAULT_STRONG_MODEL
-    return (
+    fast = (
         os.getenv("AI_MODEL_FAST", "").strip()
         or os.getenv("SUMMARIZER_MODEL", "").strip()
         or os.getenv("DEEPSEEK_MODEL", "").strip()
         or "deepseek-chat"
     )
+    if tier == "strong":
+        explicit = os.getenv("AI_MODEL_STRONG", "").strip()
+        if explicit:
+            return explicit
+        # Follow the endpoint's naming, as shown by the working fast model:
+        # the local Command Code gateway takes "deepseek/deepseek-v4-pro",
+        # DeepSeek-style endpoints take the bare "deepseek-v4-pro".
+        return DEFAULT_STRONG_MODEL if "/" in fast else DEFAULT_STRONG_MODEL.split("/", 1)[1]
+    return fast
 
 
 def make_client(task: str, tier: str = "fast") -> DeepSeekClient | None:

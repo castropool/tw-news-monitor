@@ -177,3 +177,16 @@ def test_model_tiers(monkeypatch):
     monkeypatch.delenv("SUMMARIZER_API_KEY")
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     assert ai_client.make_client("summary") is None
+
+
+def test_strong_model_follows_the_endpoint_naming(monkeypatch):
+    from app import ai_client
+
+    monkeypatch.delenv("AI_MODEL_STRONG", raising=False)
+    monkeypatch.delenv("AI_MODEL_FAST", raising=False)
+    monkeypatch.setenv("SUMMARIZER_MODEL", "deepseek-flash")  # live server: bare names
+    assert ai_client.model_for("strong") == "deepseek-v4-pro"
+    monkeypatch.setenv("SUMMARIZER_MODEL", "deepseek/deepseek-v4-flash")  # local gateway
+    assert ai_client.model_for("strong") == "deepseek/deepseek-v4-pro"
+    monkeypatch.setenv("AI_MODEL_STRONG", "custom-model")
+    assert ai_client.model_for("strong") == "custom-model"

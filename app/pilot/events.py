@@ -29,7 +29,7 @@ def week_articles(conn: sqlite3.Connection, start: date, end: date):
     marks = ",".join("?" * len(cats))
     rows = conn.execute(
         Database._ARTICLE_SELECT
-        + f" WHERE category IN ({marks}) AND delivery_eligible = 1"
+        + f" WHERE category IN ({marks}) AND (delivery_eligible = 1 OR filter_reason = 'research_only')"
         " AND substr(COALESCE(published_at, fetched_at), 1, 10) BETWEEN ? AND ?",
         (*cats, start.isoformat(), end.isoformat()),
     ).fetchall()

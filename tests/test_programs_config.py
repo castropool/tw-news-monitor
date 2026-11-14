@@ -37,6 +37,10 @@ def test_validation_rejects_single_hypothesis_program():
     ("外交部長出訪友邦 簽署合作備忘錄", None, "politics", {"P2"}),
     ("台北市長視察市場", "市府推動攤商補助", "politics", set()),
     ("美国宣布对台军售", None, "international", {"P1", "P3"}),  # Simplified folds
+    # Live false positives from the first server run: chip/company stories are not P1.
+    ("輝達黃仁勳：美國 中國 台灣 晶片需求強勁", None, "economy", set()),
+    ("義大利 無人機 混合戰 國會議員 訪問團", None, "international", set()),
+    ("白宮：美國 中國 台灣 晶片出口管制將調整", None, "international", {"P1", "P5"}),
 ])
 def test_routing(title, summary, category, expected):
     assert set(tagging.match(title, summary, category)) == expected

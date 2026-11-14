@@ -57,6 +57,9 @@ MAX_DETAIL_PAGES = 5
 REPORT_TITLE_RE = re.compile(r"臺海周邊海[、，,]?\s*空域動態")
 # The live report writes the second date without 中華民國: "…0600時至115年11月14日…".
 ROC_DATE_RE = re.compile(r"(?:(?:中華)?民國\s*)?(\d{2,3})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日")
+# Any date in the window line; the year may be omitted after the first one
+# ("…0600時至12月10日（星期三）0600時止").
+WINDOW_DATE_RE = re.compile(r"(?:(?:中華)?民國\s*)?(?:(\d{2,3})\s*年\s*)?(\d{1,2})\s*月\s*(\d{1,2})\s*日")
 AIRCRAFT_RE = re.compile(r"共機\s*(\d+)\s*架次")
 # A sortie count followed by 逾越/進入 before the sentence ends or another
 # count starts: "共機12架次逾越中線進入我北部…空域".
@@ -97,6 +100,26 @@ def _normalize(text: str) -> str:
     return to_traditional(text).replace("台海", "臺海")
 
 
+def window_dates(text: str) -> list[date]:
+    """Dates of the reporting window in order; a year-less date takes the
+    previous date's year, rolling over at New Year (12月 → 1月)."""
+    out: list[date] = []
+    year: int | None = None
+    for m in WINDOW_DATE_RE.finditer(text):
+        roc_year, month, day = m.group(1), int(m.group(2)), int(m.group(3))
+        if roc_year:
+            year = int(roc_year) + 1911
+        elif year is None:
+            continue  # a bare month/day before any full date is not the window
+        elif out and month < out[-1].month:
+            year += 1
+        try:
+            out.append(date(year, month, day))
+        except ValueError:
+            continue
+    return out
+
+
 def _roc_to_date(match: re.Match) -> date | None:
     year, month, day = (int(g) for g in match.groups())
     try:
@@ -120,7 +143,7 @@ def parse_report_text(text: str, source_url: str = "") -> PlaReport | None:
     # (announcements, footers) cannot shift the reporting window.
     marks = list(SECTION_RE.finditer(body))
     date_zone = body[: marks[1].start()] if len(marks) > 1 else body
-    dates = [d for d in (_roc_to_date(m) for m in ROC_DATE_RE.finditer(date_zone)) if d]
+    dates = window_dates(date_zone)
     if not dates:
         return None
     aircraft = _first_int(AIRCRAFT_RE, body)
@@ -360,6 +383,7 @@ def backfill(
     sleep=None,
     known: dict[str, str] | None = None,
     on_report=None,
+    on_unparsed=None,
 ) -> tuple[list[PlaReport], str]:
     """Walk list pages newest to oldest until reports predate ``since``.
 
@@ -405,9 +429,12 @@ def backfill(
                 except httpx.HTTPError as exc:
                     logger.warning("PLA backfill detail failed %s: %s", href, exc)
                     continue
-                report = parse_report_text(page_text(detail.text), str(detail.url))
+                text = page_text(detail.text)
+                report = parse_report_text(text, str(detail.url))
                 if report is None:
                     logger.warning("PLA backfill page not parsed: %s", detail.url)
+                    if on_unparsed is not None:
+                        on_unparsed(str(detail.url), text)
                     continue
                 oldest = min(oldest or report.report_date, report.report_date)
                 if report.report_date >= since.isoformat():
@@ -423,6 +450,41 @@ def backfill(
     finally:
         if own:
             client.close()
+
+
+def text_sample(text: str, size: int = 800) -> str:
+    """The part of a page most likely to hold the report, for diagnosis."""
+    norm = _normalize(text)
+    for marker in ("日期", "共機", "共艦", "動態"):
+        pos = norm.find(marker)
+        if pos >= 0:
+            return norm[max(0, pos - 20): pos - 20 + size]
+    return norm[:size]
+
+
+def record_unparsed(conn: sqlite3.Connection, url: str, text: str, *, now: datetime | None = None) -> None:
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS pla_unparsed (url TEXT PRIMARY KEY, sample TEXT NOT NULL, seen_at TEXT NOT NULL)"
+    )
+    conn.execute(
+        "INSERT INTO pla_unparsed(url, sample, seen_at) VALUES (?, ?, ?) "
+        "ON CONFLICT(url) DO UPDATE SET sample = excluded.sample, seen_at = excluded.seen_at",
+        (url, text_sample(text), (now or datetime.now(timezone.utc)).isoformat()),
+    )
+    conn.commit()
+
+
+def unparsed(conn: sqlite3.Connection, limit: int = 10) -> list[tuple[str, str]]:
+    try:
+        return conn.execute("SELECT url, sample FROM pla_unparsed ORDER BY seen_at DESC LIMIT ?", (limit,)).fetchall()
+    except sqlite3.OperationalError:
+        return []
+
+
+def stored_text(conn: sqlite3.Connection, report_date: str) -> tuple[str, str] | None:
+    ensure_table(conn)
+    return conn.execute("SELECT source_url, raw_text FROM pla_activity_daily WHERE report_date = ?",
+                        (report_date,)).fetchone()
 
 
 def stored_urls(conn: sqlite3.Connection) -> dict[str, str]:
@@ -503,6 +565,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--show", type=int, metavar="DAYS", help="print the last DAYS stored reports")
     parser.add_argument("--backfill-days", type=int, metavar="DAYS",
                         help="walk list pages back DAYS days, store reports, then list missing dates")
+    parser.add_argument("--fresh", action="store_true",
+                        help="with --backfill-days: re-read pages already stored and overwrite their rows")
+    parser.add_argument("--text", nargs="+", metavar="YYYY-MM-DD",
+                        help="print the stored report text and its parse for these dates")
+    parser.add_argument("--unparsed", type=int, metavar="N",
+                        help="print text samples of the last N pages the backfill could not parse")
     parser.add_argument("--url", default=os.getenv("PLA_ACTIVITY_LIST_URL", DEFAULT_LIST_URL))
     parser.add_argument("--pages", type=int, default=MAX_DETAIL_PAGES)
     parser.add_argument("--db", help="news DB path (default: the configured news DB)")
@@ -522,8 +590,9 @@ def main(argv: list[str] | None = None) -> int:
         today = datetime.now(TAIPEI).date()
         since = today - timedelta(days=args.backfill_days)
         with Database(args.db or get_settings().news_db_path) as db:
-            known = stored_urls(db.conn)
-            print(f"Backfill to {since}; {len(known)} reports already stored (skipped, not refetched).", flush=True)
+            known = {} if args.fresh else stored_urls(db.conn)
+            print(f"Backfill to {since}; " + ("fresh: re-reading every page." if args.fresh else
+                  f"{len(known)} reports already stored (skipped, not refetched)."), flush=True)
             count = 0
 
             def store(report: PlaReport) -> None:
@@ -533,7 +602,8 @@ def main(argv: list[str] | None = None) -> int:
                 if count % 25 == 0:
                     print(f"  stored {count} (latest {report.report_date})", flush=True)
 
-            reports, reason = backfill(since, args.url, known=known, on_report=store)
+            reports, reason = backfill(since, args.url, known=known, on_report=store,
+                                       on_unparsed=lambda url, text: record_unparsed(db.conn, url, text))
             print(f"Backfill parsed {len(reports)} new reports (stopped: {reason}).", flush=True)
             gaps = missing_dates(db.conn, since, today)
             total = db.conn.execute("SELECT COUNT(*) FROM pla_activity_daily").fetchone()[0]
@@ -541,6 +611,22 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Dates with no report since {since}: {len(gaps)}")
         for gap in gaps[:60]:
             print(f"  {gap}")
+        return 0
+    if args.text or args.unparsed:
+        from ..database import Database
+        from ..settings import get_settings
+
+        with Database(args.db or get_settings().news_db_path) as db:
+            for day in args.text or []:
+                row = stored_text(db.conn, day)
+                if row is None:
+                    print(f"=== {day}: no stored report")
+                    continue
+                parsed = parse_report_text(row[1], row[0])
+                print(f"=== {day}  {row[0]}\n{row[1]}\n--- parsed: "
+                      f"{ {k: v for k, v in asdict(parsed).items() if k not in ('raw_text', 'source_url')} if parsed else None}")
+            for url, sample in unparsed(db.conn, args.unparsed or 0):
+                print(f"=== UNPARSED {url}\n{sample}")
         return 0
     if args.check or args.collect:
         reports = fetch_reports(args.url, max_pages=args.pages)

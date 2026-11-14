@@ -335,3 +335,36 @@ def test_backfill_saves_as_it_goes_and_resumes_without_refetching(db):
     assert not any(u.endswith(("/r/10", "/r/9", "/r/7")) for u in fetched)  # not refetched
     assert reason == "reached_since" or reason == "no_next_page"
     assert pla.missing_dates(db.conn, date(2025, 11, 7), date(2025, 11, 10)) == []
+
+
+@pytest.mark.parametrize("line, start, end", [
+    ("中華民國114年12月9日(星期二)0600時至12月10日(星期三)0600時止。", "2025-12-09", "2025-12-10"),
+    ("中華民國114年12月31日(星期三)0600時至1月1日(星期四)0600時止。", "2025-12-31", "2026-01-01"),
+    ("中華民國115年11月13日(星期五)0600時至115年11月14日(星期六)0600時止。", "2026-11-13", "2026-11-14"),
+])
+def test_end_date_without_year(line, start, end):
+    r = pla.parse_report_text(f"一、日期:\n{line}\n二、活動動態:\n偵獲共機15架次、共艦6艘。")
+    assert (r.period_start, r.period_end, r.report_date) == (start, end, end)
+
+
+def test_unparsed_pages_are_recorded_with_a_sample(db):
+    from datetime import date
+
+    base = "https://www.mnd.gov.tw/news/plaactlist"
+    odd = "<html><body><h2>中共解放軍臺海周邊海、空域動態</h2><p>一、日期：民國113年5月23日。二、本日共機活動另行公布。</p></body></html>"
+    pages = {base: '<a href="/r/1">中共解放軍臺海周邊海、空域動態</a>', "https://www.mnd.gov.tw/r/1": odd}
+    pla.backfill(date(2020, 1, 1), client=mock_client(pages), sleep=lambda s: None,
+                 on_unparsed=lambda url, text: pla.record_unparsed(db.conn, url, text))
+    rows = pla.unparsed(db.conn)
+    assert rows[0][0] == "https://www.mnd.gov.tw/r/1" and "本日共機活動另行公布" in rows[0][1]
+
+
+def test_stored_text_and_cli_print(db, capsys):
+    pla.save_reports(db.conn, [pla.parse_report_text(LIVE_88211, "https://www.mnd.gov.tw/news/plaact/88211")])
+    assert pla.stored_text(db.conn, "2026-11-14")[0].endswith("88211")
+    path = str(db._db_path)
+    db.close()
+    assert pla.main(["--text", "2026-11-14", "2026-01-01", "--db", path]) == 0
+    out = capsys.readouterr().out
+    assert "=== 2026-11-14" in out and "'aircraft_crossed': 4" in out and "=== 2026-01-01: no stored report" in out
+    db.connect()
