@@ -47,6 +47,7 @@ from pathlib import Path
 from ..military import pla_baseline as pb
 from . import claims as cl
 from . import events as pilot_events
+from . import revisions as pilot_revisions
 
 logger = logging.getLogger(__name__)
 
@@ -228,6 +229,17 @@ class Draft:
     judgment_error: str | None
     n_facts: int
     n_flagged: int
+    state: dict = field(default_factory=dict)
+    revisions: list = field(default_factory=list)
+
+
+def tally_indicators(indicators: list[Indicator]) -> dict[str, dict[str, int]]:
+    tally: dict[str, dict[str, int]] = {}
+    for ind in indicators:
+        t = tally.setdefault(ind.hypothesis, {"支持": 0, "不支持": 0})
+        if ind.direction in t:
+            t[ind.direction] += 1
+    return tally
 
 
 def build_draft(conn: sqlite3.Connection, week_ending: date, *, client=None, use_llm: bool = True,
@@ -265,11 +277,23 @@ def build_draft(conn: sqlite3.Connection, week_ending: date, *, client=None, use
             judgments, error = draft_judgments(client, payload)
             critic(judgments, facts, data_md + "\n" + history_md, (view.start, view.end))
 
+    state = {
+        "tally": tally_indicators(indicators),
+        "aircraft_ratio": view.metrics["aircraft"].ratio_to_baseline,
+        "indicators": [vars_(i) for i in indicators],
+        "judgments": [{"text": j.text, "citations": j.citations, "uses_data": j.uses_data,
+                       "confidence": j.confidence} for j in judgments],
+        "fact_claim_ids": [f["id"] for f in facts],
+    }
+    previous = pilot_revisions.previous_approved(assessment_dir(), view.start)
+    suggestions = pilot_revisions.suggest(conn, previous, state)
     md = _render(view, data_md + "\n\n### 歷史對照\n\n" + history_md, indicators, facts, judgments,
                  events_md=pilot_events.render_events_markdown(events),
+                 revisions_md=pilot_revisions.render_markdown(suggestions, previous),
                  model=model, error=error, use_llm=use_llm,
                  now=now or datetime.now(timezone.utc), text_coverage=_text_coverage(conn, start, end))
-    return Draft(view.start, view.end, md, model, error, len(facts), sum(1 for j in judgments if j.notes))
+    return Draft(view.start, view.end, md, model, error, len(facts), sum(1 for j in judgments if j.notes),
+                 state=state, revisions=suggestions)
 
 
 def vars_(ind: Indicator) -> dict:
@@ -294,7 +318,7 @@ def _text_coverage(conn: sqlite3.Connection, start: date, end: date) -> tuple[in
 
 
 def _render(view, data_md, indicators, facts, judgments, *, model, error, use_llm, now, text_coverage,
-            events_md: str = "") -> str:
+            events_md: str = "", revisions_md: str = "") -> str:
     L: list[str] = [
         f"# 台海安全週報（草稿）{view.start} 至 {view.end}",
         "",
@@ -323,11 +347,7 @@ def _render(view, data_md, indicators, facts, judgments, *, model, error, use_ll
     L += ["", "| 假設 | 指標 | 讀數 | 方向 |", "|---|---|---|---|"]
     for ind in indicators:
         L.append(f"| {ind.hypothesis} | {ind.name} | {ind.reading} | {ind.direction} |")
-    tally = {}
-    for ind in indicators:
-        t = tally.setdefault(ind.hypothesis, {"支持": 0, "不支持": 0})
-        if ind.direction in t:
-            t[ind.direction] += 1
+    tally = tally_indicators(indicators)
     L += ["", "合計：" + "；".join(f"{h} 支持 {t['支持']}、不支持 {t['不支持']}" for h, t in tally.items()),
           "", f"> {RULES_NOTE}", "", "## 四、本週事實", "", "### 本週事件", "", events_md or "（無）", ""]
     if not facts:
@@ -360,6 +380,11 @@ def _render(view, data_md, indicators, facts, judgments, *, model, error, use_ll
     L += ["## 五、資料缺口", ""] + ([f"- {g}" for g in gaps] or ["- 無"]) + ["", "## 六、來源", ""]
     for n, f in enumerate(facts, 1):
         L.append(f"[{n}] {f['source_name']}〈{f['title']}〉{f['url']}")
+    if revisions_md:
+        L += ["", "## 七、建議修訂（與上次核准週報比較）", "",
+              revisions_md, "",
+              "> 逐項以 `python -m app.pilot.weekly revision --week-ending <日期> --id <N> accept|dismiss "
+              "--reviewer <姓名>` 決定；仍有未決項時不能核准。"]
     return "\n".join(L).rstrip() + "\n"
 
 
@@ -392,6 +417,7 @@ def write_draft(draft: Draft, week_ending: date, *, force: bool = False, now: da
         "generated_at": (now or datetime.now(timezone.utc)).isoformat(), "model": draft.model,
         "judgment_error": draft.judgment_error, "facts": draft.n_facts, "flagged_judgments": draft.n_flagged,
         "generated_sha256": _sha(draft.markdown), "history": [],
+        **draft.state, "revisions": draft.revisions,
     }
     (folder / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     return folder
@@ -413,6 +439,9 @@ def decide(week_ending: date, decision: str, reviewer: str, note: str = "", *, n
     final = (folder / "draft.md").read_text(encoding="utf-8")
     if decision == "approved" and "⚠ 自動檢查" in final:
         raise RuntimeError("draft still contains ⚠ automatic-check notes; fix or delete those judgments first")
+    open_ids = [r["id"] for r in meta.get("revisions") or [] if r.get("status") == "open"]
+    if decision == "approved" and open_ids:
+        raise RuntimeError(f"revision suggestions still open: {open_ids}; accept or dismiss each first")
     stamp = (now or datetime.now(timezone.utc)).isoformat()
     ratio = edit_ratio(generated, final)
     meta.update(status=decision, reviewer=reviewer, reviewed_at=stamp, edit_ratio=ratio,
@@ -423,6 +452,25 @@ def decide(week_ending: date, decision: str, reviewer: str, note: str = "", *, n
         (folder / "approved.md").write_text(final, encoding="utf-8")
     (folder / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     return meta
+
+
+def decide_revision(week_ending: date, revision_id: int, decision: str, reviewer: str, note: str = "",
+                    *, now: datetime | None = None) -> dict:
+    """Record the analyst's decision on one revision suggestion."""
+    if decision not in ("accepted", "dismissed"):
+        raise ValueError("decision must be accepted or dismissed")
+    meta = read_meta(week_ending)
+    if meta is None:
+        raise FileNotFoundError(f"no draft for {week_ending}")
+    for r in meta.get("revisions") or []:
+        if r["id"] == revision_id:
+            r.update(status=decision, decided_by=reviewer, note=note or None,
+                     decided_at=(now or datetime.now(timezone.utc)).isoformat())
+            break
+    else:
+        raise KeyError(f"no revision suggestion R{revision_id} for {week_ending}")
+    (_folder(week_ending) / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    return r
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -439,6 +487,12 @@ def main(argv: list[str] | None = None) -> int:
         else:
             p.add_argument("--reviewer", required=True)
             p.add_argument("--note", default="")
+    rv = sub.add_parser("revision", help="accept or dismiss a revision suggestion")
+    rv.add_argument("--week-ending", type=date.fromisoformat)
+    rv.add_argument("--id", type=int, required=True)
+    rv.add_argument("decision", choices=("accept", "dismiss"))
+    rv.add_argument("--reviewer", required=True)
+    rv.add_argument("--note", default="")
     sub.add_parser("status")
     args = parser.parse_args(argv)
     try:
@@ -452,8 +506,10 @@ def main(argv: list[str] | None = None) -> int:
         root = assessment_dir()
         for folder in sorted(root.glob("*/meta.json")) if root.exists() else []:
             m = json.loads(folder.read_text(encoding="utf-8"))
+            open_r = sum(1 for r in m.get("revisions") or [] if r.get("status") == "open")
             print(f"{m['week_start']} – {m['week_end']}  {m['status']:<8} facts={m['facts']} "
-                  f"flagged={m['flagged_judgments']} edit_ratio={m.get('edit_ratio', '—')} {m.get('reviewer') or ''}")
+                  f"flagged={m['flagged_judgments']} open_revisions={open_r} "
+                  f"edit_ratio={m.get('edit_ratio', '—')} {m.get('reviewer') or ''}")
         return 0
     week_ending = args.week_ending or (datetime.now(TAIPEI).date() - timedelta(days=1))
     if args.cmd == "generate":
@@ -465,6 +521,11 @@ def main(argv: list[str] | None = None) -> int:
         folder = write_draft(draft, week_ending, force=args.force)
         print(f"Draft written: {folder / 'draft.md'}  (facts={draft.n_facts}, flagged={draft.n_flagged}"
               f"{', judgments not generated: ' + draft.judgment_error if draft.judgment_error else ''})")
+        return 0
+    if args.cmd == "revision":
+        r = decide_revision(week_ending, args.id, "accepted" if args.decision == "accept" else "dismissed",
+                            args.reviewer, args.note)
+        print(f"R{r['id']} {r['status']} by {r['decided_by']}")
         return 0
     meta = decide(week_ending, "approved" if args.cmd == "approve" else "rejected", args.reviewer, args.note)
     print(f"{meta['status']} by {meta['reviewer']}; edit ratio {meta['edit_ratio']:.1%}")

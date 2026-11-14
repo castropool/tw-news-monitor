@@ -185,7 +185,10 @@ python -m app.pilot.claims review 12 confirmed --reviewer 你的名字
 python -m app.pilot.weekly generate --week-ending 2026-11-15
 python -m app.pilot.weekly approve --week-ending 2026-11-15 --reviewer 你的名字
 python -m app.pilot.weekly status
+python -m app.pilot.weekly revision --week-ending 2026-11-22 --id 1 accept --reviewer 你的名字
 ```
+
+- 修订建议（`app/pilot/revisions.py`）：新草稿与上一份已核准周报比较，按固定规则提出「建议修订」（第七节）：假设的指标净支持变号或变动 ≥2；上次要点所引事实之后被驳回或失效；共机活动在「偏高（≥1.3×）/正常/偏低（≤0.8×）」之间转换。每项写明理由，分析员逐项 accept / dismiss；仍有未决项时不能核准。
 
 ### 时效与重要度
 
