@@ -137,6 +137,11 @@ python -m app.search --rebuild
 - 相同请求（模型+提示词完全一致）30 天内直接复用已存答案，记为 `cache_hit`、费用 0（`AI_CACHE_ENABLED=0` 关闭，`AI_CACHE_DAYS` 调整）。
 - 两档模型（`app/ai_client.py`）：`fast` 用于摘要/翻译/抽取（`AI_MODEL_FAST`，默认沿用 `SUMMARIZER_MODEL`），`strong` 用于周度研判草稿（`AI_MODEL_STRONG`，默认 `deepseek/deepseek-v4-pro`），走同一网关。
 
+### 试点辅助来源：海巡署与日本统合幕僚监部（默认关闭）
+
+- `config/sources.yaml` 中 `cga_china_coast_guard`、`cga_kinmen_waters`（海巡署与中国海警动态）、`jp_joint_staff`、`jp_mod_pla_vessels`（日本统合幕僚监部/防卫省公布的共军动态）：通过 Google News RSS 收集新闻报道，`category: military`，走现有军事筛选与事件归并。
+- 默认 `enabled: false`；在服务器上逐个改为 `true` 后执行一次 `python -m app.main --dry-run`，检查收集到的条目是否相关，再保留开启。
+
 ### 国防部共军动态日报（`app/military/pla_activity.py`，表 `pla_activity_daily`）
 
 - 解析国防部每日「中共解放軍臺海周邊海、空域動態」：共机架次、逾越中线/进入空域架次、共舰、公务船、空飘气球，每个报告日一行（06:00–06:00 窗口的结束日）；国防部改稿时更新。

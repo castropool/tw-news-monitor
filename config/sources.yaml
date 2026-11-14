@@ -402,3 +402,52 @@ sources:
   query: 博弈網站 警方
   type: google_news_rss
   url: 'https://news.google.com/rss/search?q=%E5%8D%9A%E5%BC%88%E7%B6%B2%E7%AB%99%20%E8%AD%A6%E6%96%B9%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
+
+# --- Program 4 pilot official-adjacent sources (category: military) ----
+# Coast Guard Administration and Japan Joint Staff developments via Google
+# News RSS (news reports of their releases). Off until checked on the server:
+# python -m app.main --dry-run with each enabled, then review the items.
+- category: military
+  collector: google_news_rss
+  enabled: false
+  id: cga_china_coast_guard
+  name: 海巡署·中國海警動態
+  query: 海巡署 中國海警
+  source_kind: commercial_media
+  type: google_news_rss
+  topic: military
+  military_source_type: commercial_military
+  url: 'https://news.google.com/rss/search?q=%E6%B5%B7%E5%B7%A1%E7%BD%B2%20%E4%B8%AD%E5%9C%8B%E6%B5%B7%E8%AD%A6%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
+- category: military
+  collector: google_news_rss
+  enabled: false
+  id: cga_kinmen_waters
+  name: 海巡署·金門限制水域
+  query: 海巡署 金門 限制水域
+  source_kind: commercial_media
+  type: google_news_rss
+  topic: military
+  military_source_type: commercial_military
+  url: 'https://news.google.com/rss/search?q=%E6%B5%B7%E5%B7%A1%E7%BD%B2%20%E9%87%91%E9%96%80%20%E9%99%90%E5%88%B6%E6%B0%B4%E5%9F%9F%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
+- category: military
+  collector: google_news_rss
+  enabled: false
+  id: jp_joint_staff
+  name: 日本統合幕僚監部·共軍動態
+  query: 統合幕僚監部 中國
+  source_kind: commercial_media
+  type: google_news_rss
+  topic: military
+  military_source_type: commercial_military
+  url: 'https://news.google.com/rss/search?q=%E7%B5%B1%E5%90%88%E5%B9%95%E5%83%9A%E7%9B%A3%E9%83%A8%20%E4%B8%AD%E5%9C%8B%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
+- category: military
+  collector: google_news_rss
+  enabled: false
+  id: jp_mod_pla_vessels
+  name: 日本防衛省·共艦通過
+  query: 日本防衛省 中國軍艦
+  source_kind: commercial_media
+  type: google_news_rss
+  topic: military
+  military_source_type: commercial_military
+  url: 'https://news.google.com/rss/search?q=%E6%97%A5%E6%9C%AC%E9%98%B2%E8%A1%9B%E7%9C%81%20%E4%B8%AD%E5%9C%8B%E8%BB%8D%E8%89%A6%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'
