@@ -71,6 +71,7 @@ from .settings import get_settings, load_environment
 from .news_pipeline import run_delivery_core
 from .military import pla_activity
 from .pilot import claims as pilot_claims
+from .programs import delivery as program_delivery
 from .programs import tagging as program_tagging
 from .social_monitor.news_run import (
     collect_due_for_news_run,
@@ -1931,6 +1932,11 @@ def main() -> None:
         claims_run = pilot_claims.run_safe(db)
         if claims_run.get("status") in ("ok", "budget_exceeded"):
             print(f"  [OK] Pilot claims: {claims_run}")
+        # Weekly auto-drafts and Feishu delivery of approved assessments, daily
+        # digest and alerts (WEEKLY_AUTO_DRAFT, PROGRAM_DELIVERY_ENABLED); never blocks news.
+        delivery_run = program_delivery.run_safe(db)
+        if delivery_run.get("drafted") or delivery_run.get("sent"):
+            print(f"  [OK] Program delivery: {delivery_run}")
         now = datetime.now(TAIPEI)
         delivery_input = list(inserted) + list(collection.promoted_delivery_articles)
 

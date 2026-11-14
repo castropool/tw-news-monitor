@@ -113,6 +113,7 @@ Python code from the old project.
   `SENSITIVE_PREDICATES` 只在确认后显示、绝不自动建立）、`weekly`（非 P4 计划的周报）、`assistant`（只引用检索记录，
   记录不足直接拒答）、`leads`（搜索须人工批准，只限允许主机）、`daily`（每日摘要与警示，只写本地文件）。
 - `app/pilot/claims.py` 支持所有计划：P4 用专用提示词与类型不变；其他计划须有 kind 与 ladder；指控（allegation）在确认前不进入任何草稿、列表或助理检索。
+- 发送（`app/programs/delivery.py`）：只发已核准周报、每日摘要与即时警示，每条一次；草稿永不发送。
 - 新功能一律默认关闭；常规任务钩子失败不得阻断新闻交付。不要在没有分析员确认的情况下显示涉及具名个人的非正式关系或指控。
 
 ## 选情研判功能已移除（2026-11-13）

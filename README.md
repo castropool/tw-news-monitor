@@ -206,6 +206,10 @@ python -m app.pilot.weekly revision --week-ending 2026-11-22 --id 1 accept --rev
 - 每日战略摘要：`python -m app.programs.daily`（共军异常、正式决定以上的事实、跨计划事件、待决修订；`DAILY_ALERT_CLASSES` 决定哪些算警示；只写本地文件）。
 - P4 回测：`python -m app.military.pla_backtest --since 2025-01-01 --until 2025-12-31`，以 `config/p4_incident_labels.yaml`（须分析员确认日期）计算异常旗标的召回率与精确率。
 - 各计划的新闻来源（`prog_*`）在 `config/sources.yaml` 中默认关闭。
+- 排程与飞书发送（`app/programs/delivery.py`，依设计文档决定：团队使用、发到现有飞书群）：
+  - `WEEKLY_AUTO_DRAFT=true`：周日 `WEEKLY_DRAFT_HOUR`（默认 9 点，台北）起为 `WEEKLY_PROGRAMS`（默认 `P4`）生成截至周六的草稿；
+  - `PROGRAM_DELIVERY_ENABLED=true`：经常规通知渠道（`NOTIFIER=feishu` 时即现有飞书群）发送：**已核准**的周报（草稿永不发送）、`DAILY_DIGEST_HOUR`（默认 8 点）起的前一日每日摘要、以及 `DAILY_ALERT_CLASSES` 中的即时警示；
+  - 每条只发一次（表 `program_deliveries`）；`DISABLE_FEISHU_SEND` 仍可暂停发送，恢复后补发。
 
 ### 时效与重要度
 
@@ -307,6 +311,8 @@ tw-news-monitor-simple/
 | `NEWS_CATCHUP_ENABLED` / `NEWS_CATCHUP_MAX_MINUTES` | 补发开关与窗口 |
 | `DISABLE_FEISHU_SEND` | 停用飞书发送 |
 | `PROGRAMS_TAGGING_ENABLED` / `PILOT_EXTRACTION_PROGRAMS` | 常规任务中的计划归类开关（默认关）、要抽取事实的计划（默认 `P4`） |
+| `WEEKLY_AUTO_DRAFT` / `WEEKLY_PROGRAMS` / `WEEKLY_DRAFT_HOUR` | 周日自动生成周报草稿（默认关）、计划列表（默认 `P4`）、时点（默认 9） |
+| `PROGRAM_DELIVERY_ENABLED` / `DAILY_DIGEST_HOUR` | 发送已核准周报、每日摘要与即时警示（默认关）、每日摘要时点（默认 8） |
 | `ASSESSMENT_ROOT` / `LEADS_ALLOWED_HOSTS` / `DAILY_ALERT_CLASSES` | 各计划周报与每日摘要目录（默认 `data/assessments`）、搜索提议允许的来源、每日警示类别 |
 | `PLA_ACTIVITY_ENABLED` / `PLA_ACTIVITY_LIST_URL` | 国防部共军动态日报采集开关（默认关）、列表页地址（默认 `https://www.mnd.gov.tw/news/plaactlist`） |
 | `AI_MODEL_FAST` / `AI_MODEL_STRONG` / `AI_CACHE_ENABLED` / `AI_CACHE_DAYS` | 两档模型、AI 回答缓存开关与天数（默认开、30 天） |
