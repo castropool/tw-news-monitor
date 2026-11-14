@@ -108,6 +108,13 @@ config/sources.yaml
 - **身份键（identity key）**：独立提取来源、日期与标题指纹，用于捕获同一文章的别名 URL（如 UDN 重复路径），不会改写用户看到的链接。
 - 三轮去重：本轮内 URL 去重 → 本轮内 identity 去重 → 与历史库 URL+identity 比对。
 
+### 正文存储（`article_text.py`，表 `article_texts`）
+
+- 摘要器 hybrid 模式已下载的文章页，其正文抽取结果（trafilatura，不含 meta 描述）同时存入 `article_texts`，不增加任何请求。
+- 带 `access_level` 的国际媒体条目永不抓取正文（与摘要器相同的边界）。
+- 保留约 24 个月（`ARTICLE_TEXT_RETENTION_DAYS`，默认 730），过期只删正文，文章行保留；每次运行自动清理。
+- `ARTICLE_TEXT_FETCH_MAX`（默认 0）设为正数时，每次运行额外抓取最多该数量的、尚无正文的文章（如有 RSS 导语而未下载过的）。
+
 ### 时效与重要度
 
 - `freshness.py`：`app/main.py` 中固定 90 分钟时效窗口内的为 fresh；`NEWS_CATCHUP_ENABLED=true` 时可对窗口外的新文章做补发（`NEWS_CATCHUP_MAX_MINUTES`，默认 720，且必须大于 90）。
@@ -207,6 +214,7 @@ tw-news-monitor-simple/
 | `NEWS_DB_PATH` / `SOURCES_CONFIG_PATH` / `DATABASE_PATH` | 路径覆盖 |
 | `NEWS_CATCHUP_ENABLED` / `NEWS_CATCHUP_MAX_MINUTES` | 补发开关与窗口 |
 | `DISABLE_FEISHU_SEND` | 停用飞书发送 |
+| `ARTICLE_TEXT_STORE` / `ARTICLE_TEXT_RETENTION_DAYS` / `ARTICLE_TEXT_FETCH_MAX` | 正文存储开关（默认开）、保留天数（默认 730）、每次额外抓取上限（默认 0 = 不额外请求） |
 
 ## 七、测试
 

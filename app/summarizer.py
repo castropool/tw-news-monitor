@@ -24,6 +24,7 @@ from pathlib import Path
 import httpx
 from bs4 import BeautifulSoup
 
+from . import article_text
 from .deepseek_analysis import DeepSeekClient
 from .models import Article
 
@@ -397,28 +398,39 @@ def _extract_article_text(html: str) -> str | None:
     return plain or None
 
 
-def _fetch_article_content(url: str, client: httpx.Client) -> tuple[str | None, bool]:
-    """Return (text, fetched_ok). fetched_ok=False on network/HTTP errors."""
+def _fetch_article_content(
+    url: str, client: httpx.Client
+) -> tuple[str | None, bool, bool]:
+    """Return (text, fetched_ok, is_main_text).
+
+    fetched_ok=False on network/HTTP errors; is_main_text=False when the text
+    is only the meta-description fallback.
+    """
     try:
         resp = client.get(url, timeout=META_TIMEOUT)
         resp.raise_for_status()
     except Exception as exc:
         logger.debug("Article content fetch failed for %s: %s", url, exc)
-        return None, False
+        return None, False, False
     text = _extract_article_text(resp.text)
-    if not text:
-        text = _extract_meta_description(resp.text)
-    return text, True
+    if text:
+        return text, True, True
+    return _extract_meta_description(resp.text), True, False
 
 
 def fetch_article_contents(
-    articles: list[Article], max_workers: int | None = None
+    articles: list[Article],
+    max_workers: int | None = None,
+    *,
+    full_texts: dict[str, str] | None = None,
 ) -> tuple[dict[str, str], list[str]]:
     """Fetch article pages and extract main text.
 
     Returns (contents, empty_urls). ``empty_urls`` contains pages that were
     fetched successfully but yielded no extractable text (permanent misses);
     network errors are not included so they retry on the next run.
+    When ``full_texts`` is given, it receives the untruncated main-text
+    extractions (meta-description fallbacks excluded) for storage.
     """
     urls = [a.url for a in articles]
     if not urls:
@@ -437,15 +449,26 @@ def fetch_article_contents(
             }
             for future in as_completed(futures):
                 url = futures[future]
-                text, fetched_ok = future.result()
+                text, fetched_ok, is_main_text = future.result()
                 if not fetched_ok:
                     continue
                 if text:
                     results[url] = text
+                    if is_main_text and full_texts is not None:
+                        full_texts[url] = text
                 else:
                     empty_urls.append(url)
     logger.info("Article contents fetched: %d/%d", len(results), len(urls))
     return results, empty_urls
+
+
+def fetch_article_full_texts(articles: list[Article]) -> dict[str, str]:
+    """Main-text extractions only (used by app.article_text)."""
+    full_texts: dict[str, str] = {}
+    fetch_article_contents(
+        [a for a in articles if a.access_level is None], full_texts=full_texts
+    )
+    return full_texts
 
 
 def _extract_meta_description(html: str) -> str | None:
@@ -549,7 +572,11 @@ def enrich_articles_with_summaries(articles: list[Article], db=None) -> list[Art
 
         empty_urls: list[str] = []
         if mode == "hybrid":
-            contents, empty_urls = fetch_article_contents(page_fetch_pending)
+            full_texts: dict[str, str] = {}
+            contents, empty_urls = fetch_article_contents(
+                page_fetch_pending, full_texts=full_texts
+            )
+            article_text.save_texts(db, full_texts, now=now)
         if mode in ("llm", "hybrid"):
             llm_summaries.update(summarize_with_deepseek(pending, contents=contents))
 

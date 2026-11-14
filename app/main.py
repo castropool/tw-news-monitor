@@ -27,6 +27,7 @@ from .lock import InstanceLock
 from .notifier import NullNotifier, create_notifier
 from .feishu import build_highlight_card, send_card, send_document
 from .word_digest import build_word_digest
+from . import article_text
 from .summarizer import enrich_articles_with_summaries
 from .freshness import FreshnessResult, filter_fresh_articles
 from .source_registry import (
@@ -332,11 +333,17 @@ def deduplicate_articles_by_url(articles):
 
 
 def enrich_summaries_safe(articles, db=None) -> None:
-    """Best-effort summary enrichment; never blocks Word generation."""
+    """Best-effort summary enrichment; never blocks Word generation.
+
+    Also keeps the internal full-text store current (capped optional fetch,
+    retention purge); both are no-ops without a DB and never raise.
+    """
     try:
         enrich_articles_with_summaries(articles, db)
     except Exception as exc:
         logger.warning("Summary enrichment failed: %s", exc)
+    article_text.fetch_missing(db, articles)
+    article_text.purge_expired(db)
 
 
 def _classify_and_persist_election2026(

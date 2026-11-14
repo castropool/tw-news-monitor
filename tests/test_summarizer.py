@@ -252,7 +252,7 @@ class TestPrompt:
 
     def test_fetch_article_contents_tracks_empty_not_errors(self, monkeypatch):
         fake_results = iter(
-            [("正文一", True), (None, True), (None, False)]
+            [("正文一", True, True), (None, True, False), (None, False, False)]
         )
         monkeypatch.setattr(
             summarizer,

@@ -9,7 +9,7 @@ from .article_identity import article_identity_key, prefer_richer_article
 from .models import Article
 
 logger = logging.getLogger(__name__)
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 IDENTITY_BACKFILL_BATCH = 500
 
 
@@ -169,6 +169,7 @@ class Database:
             )
 
             self._ensure_topics_schema()
+            self._ensure_article_text_schema()
             self._ensure_social_schema()
             self._backfill_identity_keys()
 
@@ -256,6 +257,25 @@ class Database:
         ):
             if col not in columns:
                 self.conn.execute(f"ALTER TABLE news_topics ADD COLUMN {ddl}")
+
+    def _ensure_article_text_schema(self) -> None:
+        """Full article text kept internally (see app/article_text.py)."""
+        self.conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS article_texts (
+                url TEXT PRIMARY KEY,
+                text TEXT NOT NULL,
+                extractor TEXT NOT NULL,
+                char_count INTEGER NOT NULL,
+                content_sha256 TEXT NOT NULL,
+                fetched_at TEXT NOT NULL
+            )
+            """
+        )
+        self.conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_article_texts_fetched_at "
+            "ON article_texts(fetched_at)"
+        )
 
     def _ensure_social_schema(self) -> None:
         """Create political-social-monitor tables without touching news data."""
@@ -1044,6 +1064,70 @@ class Database:
             [topic, *urls],
         ).fetchall()
         return {row[0] for row in rows}
+
+    # ── article full text ────────────────────────────────────────────
+
+    def save_article_texts(
+        self, texts: dict[str, str], *, extractor: str, fetched_at: datetime
+    ) -> int:
+        """Upsert full texts keyed by URL; returns rows inserted or changed."""
+        import hashlib
+
+        rows = []
+        for url, text in texts.items():
+            body = (text or "").strip()
+            if not url or not body:
+                continue
+            digest = hashlib.sha256(body.encode("utf-8")).hexdigest()
+            rows.append((url, body, extractor, len(body), digest, fetched_at.isoformat()))
+        if not rows:
+            return 0
+        before = self.conn.total_changes
+        self.conn.executemany(
+            "INSERT INTO article_texts(url, text, extractor, char_count, content_sha256, fetched_at) "
+            "VALUES (?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(url) DO UPDATE SET text = excluded.text, extractor = excluded.extractor, "
+            "char_count = excluded.char_count, content_sha256 = excluded.content_sha256, "
+            "fetched_at = excluded.fetched_at "
+            "WHERE article_texts.content_sha256 != excluded.content_sha256",
+            rows,
+        )
+        self.conn.commit()
+        return self.conn.total_changes - before
+
+    def get_article_text(self, url: str) -> dict | None:
+        row = self.conn.execute(
+            "SELECT url, text, extractor, char_count, content_sha256, fetched_at "
+            "FROM article_texts WHERE url = ?",
+            (url,),
+        ).fetchone()
+        if row is None:
+            return None
+        keys = ("url", "text", "extractor", "char_count", "content_sha256", "fetched_at")
+        return dict(zip(keys, row))
+
+    def get_urls_with_text(self, urls: list[str]) -> set[str]:
+        found: set[str] = set()
+        for chunk in self._chunks(list(urls)):
+            placeholders = ",".join("?" * len(chunk))
+            found.update(
+                row[0]
+                for row in self.conn.execute(
+                    f"SELECT url FROM article_texts WHERE url IN ({placeholders})", chunk
+                )
+            )
+        return found
+
+    def count_article_texts(self) -> int:
+        return int(self.conn.execute("SELECT COUNT(*) FROM article_texts").fetchone()[0])
+
+    def purge_article_texts(self, older_than: datetime) -> int:
+        """Delete texts fetched before ``older_than``; article rows are kept."""
+        cursor = self.conn.execute(
+            "DELETE FROM article_texts WHERE fetched_at < ?", (older_than.isoformat(),)
+        )
+        self.conn.commit()
+        return cursor.rowcount
 
     def __enter__(self):
         self.connect()
