@@ -77,9 +77,6 @@ def main() -> None:
         "app/election_event_merge.py",
         "app/election_fact_store.py",
         "app/election_classifier.py",
-        "app/election_context/repository.py",
-        "app/election_context/bootstrap.py",
-        "app/election_context/importer.py",
         "app/main.py",
     ]
 

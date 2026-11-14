@@ -12,11 +12,11 @@ from app.election_candidates.review_workflow import (
     save_review_decision,
 )
 
-from .publication_helpers import (
+from .review_helpers import (
     default_event_payload,
     default_sources,
     make_and_save_decision,
-    make_publication_config,
+    make_review_config,
     open_candidate_repo,
     seed_candidate,
 )
@@ -30,7 +30,7 @@ def test_allowed_decisions():
 
 
 def test_reviewer_required(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     template = export_review_template(repo, "cand_tnn_abc123", config)
@@ -44,7 +44,7 @@ def test_reviewer_required(tmp_path):
 
 
 def test_illegal_decision(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     template = export_review_template(repo, "cand_tnn_abc123", config)
@@ -58,7 +58,7 @@ def test_illegal_decision(tmp_path):
 
 
 def test_approve_new_event_decision(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     decision = make_and_save_decision(
@@ -72,7 +72,7 @@ def test_approve_new_event_decision(tmp_path):
 
 
 def test_attach_existing_requires_target(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     with pytest.raises(ValueError):
@@ -84,7 +84,7 @@ def test_attach_existing_requires_target(tmp_path):
 
 
 def test_attach_existing_decision(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     decision = make_and_save_decision(
@@ -97,7 +97,7 @@ def test_attach_existing_decision(tmp_path):
 
 
 def test_reject_decision(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     make_and_save_decision(repo, config, tmp_path, "cand_tnn_abc123", "reject")
@@ -106,7 +106,7 @@ def test_reject_decision(tmp_path):
 
 
 def test_hold_decision(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     make_and_save_decision(repo, config, tmp_path, "cand_tnn_abc123", "hold")
@@ -115,7 +115,7 @@ def test_hold_decision(tmp_path):
 
 
 def test_needs_edit_decision(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     make_and_save_decision(repo, config, tmp_path, "cand_tnn_abc123", "needs_edit")
@@ -124,7 +124,7 @@ def test_needs_edit_decision(tmp_path):
 
 
 def test_decision_history_append_only(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     make_and_save_decision(repo, config, tmp_path, "cand_tnn_abc123", "hold")
@@ -140,7 +140,7 @@ def test_decision_history_append_only(tmp_path):
 
 
 def test_stale_review_blocked(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     template = export_review_template(repo, "cand_tnn_abc123", config)
@@ -173,7 +173,7 @@ def test_stale_review_blocked(tmp_path):
 
 
 def test_is_review_stale_detection(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     decision = make_and_save_decision(
@@ -202,7 +202,7 @@ def test_is_review_stale_detection(tmp_path):
 
 
 def test_candidate_business_hash_stable(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     h1 = candidate_business_hash(repo, "cand_tnn_abc123")
@@ -212,7 +212,7 @@ def test_candidate_business_hash_stable(tmp_path):
 
 
 def test_latest_decision_wins(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo)
     make_and_save_decision(repo, config, tmp_path, "cand_tnn_abc123", "hold")

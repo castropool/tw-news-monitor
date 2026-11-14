@@ -65,17 +65,6 @@ if (-not $SkipBackup) {
     Backup-Path (Join-Path $ProductionDir "config\election_candidate_pipeline.yaml") "config\election_candidate_pipeline.yaml"
     Backup-Path (Join-Path $ProductionDir "run_candidate_monitor.bat") "run_candidate_monitor.bat"
     Backup-Path (Join-Path $ProductionDir "app\election_candidates") "app\election_candidates"
-    Backup-Path (Join-Path $ProductionDir "app\election_context\repository.py") "app\election_context\repository.py"
-    Backup-Path (Join-Path $ProductionDir "app\election_context\bootstrap_v2.py") "app\election_context\bootstrap_v2.py"
-    Backup-Path (Join-Path $ProductionDir "app\election_context\formal_state_hash.py") "app\election_context\formal_state_hash.py"
-    Backup-Path (Join-Path $ProductionDir "app\election_context\coverage_builder.py") "app\election_context\coverage_builder.py"
-    Backup-Path (Join-Path $ProductionDir "app\election_context\coverage_rules.py") "app\election_context\coverage_rules.py"
-    Backup-Path (Join-Path $ProductionDir "app\election_context\coverage_validator.py") "app\election_context\coverage_validator.py"
-    Backup-Path (Join-Path $ProductionDir "app\election_context\downstream_refresh.py") "app\election_context\downstream_refresh.py"
-    Backup-Path (Join-Path $ProductionDir "app\election_context\snapshot_candidate_builder.py") "app\election_context\snapshot_candidate_builder.py"
-    Backup-Path (Join-Path $ProductionDir "app\election_context\snapshot_pipeline.py") "app\election_context\snapshot_pipeline.py"
-    Backup-Path (Join-Path $ProductionDir "app\election_context\snapshot_validator.py") "app\election_context\snapshot_validator.py"
-    Backup-Path (Join-Path $ProductionDir "app\election_context\run_post_publication_pipeline.py") "app\election_context\run_post_publication_pipeline.py"
     Backup-Path (Join-Path $ProductionDir "scripts\install_candidate_monitor_task.ps1") "scripts\install_candidate_monitor_task.ps1"
     Backup-Path (Join-Path $ProductionDir "scripts\status_candidate_monitor_task.ps1") "scripts\status_candidate_monitor_task.ps1"
     Backup-Path (Join-Path $ProductionDir "scripts\run_candidate_monitor_now.ps1") "scripts\run_candidate_monitor_now.ps1"
@@ -87,29 +76,8 @@ if (-not $SkipBackup) {
     Write-Host "跳过备份（-SkipBackup）"
 }
 
-# 新增/覆盖（repository.py 为纯新增方法的覆盖，其余均为新增文件）
+# 新增/覆盖候选监控代码与配置
 Deploy-Item (Join-Path $ProjectDir "app\election_candidates") "app\election_candidates" -Overwrite
-foreach ($name in @(
-    "repository.py",
-    "bootstrap_v2.py",
-    "formal_state_hash.py",
-    "coverage_builder.py",
-    "coverage_rules.py",
-    "coverage_validator.py",
-    "downstream_refresh.py",
-    "snapshot_candidate_builder.py",
-    "snapshot_pipeline.py",
-    "snapshot_validator.py",
-    "run_post_publication_pipeline.py"
-)) {
-    $src = Join-Path $ProjectDir ("app\election_context\" + $name)
-    $dest = Join-Path $ProductionDir ("app\election_context\" + $name)
-    if (Test-Path -LiteralPath $dest) {
-        Deploy-Item $src ("app\election_context\" + $name) -Overwrite
-    } else {
-        Deploy-Item $src ("app\election_context\" + $name)
-    }
-}
 Deploy-Item (Join-Path $ProjectDir "config\election_candidate_pipeline.yaml") "config\election_candidate_pipeline.yaml" -Overwrite
 Deploy-Item (Join-Path $ProjectDir "run_candidate_monitor.bat") "run_candidate_monitor.bat" -Overwrite
 foreach ($name in @(

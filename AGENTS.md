@@ -94,20 +94,31 @@ Python code from the old project.
   two-stage / R2 等 legacy 路径）、分析报告生成、人工终审与交付已整体删除：
   `app/assessment/`、`app/election_report.py`、`app/election_quality_check.py`、
   `config/election_assessment*.yaml`、研判提示词/计划任务脚本/测试均不再存在。
-- 不要重新引入研判命令、计划任务或占位模块。候选事实发布后的下游流水线
-  （`app/election_context/run_post_publication_pipeline.py`）只做 coverage
-  重建/激活与 snapshot 刷新，不再创建研判触发器（`assessment_trigger_queue`
-  表在旧库中保留但不再写入）。
+- 不要重新引入研判命令、计划任务或占位模块（`assessment_trigger_queue` 表在旧库中
+  保留但不再写入）。
 - `data/election_assessment/`、`data/reports/` 中的历史报告为归档数据，保留不删。
-- 通用工具已迁出：凭据扫描 `app/security_scan.py`；最新可用 coverage 版本选择
-  `app.election_context.coverage_activation.select_coverage_version`。
+- 通用工具已迁出：凭据扫描 `app/security_scan.py`。
+
+## 选情正式事实库与候选发布已移除（2026-11-14）
+
+- `app/election_context/`（正式入库、bootstrap、覆盖矩阵、态势快照、发布后下游流水线）
+  与 `app/election_candidates/` 中全部发布链路已删除：`publication_*`、`review_and_publish`、
+  `publish_reviewed_candidates`、`auto_publish_*`、`auto_review_orchestrator`、
+  `recover/rollback_publication`、`formal_diff`、`input_inspector`/`inspect_inputs`；
+  以及 `config/coverage_acceptance_rules.yaml`、自动发布计划任务脚本与相关测试。
+- 候选管线现为**只监控、不发布**：`build_candidate_queue` 生成候选，人工用
+  `review_candidate` 记录决定、`complete_review` 逐日标记审核完成（起点默认取候选库中
+  最近完成日，不再读写 coverage 的 facts_cutoff）。
+- 历史正式数据（`data/election_context*.db`、`data/election_seed/`、`data/research/`）保留不删；
+  候选生成只读打开 `paths.formal_db` 做查重与数据保护哈希，绝不写入。候选库中旧的
+  publication/downstream 表保留但不再创建或写入。不要重新引入发布或正式入库代码。
 
 ## 项目主文件夹（2026-08-11 整合后）
 
 - 唯一主文件夹/生产目录：`D:\WXWorkLocal\TW News-Monitor111\tw-news-monitor-simple`
-- 所有计划任务（Taiwan News Monitor、Tainan Election Candidate Monitor、
-  Tainan Election Fact Auto Publisher 及其新北对应任务）均指向本目录；旧事件管道任务
-  `Taiwan News Event Pipeline` 已停用（被候选管线取代）。
+- 所有计划任务（Taiwan News Monitor、Tainan Election Candidate Monitor 及其新北对应任务）
+  均指向本目录；旧事件管道任务 `Taiwan News Event Pipeline` 已停用（被候选管线取代）；
+  `Tainan / New Taipei Election Fact Auto Publisher` 已随发布功能移除。
 - 历史副本（`D:\0801tw-news-monitor-simple`、`tw-news-monitor-simple-0809`、
   `-dev`、`-election-dev`、`.BACKUP`、`D:\TW News-Monitor`、`D:\news monitor`）
   已停止同步，仅供归档参考，不要再作为改动目标。
@@ -120,19 +131,15 @@ Python code from the old project.
 - 第二选举：`new_taipei_mayoral_2026`（`TW-2026-NTP-MAYOR`，2026 新北市長）。
   通过独立 config 激活，台南默认行为零改动（向后兼容）。
 - 关键文件：`config/election_candidate_pipeline.new_taipei.yaml`（候选管线）、
-  `data/election_seed/new_taipei_2026/`（种子+coverage，含初始
-  `fact_coverage_20260903_v1`）、`data/election_candidates/new_taipei_2026/`。
-- **独立正式库**：`data/election_context.new_taipei.db`（不可与台南共享
-  `election_context.db`——候选发布管线 commit 会整体替换 formal DB，共享会被覆盖）。
+  `data/election_candidates/new_taipei_2026/`；只读查重用的历史正式库为
+  `data/election_context.new_taipei.db`（与台南分开配置）。
 - news.db / election_watch.db 共享；匹配走 `election_watch.yaml` 的 new_taipei 块
   （词表含侯友宜/李四川/苏巧慧等，随选情演进人工补充）。
 - 命令（多数支持 `--config` 覆盖）：
   - 候选监控：`python -m app.election_candidates.build_candidate_queue --config config/election_candidate_pipeline.new_taipei.yaml --since-last-success`
-  - 自动审核编排：`python -m app.election_candidates.auto_review_orchestrator --config config/election_candidate_pipeline.new_taipei.yaml`
-  - 人工审核：`list_candidates/show_candidate/export_review_template/review_and_publish/complete_review` 均加 `--config ...new_taipei.yaml`
+  - 人工审核：`list_candidates/show_candidate/export_review_template/review_candidate/complete_review` 均加 `--config ...new_taipei.yaml`
 - 计划任务（注册时加 `-Election new_taipei`，任务名带 New Taipei 前缀）：
   - `New Taipei Election Candidate Monitor`（每 30 分钟）
-  - `New Taipei Election Fact Auto Publisher`（每 30 分钟错峰）
 - 多选举注意：候选事件 ID 前缀随 `election.candidate_id_prefix` 派生
   （cand_tnn→evt_tnn_，cand_ntp→evt_ntp_）；`other_race_markers` 按主场反转
   （新北主场时台南是"他县"）；`match_reader.city_values` 决定分类器城市。

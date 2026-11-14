@@ -9,7 +9,7 @@ from app.election_candidates.state_machine import (
     can_transition,
 )
 
-from .publication_helpers import make_publication_config, open_candidate_repo, seed_candidate
+from .review_helpers import make_review_config, open_candidate_repo, seed_candidate
 
 
 @pytest.mark.parametrize(
@@ -40,7 +40,7 @@ def test_transition_matrix_is_complete():
 
 
 def test_apply_status_valid(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo, status="review_required")
     cand = apply_status(repo, "cand_tnn_abc123", "under_review", "run_x")
@@ -49,7 +49,7 @@ def test_apply_status_valid(tmp_path):
 
 
 def test_apply_status_illegal(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     seed_candidate(repo, status="auto_reject")
     with pytest.raises(ValueError):
@@ -58,7 +58,7 @@ def test_apply_status_illegal(tmp_path):
 
 
 def test_apply_status_missing_candidate(tmp_path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     with pytest.raises(ValueError):
         apply_status(repo, "missing", "under_review", "run_x")

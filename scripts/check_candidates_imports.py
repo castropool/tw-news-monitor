@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT))
 
 def main():
     modules = [
-        "config", "candidate_models", "input_inspector", "inspect_inputs",
+        "config", "candidate_models",
         "news_reader", "match_reader", "article_normalizer", "candidate_id",
         "event_clusterer", "assertion_classifier", "source_resolver",
         "formal_duplicate_checker", "candidate_scorer", "candidate_router",

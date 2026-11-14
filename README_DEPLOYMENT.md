@@ -23,15 +23,13 @@
 1. 解压或检出项目（保持目录结构完整）。
 2. 安装 Python 依赖：`pip install -r requirements.txt`。
 3. 复制 `.env.example` 为 `.env` 并填写所需变量。
-4. 安装计划任务（均可重复执行；候选监控/自动发布安装脚本支持 `-DryRun` 只打印不注册）：
+4. 安装计划任务（均可重复执行；候选监控安装脚本支持 `-DryRun` 只打印不注册）：
 
 | 计划任务 | 安装 | 状态 | 卸载 |
 | --- | --- | --- | --- |
 | `Taiwan News Monitor`（新闻采集/摘要/Word 简报/推送） | `install_task.bat` | `task_status.bat` | `uninstall_task.bat` |
 | `Tainan Election Candidate Monitor`（每 30 分钟） | `powershell -File scripts\install_candidate_monitor_task.ps1` | `scripts\status_candidate_monitor_task.ps1` | `scripts\uninstall_candidate_monitor_task.ps1` |
 | `New Taipei Election Candidate Monitor` | 同上加 `-Election new_taipei` | 同上加 `-TaskName "New Taipei Election Candidate Monitor"` | 同上加同样的 `-TaskName` |
-| `Tainan Election Fact Auto Publisher`（每 30 分钟错峰） | `powershell -File scripts\install_auto_publish_task.ps1` | `scripts\status_auto_publish_task.ps1` | `scripts\uninstall_auto_publish_task.ps1` |
-| `New Taipei Election Fact Auto Publisher` | 同上加 `-Election new_taipei` | 同上加 `-TaskName "New Taipei Election Fact Auto Publisher"` | 同上加同样的 `-TaskName` |
 
 5. 验证 KOL 账号（联网执行；未验证账号不会被采集）：
 
@@ -45,9 +43,10 @@
 6. 手工立即运行新闻任务一次：`run_task_now.bat`，核对 Word 简报（含「民调动态」「地下赌盘动态」「KOL 社群动态」小节）与飞书结果。
    民调与地下赌盘来源需能访问 `news.google.com`。
 
-## 清理旧研判计划任务
+## 清理已移除功能的旧计划任务
 
-旧版本可能已在部署电脑注册以下研判任务；新代码不再包含其入口脚本，任务继续运行只会报错。
+旧版本可能已在部署电脑注册以下选情研判与候选事实自动发布任务；新代码不再包含其入口
+（研判功能与正式事实库/发布功能均已移除），任务继续运行只会报错。
 请以管理员 PowerShell 逐一卸载（不存在时会提示，可忽略）：
 
 ```powershell
@@ -55,7 +54,9 @@ foreach ($name in @(
     "Tainan Election Assessment",
     "New Taipei Election Assessment",
     "Taiwan Election Assessment - Day 9",
-    "Taiwan Election Assessment - Day 22"
+    "Taiwan Election Assessment - Day 22",
+    "Tainan Election Fact Auto Publisher",
+    "New Taipei Election Fact Auto Publisher"
 )) {
     if (Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue) {
         Unregister-ScheduledTask -TaskName $name -Confirm:$false
@@ -66,8 +67,9 @@ foreach ($name in @(
 }
 ```
 
-部署目录中如残留旧 `app\assessment\`、`config\election_assessment*.yaml`、
-`scripts\*assessment*` 等文件，可在确认任务已卸载后手工删除。
+部署目录中如残留旧 `app\assessment\`、`app\election_context\`、`config\election_assessment*.yaml`、
+`config\coverage_acceptance_rules.yaml`、`scripts\*assessment*`、`scripts\*auto_publish*`、
+`run_auto_publish_candidates*.bat` 等文件，可在确认任务已卸载后手工删除。
 `data\election_assessment\`、`data\reports\` 下的历史报告与正式事实数据**不要删除**，
 它们作为历史归档保留。
 

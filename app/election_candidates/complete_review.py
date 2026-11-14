@@ -2,7 +2,7 @@
 
 Usage:
   python -m app.election_candidates.complete_review \
-      --through 2026-08-07 --reviewer <name> [--update-facts-cutoff]
+      --through 2026-08-07 --reviewer <name> [--from 2026-08-01]
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ import json
 
 from .candidate_repository import CandidateRepository
 from .config import load_config
-from .review_completion import complete_review_through, current_facts_cutoff
+from .review_completion import complete_review_through
 
 
 def main() -> None:
@@ -21,10 +21,8 @@ def main() -> None:
     parser.add_argument("--candidate-db", default=None)
     parser.add_argument("--election-id", default=None)
     parser.add_argument("--through", required=True, help="YYYY-MM-DD")
-    parser.add_argument("--from", dest="from_date", default=None, help="YYYY-MM-DD (default: current facts_cutoff)")
+    parser.add_argument("--from", dest="from_date", default=None, help="YYYY-MM-DD (default: last completed review day)")
     parser.add_argument("--reviewer", required=True)
-    parser.add_argument("--update-facts-cutoff", action="store_true",
-                        help="also advance authoritative facts_cutoff files")
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -40,7 +38,6 @@ def main() -> None:
             through_date=args.through,
             reviewer=args.reviewer,
             from_date=args.from_date,
-            update_facts_cutoff=args.update_facts_cutoff,
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
     finally:

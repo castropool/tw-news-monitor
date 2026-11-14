@@ -1,11 +1,8 @@
-"""Helpers for isolated Phase 2 publication tests."""
+"""Shared fixtures for candidate review tests (no formal fact store)."""
 
 from __future__ import annotations
 
 import json
-import shutil
-import sqlite3
-import hashlib
 from pathlib import Path
 from typing import Any
 
@@ -14,82 +11,23 @@ from app.election_candidates.candidate_repository import CandidateRepository
 from app.election_candidates.review_workflow import export_review_template, save_review_decision
 
 
-FIXTURE = Path(__file__).resolve().parent.parent / "fixtures" / "election_publication"
-
-
-def make_publication_config(tmp_path: Path):
-    seed_dst = tmp_path / "seed"
-    if seed_dst.exists():
-        shutil.rmtree(seed_dst)
-    shutil.copytree(FIXTURE / "seed", seed_dst)
-    _write_seed_manifest(seed_dst)
-    formal_db = tmp_path / "election_context.db"
-    from app.election_context.bootstrap import run_bootstrap
-
-    run_bootstrap(str(seed_dst), str(formal_db), reset=True)
+def make_review_config(tmp_path: Path):
+    """Candidate pipeline config whose every path points into ``tmp_path``."""
     (tmp_path / "news.db").write_bytes(b"")
     (tmp_path / "election_watch.db").write_bytes(b"")
-    (tmp_path / "release.zip").write_bytes(b"fixture")
     config = load_config("config/election_candidate_pipeline.yaml")
     config.raw["paths"].update(
         {
             "news_db": str(tmp_path / "news.db"),
             "match_db": str(tmp_path / "election_watch.db"),
-            "formal_db": str(formal_db),
+            "formal_db": str(tmp_path / "election_context.db"),
             "candidate_db": str(tmp_path / "candidate.db"),
             "output_root": str(tmp_path / "out"),
-            "events_seed": str(seed_dst / "events.jsonl"),
-            "sources_seed": str(seed_dst / "sources.jsonl"),
-            "initial_snapshot": str(seed_dst / "initial_snapshot.json"),
-            "snapshot_history": str(seed_dst / "snapshot_history.jsonl"),
-            "coverage_root": str(seed_dst),
-            "poll_seeds": [str(seed_dst / "polls.jsonl"), str(seed_dst / "poll_source_links.jsonl")],
-            "post_publication_root": str(tmp_path / "post_publication"),
-            "backup_root": str(tmp_path / "backups"),
             "lock_root": str(tmp_path / "locks"),
-            "frozen_release_zip": str(tmp_path / "release.zip"),
         }
     )
     config.raw["test_mode"] = True
     return config
-
-
-def _write_seed_manifest(seed_dir: Path):
-    from app.election_context.authority_map import AUTHORITY_MAP
-
-    entity_files = {
-        "election": "election.json", "actors": "actors.yaml", "sources": "sources.jsonl",
-        "events": "events.jsonl", "event_sources": "events.jsonl", "polls": "polls.jsonl",
-        "poll_questions": "poll_questions.jsonl", "poll_results": "poll_results.jsonl",
-        "poll_sources": "poll_sources.jsonl", "poll_source_links": "poll_source_links.jsonl",
-        "snapshots": "initial_snapshot.json", "snapshot_history": "snapshot_history.jsonl",
-    }
-    manifest = {
-        "election_id": "tainan_mayoral_2026",
-        "seed_manifest_version": "1.0",
-        "generated_at": "2026-08-07T00:00:00",
-        "entities": {
-            name: {
-                "path": path,
-                "schema_version": "1.0",
-                "record_count": (
-                    sum(1 for _ in (seed_dir / path).read_text(encoding="utf-8").splitlines() if _.strip())
-                    if path.endswith(".jsonl") else 1
-                ),
-                "sha256": hashlib.sha256((seed_dir / path).read_bytes()).hexdigest(),
-                "business_hash": hashlib.sha256((seed_dir / path).read_bytes()).hexdigest(),
-                "authority": (
-                    AUTHORITY_MAP.get(name) or AUTHORITY_MAP.get(name + "s", {})
-                ).get("authority", "unknown"),
-            }
-            for name, path in entity_files.items()
-        },
-        "schema_versions": {"seed_manifest": "1.0"},
-        "business_hashes": {},
-    }
-    (seed_dir / "seed_manifest.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
 
 
 def open_candidate_repo(config) -> CandidateRepository:

@@ -1,25 +1,13 @@
-# tw-news-monitor-simple — 台湾新闻监测 + 选情事实底表系统
+# tw-news-monitor-simple — 台湾新闻监测 + 选情候选事实监控
 
-本项目是一个运行在 Windows 上的台湾政治新闻监测与选情事实监测系统，由两大子系统构成：
+本项目是一个运行在 Windows 上的台湾政治新闻监测与选情候选事实监控系统，由两大子系统构成：
 
-1. **新闻采集与推送子系统**：定时采集台湾政治/财经/国际新闻，去重入库，生成摘要与 Word 简报，推送至控制台 / 飞书 / Telegram。
-2. **选情事实底表子系统**（`election_context`）：面向「2026 年台南市长选举」的可验证事实库——从研究资料包经人工裁决 → 转换预览 → 发布门禁 → 正式入库 → 覆盖矩阵 → 态势快照，全链路留痕、可审计、可回滚。
+1. **新闻采集与推送子系统**：定时采集台湾政治/财经/国际新闻、民调、地下赌盘与 KOL 社群动态，去重入库，生成摘要与 Word 简报，推送至控制台 / 飞书 / Telegram。
+2. **选情候选事实监控**（`app/election_candidates/`）：从新闻中自动生成 2026 台南 / 新北市长选举的候选事实，供人工审核与逐日完成审核记录（只监控、不发布）。
 
-> 选情研判（台南/新北分析报告生成、人工终审与交付）功能已从本项目移除；`data/` 下已生成的历史报告与正式事实数据保留，不再由代码生成或读取。
-
-当前正式数据基线（2026-08-01）：
-
-| 指标 | 数量 |
-|---|---|
-| elections | 1 |
-| actors | 6 |
-| events（正式事件） | 41 |
-| sources（正式来源） | 112 |
-| event_source_links | 101 |
-| event_fts（全文检索） | 41 |
-| polls（正式民调） | 15 |
-| poll_questions / poll_results | 39 / 116 |
-| snapshots（态势快照） | 4（1 active：`tn_state_20260801_v1`） |
+> 已移除的功能：选情研判（分析报告生成、终审与交付），以及选情正式事实库（`app/election_context/`：
+> 正式入库、覆盖矩阵、态势快照、候选事实发布 / 自动发布）。`data/` 下的历史报告、正式事实库
+> `election_context.db` 与种子均作为历史数据保留；候选生成时只读引用它们做查重，不再写入。
 
 ---
 
@@ -147,90 +135,11 @@ config/sources.yaml
 
 ---
 
-## 三、选情事实底表子系统（`app/election_context/`）
+## 三、选情候选事实监控（`app/election_candidates/`）
 
-这是面向「2026 台南市长选举」的核心工程，遵循 **种子(seed) → 数据库(DB) 双写一致、全流程门禁、幂等可回滚** 的原则。
-
-### 核心概念
-
-- **正式种子（formal seed）**：`data/election_seed/tainan_2026/` 下的权威文本文件，是事实的唯一来源（source of truth）：
-  - `election.json`（选举定义）、`actors.yaml`（人物）、`events.jsonl`（41 条正式事件）、`sources.jsonl`（112 条正式来源）、`polls.jsonl`（15 条正式民调）、`poll_source_links.jsonl`、`taxonomy.yaml`（事件类型定义）、`initial_snapshot.json` + `snapshot_history.jsonl`（快照）。
-- **生产数据库**：`data/election_context.db`，由种子经 bootstrap 生成，必须与种子完全等价（有等价性校验）。
-- **事件（event）**：事实最小单元，含 `event_id`、`occurred_at`、`event_type`、`title`、`analysis_json`（含 scope / verified_facts / limitations / subevents / mentions 等）、`sources[]`（内嵌来源）。
-- **证据台账（evidence ledger）**：覆盖矩阵 v4 中 88 条唯一 `evidence_ref`，每条绑定事件、来源、主题、限制与修订版本（`rt04_imported` / `rt04_enriched`）。
-
-### 模块职责（`app/election_context/`）
-
-| 模块 | 职责 |
-|---|---|
-| `models.py` | Election / Actor / Source / ElectionEvent / ElectionStateSnapshot 数据模型 |
-| `repository.py` | SQLite 仓储层：建表、保存、查询、FTS 全文检索与相关度排序 |
-| `bootstrap.py` | 从种子构建/重置生产 DB，幂等（重复运行结果一致） |
-| `importer.py` | events.jsonl / sources.jsonl 导入 |
-| `retriever.py` | `build_election_context()`：检索 + 组装选情上下文 |
-| `state_builder.py` | `build_snapshot()`：生成态势快照 |
-| `audit.py` | 数据库完整性审计（计数、孤儿、快照约束等） |
-| `poll_validator.py` | 民调记录/集合校验、可比性分组（cross-tracker 比对前提） |
-| `validate_*.py` | 各阶段门禁验证器（见下） |
-
-### 验证器（门禁）
-
-| 验证器 | 门禁内容 |
-|---|---|
-| `validate_poll_import.py` / `validate_poll_release.py` | 民调导入与发布校验 |
-| `validate_event_release.py` | 事件发布：正式数据不变、限制披露、唯一性 |
-| `validate_search_release.py` | 检索案例 + 黄金检索集通过 |
-| `validate_seed_db_equivalence.py` | 种子 ↔ 生产 DB 等价性 |
-| `validate_snapshot_release.py` / `validate_snapshot_v2_preview.py` | 快照发布：只引用正式证据、唯一 active、supersede 正确、幂等 |
-| `validate_fact_coverage.py` | 覆盖矩阵：preflight / ledger / 时间/主题矩阵 / 快照缺口对账 / backlog |
-
-### 研究 → 入库流水线（RT 流程）
-
-每条研究任务（RT02 陈亭妃整合、RT03 谢龙介组织、RT04 蓝白合作…）按固定管线推进，每步产出可审计报告：
-
-```
-data/research/tainan_2026/<rtXX>_research_pack_*.jsonl/.md   # 研究资料包（含人工裁决标记）
-   ↓ 转换预览
-event_preview_rtXX_*/  → conversion_report / event_similarity_report /
-                         event_type_mapping_report / human_adjudication_report /
-                         negative_findings.jsonl / final_release_candidate/
-   ↓ 发布门禁
-rtXX_release_gate.json / rtXX_source_import_plan.json（新来源数、复用数）
-   ↓ 正式入库（双写种子 + DB）
-event_import_rtXX_*/ → import_preflight / import_validation / post_release_reconciliation /
-                       seed_db_equivalence / bootstrap_idempotency / second_import_idempotency /
-                       search_results / golden_search_results / import_audit
-   ↓ 覆盖更新
-fact_coverage_*/ v1 → v2 → v3 → v4（ledger / 时间矩阵 / 主题矩阵 / gap对账 / backlog / closure_record / blocker_triage）
-   ↓ 快照
-snapshot_release_candidate_*.json → snapshot_validation → 原子发布（supersede 旧 active）
-```
-
-关键约束（历史教训固化为门禁）：
-
-- **种子必须与 DB 等价**（重建验证）；导入前必须备份到 `data/backup_rtXX_pre_import/`。
-- **enrichment（子事件/新增内容）必须写进种子**，否则重建丢失（RT02/RT03 教训）。
-- **`analysis_json` 必须以解析后的 dict 写入种子**，否则 scope 等顶层键丢失（RT04 教训）。
-- 发布前核验：目标事件哈希不变、非目标事件不动、hold / negative finding 不得作为正式证据。
-- 快照发布：先候选 → 验证 → 原子发布（唯一 active、旧快照 supersede、二次发布幂等）。
-
-### 覆盖矩阵版本（`data/election_seed/tainan_2026/fact_coverage_*/`）
-
-| 版本 | 说明 |
-|---|---|
-| v1（20260727） | 基线：RT01 民调缺口负发现 |
-| v2（20260727） | RT02 陈亭妃整合（closure_record） |
-| v3（20260727） | RT03 谢龙介组织（closure_record） |
-| **v4（20260801）** | **RT04 蓝白合作结项 + 快照阻断分级 + 首个生产快照** |
-
-每个版本包含：`coverage_preflight.json`、`coverage_evidence_ledger.jsonl`（88 条）、`time_coverage_matrix.{json,csv}`、`theme_coverage_matrix.{json,csv}`、`snapshot_gap_reconciliation.json`、`research_priority_backlog.json`、`coverage_validation.json`；RT 结项版本另含 `rtXX_closure_record.json`、`snapshot_blocker_triage.json` 等。**旧版本禁止修改**（构建前有哈希快照校验）。
-
-### 态势快照（snapshot）
-
-- 正式快照：`initial_snapshot.json`（当前 active）+ `snapshot_history.jsonl`（历史，superseded）。
-- 当前 active：`tn_state_20260801_v1`（事实截止 2026-07-27，民调截止 2026-03-12）。
-- 快照内容：总体格局、候选人判断（陈亭妃整合 / 谢龙介组织 / 蓝白合作）、民调判断（含空窗披露）、已知限制、核心议题、关键风险、里程碑事件。
-- 门禁：只引用正式事件/民调、active P0=0、无 hard blocker、民调空窗与治理缺口必须披露、pytest 全过。
+- 生成：`python -m app.election_candidates.build_candidate_queue --since-last-success`（计划任务「Tainan / New Taipei Election Candidate Monitor」每 30 分钟运行；新北加 `--config config/election_candidate_pipeline.new_taipei.yaml`）。读取 `news.db` 与 `election_watch.db`，聚类、断言分类、来源解析、评分与路由后写入候选库 `data/election_candidates/<选举>/candidate_fact_pipeline.db`。
+- 查重：只读打开历史正式事实库（`paths.formal_db`）比对疑似重复；从不写入正式库或种子（`guardrails`）。
+- 审核：`list_candidates` / `show_candidate` / `export_review_template` / `review_candidate`（追加式审核记录）/ `complete_review`（逐日连续标记“已审核完成”）。操作步骤见 `docs/FACT_MAINTENANCE_OPERATOR_GUIDE.md`。
 
 ---
 
@@ -260,26 +169,20 @@ tw-news-monitor-simple/
 │   ├── diagnose.py              # 采集诊断
 │   ├── election_classifier.py election_watch.py election_fact_store.py
 │   ├── election_event_merge.py election_utils.py deepseek_analysis.py
-│   └── election_context/        # 选情事实底表子系统
-│       ├── models.py repository.py bootstrap.py importer.py retriever.py
-│       ├── state_builder.py audit.py poll_validator.py
-│       └── validate_*.py        # 各阶段门禁
+│   ├── election2026/            # 九合一选举新闻识别（Word 专栏）
+│   ├── election_candidates/     # 选情候选事实监控（生成 + 人工审核，不发布）
+│   ├── special_topics/          # 民调 / 地下赌盘相关性门禁与标注
+│   └── social_monitor/          # 政治人物与 KOL 社群监测
 ├── config/                      # sources.yaml / election_watch.yaml / importance_rules.yaml 等
 ├── data/
 │   ├── news.db                  # 新闻库（勿删！去重状态在此）
-│   ├── election_context.db      # 选情事实底表生产库
-│   ├── election_seed/tainan_2026/   # ★ 正式种子（事实唯一来源）
-│   │   ├── events.jsonl sources.jsonl polls.jsonl election.json actors.yaml taxonomy.yaml
-│   │   ├── initial_snapshot.json snapshot_history.jsonl
-│   │   ├── event_preview_rtXX_*/     # 转换预览 + 人工裁决 + release candidate
-│   │   ├── event_import_rtXX_*/      # 正式入库报告（验证/对账/幂等/审计）
-│   │   └── fact_coverage_*/          # 覆盖矩阵 v1-v4
-│   ├── research/tainan_2026/         # 研究资料包（人工裁决输入）
+│   ├── election_candidates/          # 候选库与审核模板（候选监控运行数据）
+│   ├── election_context.db           # 历史正式事实库（只读查重，不再写入）
+│   ├── election_seed/ research/ backup_rtXX_pre_import/   # 历史正式种子与研究资料（归档）
 │   ├── reports/tainan_2026/          # 历史研判报告归档（功能已移除，仅保留数据）
-│   ├── backup_rtXX_pre_import/       # 导入前备份
 │   └── diagnostics/                  # 采集诊断输出
 ├── prompts/                     # summarize.md 文章梗概提示词
-├── tests/                       # 629+ 个测试（含 election_context 门禁测试）
+├── tests/                       # 离线测试（采集、去重、Word、通知、候选监控等）
 ├── *.bat / *.ps1                # 计划任务安装/状态/卸载
 ├── requirements.txt
 └── README.md
@@ -308,18 +211,16 @@ tw-news-monitor-simple/
 ## 七、测试
 
 ```bash
-python -m pytest -q      # 2564 passed, 4 skipped（2026-08-14）
+python -m pytest -q
 ```
 
-测试覆盖：采集器解析（含国际媒体真实结构离线 fixture）、去重/身份键、时效/重要度、国际相关性与跨媒体显示去重、Word 生成、通知渠道、配置校验、民调校验，以及 election_context 全部门禁（RT02/RT03/RT04 转换预览、发布门禁、来源校正、结项快照、种子↔DB 等价、哈希不变）。
+测试覆盖：采集器解析（含国际媒体真实结构离线 fixture）、去重/身份键、时效/重要度、国际相关性与跨媒体显示去重、Word 生成、通知渠道、配置校验、民调 / 赌盘 / KOL 来源，以及候选事实生成与审核流程。
 
 ## 八、维护注意事项
 
 1. **不要删除 `data/news.db`**：包含文章历史与去重状态。
-2. **不要直接改正式种子**：任何事件/来源/民调变更必须走「备份 → 转换 → 门禁 → 双写 → 对账 → 测试」流程。
-3. **不要修改既有覆盖矩阵版本**（v1-v4 是历史快照）。
-4. **导入前必须备份**：`backup_rtXX_pre_import/` 保留每个任务的前置状态，用于回滚。
-5. **快照发布遵循候选→验证→原子发布**：连续发布不得破坏唯一 active 约束。
+2. **不要删除候选库** `data/election_candidates/*/candidate_fact_pipeline.db`：包含审核记录与扫描游标。
+3. **历史正式数据只读**：`election_context.db`、`election_seed/`、`research/` 为归档数据，代码不再写入，也不要手工修改（候选查重会读取）。
 
 ## License
 
