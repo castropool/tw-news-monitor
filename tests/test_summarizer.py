@@ -203,7 +203,7 @@ class TestInternationalMetadataTranslation:
                 }
 
         monkeypatch.setenv("INTERNATIONAL_TRANSLATION_ENABLED", "true")
-        monkeypatch.setattr(summarizer, "_load_deepseek_client", lambda: FakeClient())
+        monkeypatch.setattr(summarizer, "_load_deepseek_client", lambda **kw: FakeClient())
         assert summarizer.translate_metadata(
             "English title", "English teaser", source_name="Reuters"
         ) == ("中文標題", "中文摘要。")

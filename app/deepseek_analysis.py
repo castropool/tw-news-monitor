@@ -1,23 +1,63 @@
-﻿import json
+import json
 import time
 import logging
 from datetime import datetime
 from typing import Any
 from pathlib import Path
+from urllib.parse import urlparse
+
+from . import ai_usage
 
 logger = logging.getLogger(__name__)
 
 class DeepSeekClient:
+    """The single entry point for model calls (OpenAI-compatible chat API).
+
+    Each call is checked against the monthly AI budget first and logged to
+    the usage ledger afterwards (see app/ai_usage.py).  ``task`` labels the
+    ledger rows (e.g. ``summary``, ``translation``).
+    """
+
     def __init__(self, api_key: str, base_url: str = 'https://api.deepseek.com',
-                 model: str = 'deepseek-chat', timeout: int = 180, max_retries: int = 2):
+                 model: str = 'deepseek-chat', timeout: int = 180, max_retries: int = 2,
+                 task: str = 'unspecified'):
         self.api_key = api_key
         self.base_url = base_url.rstrip('/')
         self.model = model
         self.timeout = timeout
         self.max_retries = max_retries
+        self.task = task
         self._last_request: dict = {}
+        self._last_content = ''
+
+    @property
+    def provider(self) -> str:
+        host = urlparse(self.base_url).hostname or self.base_url
+        return 'local-gateway' if host in ('127.0.0.1', 'localhost', '::1') else host
 
     def analyze(self, system_prompt: str, user_prompt: str) -> dict:
+        try:
+            ai_usage.check_budget()
+        except ai_usage.BudgetExceeded as exc:
+            logger.warning('AI call skipped (%s): %s', self.task, exc)
+            ai_usage.record_call(task=self.task, provider=self.provider, model=self.model,
+                                 status='blocked', error=str(exc))
+            return {'status': 'error', 'error': 'budget_exceeded'}
+        self._last_content = ''
+        started = time.monotonic()
+        result = self._analyze(system_prompt, user_prompt)
+        ai_usage.record_call(
+            task=self.task, provider=self.provider, model=self.model,
+            status='success' if result.get('status') == 'success' else 'error',
+            prompt_text=system_prompt + user_prompt, output_text=self._last_content,
+            input_tokens=int(result.get('input_tokens') or 0),
+            output_tokens=int(result.get('output_tokens') or 0),
+            duration_ms=int((time.monotonic() - started) * 1000),
+            error=None if result.get('status') == 'success' else str(result.get('error')),
+        )
+        return result
+
+    def _analyze(self, system_prompt: str, user_prompt: str) -> dict:
         import httpx
         url = f'{self.base_url}/chat/completions'
         headers = {
@@ -57,6 +97,7 @@ class DeepSeekClient:
                 resp.raise_for_status()
                 data = resp.json()
                 content = data['choices'][0]['message']['content']
+                self._last_content = content or ''
                 usage = data.get('usage', {})
                 content_clean = content.strip()
                 if content_clean.startswith('```'):

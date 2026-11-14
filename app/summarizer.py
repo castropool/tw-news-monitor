@@ -147,7 +147,7 @@ def translate_metadata(
     """Translate supplied international metadata without fetching article content."""
     if not _env_truthy("INTERNATIONAL_TRANSLATION_ENABLED"):
         raise RuntimeError("international metadata translation is disabled")
-    client = _load_deepseek_client()
+    client = _load_deepseek_client(task="translation")
     if client is None:
         raise RuntimeError("international metadata translation client unavailable")
     payload = {
@@ -224,7 +224,7 @@ def deepseek_available() -> bool:
     )
 
 
-def _load_deepseek_client() -> DeepSeekClient | None:
+def _load_deepseek_client(task: str = "summary") -> DeepSeekClient | None:
     """Build the summarizer's LLM client.
 
     ``SUMMARIZER_BASE_URL`` / ``SUMMARIZER_MODEL`` win when set (e.g. a local
@@ -246,6 +246,7 @@ def _load_deepseek_client() -> DeepSeekClient | None:
         ),
         timeout=_int_env("SUMMARIZER_TIMEOUT_SECONDS", 180),
         max_retries=_int_env("SUMMARIZER_MAX_RETRIES", 2),
+        task=task,
     )
 
 

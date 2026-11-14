@@ -127,6 +127,13 @@ python -m app.search 民調 --category poll
 python -m app.search --rebuild
 ```
 
+### AI 调用记账与月度上限（`app/ai_usage.py`）
+
+- 所有模型调用都经 `DeepSeekClient.analyze`：发送前检查本月预估花费，发送后写入台账 `data/ai_usage.db`（任务、端点、模型、token、预估费用、耗时、错误）。
+- 预估偏高以保证不超支：按峰时价计价；未知模型按最贵已知价；网关不回报 token（本地 Command Code 网关恒为 0）时按文字长度估算（每个汉字 1 token，其余每 3 字符 1 token）。失败调用只计端点回报的 token。
+- 本月（UTC 自然月）预估花费达到 `AI_MONTHLY_BUDGET_USD`（默认 15 美元）后拒绝调用，摘要按现有降级路径回退（导语/meta），新闻照常交付。台账读写失败不阻断调用。
+- 查看：`python -m app.ai_usage`（本月）或 `python -m app.ai_usage --month 2026-10`。
+
 ### 时效与重要度
 
 - `freshness.py`：`app/main.py` 中固定 90 分钟时效窗口内的为 fresh；`NEWS_CATCHUP_ENABLED=true` 时可对窗口外的新文章做补发（`NEWS_CATCHUP_MAX_MINUTES`，默认 720，且必须大于 90）。
@@ -226,6 +233,7 @@ tw-news-monitor-simple/
 | `NEWS_DB_PATH` / `SOURCES_CONFIG_PATH` / `DATABASE_PATH` | 路径覆盖 |
 | `NEWS_CATCHUP_ENABLED` / `NEWS_CATCHUP_MAX_MINUTES` | 补发开关与窗口 |
 | `DISABLE_FEISHU_SEND` | 停用飞书发送 |
+| `AI_MONTHLY_BUDGET_USD` / `AI_USAGE_DB_PATH` | AI 月度花费上限（默认 15 美元）、调用台账路径（默认 `data/ai_usage.db`） |
 | `ARTICLE_TEXT_STORE` / `ARTICLE_TEXT_RETENTION_DAYS` / `ARTICLE_TEXT_FETCH_MAX` | 正文存储开关（默认开）、保留天数（默认 730）、每次额外抓取上限（默认 0 = 不额外请求） |
 
 ## 七、测试
