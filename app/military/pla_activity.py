@@ -70,7 +70,7 @@ CROSSED_PATTERNS = (
     re.compile(r"其中\s*(\d+)\s*架次(?:(?!架次)[^。；\n])*?(?:逾越|進入)"),
 )
 VESSELS_RE = re.compile(r"共艦\s*(\d+)\s*艘")
-OFFICIAL_SHIPS_RE = re.compile(r"公務船\s*(\d+)\s*艘")
+OFFICIAL_SHIPS_RE = re.compile(r"公務(?:船)?\s*(\d+)\s*艘")  # live text also writes "公務3艘"
 BALLOONS_RE = re.compile(r"氣球\s*(\d+)\s*(?:顆|枚|個|架)")
 NONE_AIRCRAFT_RE = re.compile(r"未(?:偵獲|發現)[^。]*?共機")
 NONE_VESSELS_RE = re.compile(r"未(?:偵獲|發現)[^。]*?共艦")

@@ -287,3 +287,14 @@ def test_detail_timeout_is_retried_once():
     client = httpx.Client(transport=httpx.MockTransport(handler))
     assert pla.get_detail(client, "https://www.mnd.gov.tw/news/plaact/88211").status_code == 200
     assert len(calls) == 2
+
+
+def test_official_ships_written_without_chuan():
+    # Report 88194 (2026-11-11) on www.mnd.gov.tw: "共艦7艘及公務3艘".
+    text = (
+        "一、日期:\n中華民國115年11月10日(星期二)0600時至115年11月11日(星期三)0600時止。\n"
+        "二、活動動態:\n迄0600時止,偵獲共機4架次(逾越中線進入北部及西南空域計2架次)、共艦7艘及公務3艘,持續在臺海周邊活動。"
+    )
+    r = pla.parse_report_text(text)
+    assert (r.report_date, r.aircraft, r.aircraft_crossed, r.vessels, r.official_ships) == (
+        "2026-11-11", 4, 2, 7, 3)
