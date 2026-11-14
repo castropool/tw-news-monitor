@@ -221,6 +221,117 @@ def render_week_markdown(view: WeekView, metrics: tuple[str, ...] = ("aircraft",
     return "\n".join(lines)
 
 
+# ── historical comparison ─────────────────────────────────────────────
+
+
+@dataclass(slots=True)
+class History:
+    metric: str
+    week_total: int | None
+    week_peak: int | None
+    week_peak_day: str | None
+    days_on_record: int
+    earlier_days_at_or_above_peak: list[tuple[str, int]]  # most recent first
+    count_at_or_above_peak: int
+    last_week_at_or_above_total: str | None  # end date of that 7-day window
+    weeks_on_record: int
+    week_rank: int | None  # 1 = highest 7-day total on record
+    same_week_last_year_total: int | None
+    same_week_last_year_end: str
+
+
+def _window_totals(series, metric: str) -> dict[str, int]:
+    """7-day totals keyed by window end date, for windows with >= 6 days of data."""
+    if not series:
+        return {}
+    days = sorted(date.fromisoformat(d) for d in series)
+    out: dict[str, int] = {}
+    day = days[0] + timedelta(days=6)
+    while day <= days[-1]:
+        values = [(series.get((day - timedelta(days=k)).isoformat()) or {}).get(metric) for k in range(7)]
+        present = [v for v in values if v is not None]
+        if len(present) >= 6:
+            out[day.isoformat()] = sum(present)
+        day += timedelta(days=1)
+    return out
+
+
+def history(series, week_ending: date, metric: str = "aircraft", *, top: int = 5) -> History:
+    """How this week compares with everything on record before it."""
+    start = week_ending - timedelta(days=6)
+    week = [(d, (series.get(d) or {}).get(metric))
+            for d in ((start + timedelta(days=i)).isoformat() for i in range(7))]
+    present = [(d, v) for d, v in week if v is not None]
+    total = sum(v for _, v in present) if len(present) >= 6 else None
+    peak_day, peak = max(present, key=lambda p: p[1]) if present else (None, None)
+    earlier = sorted(
+        ((d, row[metric]) for d, row in series.items()
+         if d < start.isoformat() and row.get(metric) is not None),
+        reverse=True,
+    )
+    at_or_above = [(d, v) for d, v in earlier if peak is not None and v >= peak]
+    windows = _window_totals(series, metric)
+    # Compare with whole earlier weeks ending on the same weekday, so one
+    # busy day is not counted in several overlapping windows.
+    prior = {}
+    end = week_ending - timedelta(days=7)
+    while windows and end.isoformat() >= min(windows):
+        if end.isoformat() in windows:
+            prior[end.isoformat()] = windows[end.isoformat()]
+        end -= timedelta(days=7)
+    last_above = None
+    if total is not None:
+        hits = [end for end, t in prior.items() if t >= total]
+        last_above = max(hits) if hits else None
+    rank = None
+    if total is not None and prior:
+        rank = 1 + sum(1 for t in prior.values() if t > total)
+    last_year_end = (week_ending - timedelta(days=364)).isoformat()
+    return History(
+        metric=metric,
+        week_total=total,
+        week_peak=peak,
+        week_peak_day=peak_day,
+        days_on_record=len(earlier),
+        earlier_days_at_or_above_peak=at_or_above[:top],
+        count_at_or_above_peak=len(at_or_above),
+        last_week_at_or_above_total=last_above,
+        weeks_on_record=len(prior),
+        week_rank=rank,
+        same_week_last_year_total=windows.get(last_year_end),
+        same_week_last_year_end=last_year_end,
+    )
+
+
+def render_history_markdown(h: History) -> str:
+    label = LABELS[h.metric]
+    if h.days_on_record == 0:
+        return f"- {label}：尚無歷史資料可供對照（需先回填國防部歷史報告）。"
+    lines = []
+    if h.week_peak is not None:
+        if h.count_at_or_above_peak:
+            recent = "、".join(f"{d}（{v}）" for d, v in h.earlier_days_at_or_above_peak)
+            lines.append(
+                f"- 本週單日最高 {h.week_peak}（{h.week_peak_day}）：在此前 {h.days_on_record} 天紀錄中，"
+                f"有 {h.count_at_or_above_peak} 天達到或超過此數，最近幾次為 {recent}。"
+            )
+        else:
+            lines.append(
+                f"- 本週單日最高 {h.week_peak}（{h.week_peak_day}）：高於此前 {h.days_on_record} 天紀錄中的任何一天。"
+            )
+    if h.week_total is not None and h.weeks_on_record:
+        when = (f"上次 7 日合計達到此數為截至 {h.last_week_at_or_above_total} 的一週"
+                if h.last_week_at_or_above_total else "此前紀錄中沒有任何 7 日合計達到此數")
+        lines.append(
+            f"- 本週合計 {h.week_total}：在此前 {h.weeks_on_record} 個完整週中排第 {h.week_rank}；{when}。"
+        )
+    elif h.week_total is None:
+        lines.append("- 本週缺報超過 1 天，不計算週合計排名。")
+    if h.same_week_last_year_total is not None:
+        lines.append(f"- 去年同週（截至 {h.same_week_last_year_end}）合計 {h.same_week_last_year_total}。")
+    return "\n".join(lines)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.military.pla_baseline")
     parser.add_argument("--week-ending", type=date.fromisoformat, help="YYYY-MM-DD (default: today, Taipei)")
@@ -236,9 +347,13 @@ def main(argv: list[str] | None = None) -> int:
 
     end = args.week_ending or datetime.now(TAIPEI).date()
     with Database(args.db or get_settings().news_db_path) as db:
-        view = week_view(load_series(db.conn), end)
+        series = load_series(db.conn)
+    view = week_view(series, end)
     print(f"PLA activity {view.start} – {view.end}\n")
     print(render_week_markdown(view))
+    print("\n歷史對照：")
+    for metric in ("aircraft", "aircraft_crossed"):
+        print(render_history_markdown(history(series, end, metric)))
     return 0
 
 

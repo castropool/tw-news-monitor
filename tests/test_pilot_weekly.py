@@ -98,6 +98,7 @@ def test_draft_contains_all_sections_citations_and_flags(db):
     for heading in ("## 一、研判要點", "## 二、共軍活動數據", "## 三、假設評估", "## 四、本週事實", "## 五、資料缺口", "## 六、來源"):
         assert heading in md
     assert "[數據]（把握：中）" in md and "⚠ 自動檢查：未核實數字 ['99']" in md
+    assert "### 歷史對照" in md and "本週單日最高 45（2026-11-13）" in md
     assert f"[1] 2026-11-13 共軍 共機逾越中線 18架次（未審核） — 「{QUOTE}」" in md
     assert "[1] 軍聞社〈共機45架次擾台〉https://m/1" in md
     assert "有全文 1 篇（100%）" in md and "2 則事實尚未經分析員審核" in md

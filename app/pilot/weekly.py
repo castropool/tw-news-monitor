@@ -236,6 +236,9 @@ def build_draft(conn: sqlite3.Connection, week_ending: date, *, client=None, use
     start, end = date.fromisoformat(view.start), week_ending
     facts = cl.claims_between(conn, start, end)
     data_md = pb.render_week_markdown(view)
+    history_md = "\n".join(
+        pb.render_history_markdown(pb.history(series, week_ending, m)) for m in ("aircraft", "aircraft_crossed")
+    )
     indicators = evaluate_hypotheses(series, view, facts)
 
     judgments: list[Judgment] = []
@@ -251,15 +254,16 @@ def build_draft(conn: sqlite3.Connection, week_ending: date, *, client=None, use
             model = client.model
             payload = {
                 "week": [view.start, view.end],
-                "data_table": data_md,
+                "data_table": data_md + "\n\n歷史對照：\n" + history_md,
                 "hypotheses": {k: v for k, v in HYPOTHESES.items()},
                 "indicators": [vars_(i) for i in indicators],
                 "facts": [_fact_payload(n, f) for n, f in enumerate(facts, 1)],
             }
             judgments, error = draft_judgments(client, payload)
-            critic(judgments, facts, data_md, (view.start, view.end))
+            critic(judgments, facts, data_md + "\n" + history_md, (view.start, view.end))
 
-    md = _render(view, data_md, indicators, facts, judgments, model=model, error=error, use_llm=use_llm,
+    md = _render(view, data_md + "\n\n### 歷史對照\n\n" + history_md, indicators, facts, judgments,
+                 model=model, error=error, use_llm=use_llm,
                  now=now or datetime.now(timezone.utc), text_coverage=_text_coverage(conn, start, end))
     return Draft(view.start, view.end, md, model, error, len(facts), sum(1 for j in judgments if j.notes))
 

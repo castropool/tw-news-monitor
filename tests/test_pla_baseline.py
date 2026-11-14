@@ -87,3 +87,36 @@ def test_load_series_from_db(tmp_path):
         pla.save_reports(db.conn, [pla.parse_report_text(text, "u")])
         series = pb.load_series(db.conn)
     assert series["2026-11-14"]["aircraft"] == 13 and series["2026-11-14"]["aircraft_crossed"] == 12
+
+
+def test_history_finds_earlier_peaks_rank_and_last_year():
+    s = make_series(days=420, overrides={
+        (END - timedelta(days=2)).isoformat(): {"aircraft": 40},    # this week's peak
+        (END - timedelta(days=50)).isoformat(): {"aircraft": 60},   # earlier, higher
+        (END - timedelta(days=200)).isoformat(): {"aircraft": 40},  # earlier, equal
+    })
+    h = pb.history(s, END)
+    assert h.week_peak == 40 and h.week_peak_day == "2026-11-12"
+    assert h.count_at_or_above_peak == 2
+    assert [d for d, _ in h.earlier_days_at_or_above_peak] == [
+        (END - timedelta(days=50)).isoformat(), (END - timedelta(days=200)).isoformat()]
+    assert h.week_rank == 2 and h.weeks_on_record >= 58  # only the week holding the 60 is higher
+    assert h.same_week_last_year_end == (END - timedelta(days=364)).isoformat()
+    assert h.same_week_last_year_total is not None
+    md = pb.render_history_markdown(h)
+    assert "有 2 天達到或超過此數" in md and "排第" in md and "去年同週" in md
+
+
+def test_history_record_high_and_no_history():
+    s = make_series(days=120, overrides={(END - timedelta(days=1)).isoformat(): {"aircraft": 99}})
+    md = pb.render_history_markdown(pb.history(s, END))
+    assert "高於此前 113 天紀錄中的任何一天" in md and "此前紀錄中沒有任何 7 日合計達到此數" in md
+    assert "尚無歷史資料" in pb.render_history_markdown(pb.history(make_series(days=7), END))
+
+
+def test_history_skips_week_total_with_gaps():
+    s = make_series(days=120)
+    for k in (1, 3):
+        del s[(END - timedelta(days=k)).isoformat()]
+    h = pb.history(s, END)
+    assert h.week_total is None and "缺報超過 1 天" in pb.render_history_markdown(h)
