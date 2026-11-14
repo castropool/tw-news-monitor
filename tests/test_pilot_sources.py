@@ -34,3 +34,21 @@ def test_ids_unique():
     rows = data if isinstance(data, list) else data.get("sources", [])
     ids = [s["id"] for s in rows]
     assert len(ids) == len(set(ids))
+
+
+PROGRAM_IDS = {"prog_p1_us_china_taiwan", "prog_p1_congress_taiwan", "prog_p2_mofa", "prog_p2_transit_visits",
+               "prog_p3_arms_sales", "prog_p3_allies", "prog_p5_semiconductor", "prog_p5_export_controls",
+               "prog_p6_legislature", "prog_p6_party_affairs"}
+
+
+def test_program_sources_present_disabled_and_valid():
+    import app.main as m
+
+    sources = _sources()
+    assert PROGRAM_IDS <= set(sources)
+    for sid in PROGRAM_IDS:
+        s = sources[sid]
+        assert s["enabled"] is False and s["type"] == "google_news_rss"
+        assert parse_qs(urlsplit(s["url"]).query)["q"] == [s["query"] + " when:7d"]
+    enabled = [dict(s, enabled=True) if s["id"] in PROGRAM_IDS | IDS else s for s in sources.values()]
+    m.validate_sources_config(enabled, m.COLLECTOR_MAP)  # would SystemExit on errors

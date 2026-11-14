@@ -65,9 +65,18 @@ CONFIDENCE = ("高", "中", "低")
 NUMBER_RE = re.compile(r"\d+(?:\.\d+)?")
 
 
-def assessment_dir() -> Path:
+def assessment_dir(program: str = "P4") -> Path:
+    """Folder of one program's weekly assessments.
+
+    ``ASSESSMENT_DIR`` (older setting) still names the P4 folder; otherwise
+    ``ASSESSMENT_ROOT`` (default data/assessments) holds one folder per program.
+    """
     value = os.getenv("ASSESSMENT_DIR", "").strip()
-    return Path(value) if value else Path(__file__).resolve().parents[2] / "data" / "assessments" / "p4"
+    if program == "P4" and value:
+        return Path(value)
+    root = os.getenv("ASSESSMENT_ROOT", "").strip()
+    base = Path(root) if root else Path(__file__).resolve().parents[2] / "data" / "assessments"
+    return base / program.lower()
 
 
 # ── hypotheses (deterministic indicator rules) ────────────────────────
@@ -231,6 +240,7 @@ class Draft:
     n_flagged: int
     state: dict = field(default_factory=dict)
     revisions: list = field(default_factory=list)
+    program: str = "P4"
 
 
 def tally_indicators(indicators: list[Indicator]) -> dict[str, dict[str, int]]:
@@ -391,29 +401,29 @@ def _render(view, data_md, indicators, facts, judgments, *, model, error, use_ll
 # ── files and approval ────────────────────────────────────────────────
 
 
-def _folder(week_ending: date) -> Path:
-    return assessment_dir() / week_ending.isoformat()
+def _folder(week_ending: date, program: str = "P4") -> Path:
+    return assessment_dir(program) / week_ending.isoformat()
 
 
 def _sha(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def read_meta(week_ending: date) -> dict | None:
-    path = _folder(week_ending) / "meta.json"
+def read_meta(week_ending: date, program: str = "P4") -> dict | None:
+    path = _folder(week_ending, program) / "meta.json"
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
 
 
 def write_draft(draft: Draft, week_ending: date, *, force: bool = False, now: datetime | None = None) -> Path:
-    folder = _folder(week_ending)
-    meta = read_meta(week_ending)
+    folder = _folder(week_ending, draft.program)
+    meta = read_meta(week_ending, draft.program)
     if meta and meta.get("status") == "approved" and not force:
         raise RuntimeError(f"{week_ending} is already approved; use --force to regenerate")
     folder.mkdir(parents=True, exist_ok=True)
     (folder / "generated.md").write_text(draft.markdown, encoding="utf-8")
     (folder / "draft.md").write_text(draft.markdown, encoding="utf-8")
     meta = {
-        "program": "P4", "week_start": draft.start, "week_end": draft.end, "status": "draft",
+        "program": draft.program, "week_start": draft.start, "week_end": draft.end, "status": "draft",
         "generated_at": (now or datetime.now(timezone.utc)).isoformat(), "model": draft.model,
         "judgment_error": draft.judgment_error, "facts": draft.n_facts, "flagged_judgments": draft.n_flagged,
         "generated_sha256": _sha(draft.markdown), "history": [],
@@ -428,9 +438,10 @@ def edit_ratio(generated: str, final: str) -> float:
     return round(1 - difflib.SequenceMatcher(None, generated, final, autojunk=False).ratio(), 4)
 
 
-def decide(week_ending: date, decision: str, reviewer: str, note: str = "", *, now: datetime | None = None) -> dict:
-    folder = _folder(week_ending)
-    meta = read_meta(week_ending)
+def decide(week_ending: date, decision: str, reviewer: str, note: str = "", *, now: datetime | None = None,
+           program: str = "P4") -> dict:
+    folder = _folder(week_ending, program)
+    meta = read_meta(week_ending, program)
     if meta is None:
         raise FileNotFoundError(f"no draft for {week_ending}")
     if decision not in ("approved", "rejected"):
@@ -455,11 +466,11 @@ def decide(week_ending: date, decision: str, reviewer: str, note: str = "", *, n
 
 
 def decide_revision(week_ending: date, revision_id: int, decision: str, reviewer: str, note: str = "",
-                    *, now: datetime | None = None) -> dict:
+                    *, now: datetime | None = None, program: str = "P4") -> dict:
     """Record the analyst's decision on one revision suggestion."""
     if decision not in ("accepted", "dismissed"):
         raise ValueError("decision must be accepted or dismissed")
-    meta = read_meta(week_ending)
+    meta = read_meta(week_ending, program)
     if meta is None:
         raise FileNotFoundError(f"no draft for {week_ending}")
     for r in meta.get("revisions") or []:
@@ -469,7 +480,7 @@ def decide_revision(week_ending: date, revision_id: int, decision: str, reviewer
             break
     else:
         raise KeyError(f"no revision suggestion R{revision_id} for {week_ending}")
-    (_folder(week_ending) / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    (_folder(week_ending, program) / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     return r
 
 

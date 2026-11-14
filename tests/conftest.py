@@ -9,3 +9,4 @@ def _isolated_ai_ledger(tmp_path, monkeypatch):
     # No real page downloads from end-to-end run tests.
     monkeypatch.setenv("ARTICLE_TEXT_INSCOPE_FETCH_MAX", "0")
     monkeypatch.setenv("ASSESSMENT_DIR", str(tmp_path / "assessments"))
+    monkeypatch.setenv("ASSESSMENT_ROOT", str(tmp_path / "assessment_root"))
