@@ -24,7 +24,7 @@ from pathlib import Path
 import httpx
 from bs4 import BeautifulSoup
 
-from . import article_text
+from . import ai_client, article_text
 from .deepseek_analysis import DeepSeekClient
 from .models import Article
 
@@ -225,7 +225,7 @@ def deepseek_available() -> bool:
 
 
 def _load_deepseek_client(task: str = "summary") -> DeepSeekClient | None:
-    """Build the summarizer's LLM client.
+    """Build the summarizer's LLM client (fast tier, see app/ai_client.py).
 
     ``SUMMARIZER_BASE_URL`` / ``SUMMARIZER_MODEL`` win when set (e.g. a local
     Command Code gateway + ``deepseek/deepseek-v4-flash``), otherwise they
@@ -233,21 +233,7 @@ def _load_deepseek_client(task: str = "summary") -> DeepSeekClient | None:
     """
     if not deepseek_available():
         return None
-    api_key = os.getenv("SUMMARIZER_API_KEY", "") or os.getenv("DEEPSEEK_API_KEY", "")
-    return DeepSeekClient(
-        api_key=api_key.strip(),
-        base_url=os.getenv(
-            "SUMMARIZER_BASE_URL",
-            os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
-        ),
-        model=os.getenv(
-            "SUMMARIZER_MODEL",
-            os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
-        ),
-        timeout=_int_env("SUMMARIZER_TIMEOUT_SECONDS", 180),
-        max_retries=_int_env("SUMMARIZER_MAX_RETRIES", 2),
-        task=task,
-    )
+    return ai_client.make_client(task, "fast")
 
 
 def _load_system_prompt() -> str:

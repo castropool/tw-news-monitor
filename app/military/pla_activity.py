@@ -274,6 +274,102 @@ def fetch_reports(
             client.close()
 
 
+NEXT_LABELS = frozenset({"下一頁", "下一页", "下頁", "次頁", "next", "›", "»", ">"})
+
+
+def next_page_link(html: str, base_url: str) -> str | None:
+    """The list's "next page" link (rel=next, a next-like label or class)."""
+    soup = BeautifulSoup(html, "html.parser")
+    for anchor in soup.find_all("a", href=True):
+        href = anchor["href"].strip()
+        if not href or href.startswith(("javascript:", "#")):
+            continue
+        label = anchor.get_text(" ", strip=True).lower()
+        rel = [r.lower() for r in (anchor.get("rel") or [])]
+        classes = " ".join(anchor.get("class") or []).lower()
+        if "next" in rel or label in NEXT_LABELS or "next" in classes:
+            return urljoin(base_url, href)
+    return None
+
+
+def backfill(
+    since: date,
+    list_url: str = DEFAULT_LIST_URL,
+    *,
+    client: httpx.Client | None = None,
+    max_list_pages: int = 200,
+    delay_seconds: float = 1.0,
+    sleep=None,
+) -> tuple[list[PlaReport], str]:
+    """Walk list pages newest to oldest until reports predate ``since``.
+
+    Returns (reports, stop_reason).  One request per second by default, so a
+    two-year backfill takes roughly 15 minutes.
+    """
+    import time
+
+    pause = sleep or time.sleep
+    own = client is None
+    client = client or httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT, follow_redirects=True)
+    reports: list[PlaReport] = []
+    seen_pages: set[str] = set()
+    seen_links: set[str] = set()
+    url: str | None = list_url
+    reason = "max_list_pages"
+    try:
+        for _ in range(max_list_pages):
+            if url is None:
+                reason = "no_next_page"
+                break
+            if url in seen_pages:
+                reason = "page_loop"
+                break
+            seen_pages.add(url)
+            listing = client.get(url)
+            listing.raise_for_status()
+            links = [h for h in report_links(listing.text, str(listing.url)) if h not in seen_links]
+            for href in links:
+                seen_links.add(href)
+                pause(delay_seconds)
+                try:
+                    detail = client.get(href)
+                    detail.raise_for_status()
+                except httpx.HTTPError as exc:
+                    logger.warning("PLA backfill detail failed %s: %s", href, exc)
+                    continue
+                report = parse_report_text(page_text(detail.text), href)
+                if report is None:
+                    logger.warning("PLA backfill page not parsed: %s", href)
+                    continue
+                reports.append(report)
+            if reports and min(r.report_date for r in reports) < since.isoformat():
+                reason = "reached_since"
+                break
+            url = next_page_link(listing.text, str(listing.url))
+            pause(delay_seconds)
+        return [r for r in reports if r.report_date >= since.isoformat()], reason
+    finally:
+        if own:
+            client.close()
+
+
+def missing_dates(conn: sqlite3.Connection, since: date, until: date) -> list[str]:
+    """Report dates in [since, until] with no stored row (documented gaps)."""
+    from datetime import timedelta
+
+    ensure_table(conn)
+    have = {r[0] for r in conn.execute(
+        "SELECT report_date FROM pla_activity_daily WHERE report_date BETWEEN ? AND ?",
+        (since.isoformat(), until.isoformat()),
+    )}
+    out, day = [], since
+    while day <= until:
+        if day.isoformat() not in have:
+            out.append(day.isoformat())
+        day += timedelta(days=1)
+    return out
+
+
 def enabled() -> bool:
     return os.getenv("PLA_ACTIVITY_ENABLED", "").strip().lower() in ("1", "true", "yes", "on")
 
@@ -303,6 +399,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--check", action="store_true", help="fetch and print parsed reports; store nothing")
     parser.add_argument("--collect", action="store_true", help="fetch and store new reports")
     parser.add_argument("--show", type=int, metavar="DAYS", help="print the last DAYS stored reports")
+    parser.add_argument("--backfill-days", type=int, metavar="DAYS",
+                        help="walk list pages back DAYS days, store reports, then list missing dates")
     parser.add_argument("--url", default=os.getenv("PLA_ACTIVITY_LIST_URL", DEFAULT_LIST_URL))
     parser.add_argument("--pages", type=int, default=MAX_DETAIL_PAGES)
     parser.add_argument("--db", help="news DB path (default: the configured news DB)")
@@ -313,6 +411,23 @@ def main(argv: list[str] | None = None) -> int:
         pass
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
+    if args.backfill_days:
+        from datetime import timedelta
+
+        from ..database import Database
+        from ..settings import get_settings
+
+        today = datetime.now(TAIPEI).date()
+        since = today - timedelta(days=args.backfill_days)
+        reports, reason = backfill(since, args.url)
+        print(f"Backfill parsed {len(reports)} reports (stopped: {reason}).")
+        with Database(args.db or get_settings().news_db_path) as db:
+            print(f"Stored/updated: {save_reports(db.conn, reports)}")
+            gaps = missing_dates(db.conn, since, today)
+        print(f"Dates with no report since {since}: {len(gaps)}")
+        for gap in gaps[:60]:
+            print(f"  {gap}")
+        return 0
     if args.check or args.collect:
         reports = fetch_reports(args.url, max_pages=args.pages)
         if not reports:

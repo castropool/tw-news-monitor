@@ -177,3 +177,55 @@ def test_run_hook_fetches_once_per_day_and_never_raises(db, monkeypatch):
 
     later = datetime(2025, 11, 14, 2, 0, tzinfo=timezone.utc)
     assert pla.collect_safe(db, now=later, fetcher=broken)["status"] == "error"
+
+
+def _report(day: int, month: int = 11) -> str:
+    return (
+        f"一、日期：中華民國114年{month}月{day - 1}日（星期一）0600時至中華民國114年{month}月{day}日（星期二）0600時止。\n"
+        f"二、臺海周邊海、空域動態：共機{day}架次、共艦3艘。"
+    )
+
+
+def test_next_page_link_variants():
+    base = "https://www.mnd.gov.tw/news/plaactlist"
+    assert pla.next_page_link('<a href="?page=2">下一頁</a>', base) == "https://www.mnd.gov.tw/news/plaactlist?page=2"
+    assert pla.next_page_link('<a rel="next" href="/p/3">3</a>', base) == "https://www.mnd.gov.tw/p/3"
+    assert pla.next_page_link('<a class="page-next" href="/p/4"></a>', base) == "https://www.mnd.gov.tw/p/4"
+    assert pla.next_page_link('<a href="javascript:__doPostBack()">下一頁</a>', base) is None
+
+
+def test_backfill_walks_pages_until_since_and_skips_newer_duplicates():
+    base = "https://www.mnd.gov.tw/news/plaactlist"
+    page1 = ('<a href="/r/10">中共解放軍臺海周邊海、空域動態</a><a href="/r/9">中共解放軍臺海周邊海、空域動態</a>'
+             '<a href="?page=2">下一頁</a>')
+    page2 = ('<a href="/r/9">中共解放軍臺海周邊海、空域動態</a><a href="/r/8">中共解放軍臺海周邊海、空域動態</a>'
+             '<a href="/r/7">中共解放軍臺海周邊海、空域動態</a><a href="?page=3">下一頁</a>')
+    pages = {
+        base: page1, base + "?page=2": page2,
+        "https://www.mnd.gov.tw/r/10": detail_html(_report(10)),
+        "https://www.mnd.gov.tw/r/9": detail_html(_report(9)),
+        "https://www.mnd.gov.tw/r/8": detail_html(_report(8)),
+        "https://www.mnd.gov.tw/r/7": detail_html(_report(7)),
+    }
+    from datetime import date
+
+    reports, reason = pla.backfill(date(2025, 11, 8), client=mock_client(pages), sleep=lambda s: None)
+    assert reason == "reached_since"
+    assert [r.report_date for r in reports] == ["2025-11-10", "2025-11-09", "2025-11-08"]
+
+
+def test_backfill_reports_why_it_stopped():
+    from datetime import date
+
+    base = "https://www.mnd.gov.tw/news/plaactlist"
+    pages = {base: '<a href="/r/10">中共解放軍臺海周邊海、空域動態</a>',
+             "https://www.mnd.gov.tw/r/10": detail_html(_report(10))}
+    reports, reason = pla.backfill(date(2025, 1, 1), client=mock_client(pages), sleep=lambda s: None)
+    assert reason == "no_next_page" and len(reports) == 1
+
+
+def test_missing_dates_lists_gaps(db):
+    from datetime import date
+
+    pla.save_reports(db.conn, [pla.parse_report_text(_report(d), "u") for d in (10, 12)])
+    assert pla.missing_dates(db.conn, date(2025, 11, 10), date(2025, 11, 13)) == ["2025-11-11", "2025-11-13"]

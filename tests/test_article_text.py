@@ -87,15 +87,35 @@ def test_retention_env_override(monkeypatch):
     assert article_text.retention_days() == 90
 
 
-def test_fetch_missing_is_off_by_default(db):
+def test_fetch_missing_is_off_by_default_outside_scope(db):
     def boom(_):
         raise AssertionError("must not fetch")
 
     assert article_text.fetch_missing(db, [make_article("https://x/1")], fetcher=boom) == 0
 
 
+def test_inscope_military_text_is_fetched_by_default_with_cap(db, monkeypatch):
+    monkeypatch.delenv("ARTICLE_TEXT_INSCOPE_FETCH_MAX")  # conftest sets 0 for other tests
+    asked = []
+
+    def fake_fetch(articles):
+        asked.extend(a.url for a in articles)
+        return {a.url: LONG for a in articles}
+
+    military = [make_article(f"https://m/{i}") for i in range(25)]
+    for a in military:
+        a.category = "military"
+    others = [make_article("https://x/1")]
+    assert article_text.fetch_missing(db, others + military, fetcher=fake_fetch, now=NOW) == 20
+    assert asked == [f"https://m/{i}" for i in range(20)]
+    monkeypatch.setenv("ARTICLE_TEXT_INSCOPE_FETCH_MAX", "0")
+    asked.clear()
+    assert article_text.fetch_missing(db, military, fetcher=fake_fetch, now=NOW) == 0
+
+
 def test_fetch_missing_caps_skips_stored_and_international(db, monkeypatch):
     monkeypatch.setenv("ARTICLE_TEXT_FETCH_MAX", "2")
+    monkeypatch.setenv("ARTICLE_TEXT_INSCOPE_FETCH_MAX", "0")
     db.save_article_texts({"https://x/have": LONG}, extractor="t", fetched_at=NOW)
     asked = []
 

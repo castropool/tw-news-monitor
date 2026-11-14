@@ -136,3 +136,44 @@ def test_report_cli(posts, capsys):
     assert ai_usage.main([]) == 0
     out = capsys.readouterr().out
     assert "of $15.00 ceiling" in out and "summary" in out
+
+
+def test_identical_requests_are_served_from_cache_at_zero_cost(posts):
+    client = DeepSeekClient(api_key="k", model="deepseek/deepseek-v4-flash", task="summary")
+    first = client.analyze("sys", "same prompt")
+    second = client.analyze("sys", "same prompt")
+    assert len(posts) == 1
+    assert first["ok"] is True and second["ok"] is True and second.get("cached") is True
+    statuses = {row[2]: row for row in ai_usage.month_report()}
+    assert statuses["cache_hit"][6] == 0
+    client.analyze("sys", "different prompt")
+    assert len(posts) == 2
+
+
+def test_cache_can_be_disabled_and_expires(posts, monkeypatch):
+    monkeypatch.setenv("AI_CACHE_ENABLED", "0")
+    client = DeepSeekClient(api_key="k", model="m")
+    client.analyze("s", "u")
+    client.analyze("s", "u")
+    assert len(posts) == 2
+    monkeypatch.setenv("AI_CACHE_ENABLED", "1")
+    key = ai_usage.cache_key("m", "s", "u")
+    ai_usage.cache_put(key, "m", '{"x": 1}', now=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    assert ai_usage.cache_get(key) is None  # older than 30 days
+
+
+def test_model_tiers(monkeypatch):
+    from app import ai_client
+
+    monkeypatch.setenv("SUMMARIZER_API_KEY", "cmd-local")
+    monkeypatch.setenv("SUMMARIZER_MODEL", "deepseek/deepseek-v4-flash")
+    monkeypatch.delenv("AI_MODEL_STRONG", raising=False)
+    assert ai_client.make_client("summary").model == "deepseek/deepseek-v4-flash"
+    assert ai_client.make_client("assessment", "strong").model == "deepseek/deepseek-v4-pro"
+    monkeypatch.setenv("AI_MODEL_FAST", "deepseek/x-fast")
+    assert ai_client.make_client("extraction").model == "deepseek/x-fast"
+    with pytest.raises(ValueError):
+        ai_client.model_for("medium")
+    monkeypatch.delenv("SUMMARIZER_API_KEY")
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    assert ai_client.make_client("summary") is None

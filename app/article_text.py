@@ -1,8 +1,9 @@
 """Internal store of full article text, kept for fact extraction and search.
 
 Text comes from pages the summarizer already downloads in ``hybrid`` mode
-(no extra requests).  An optional, capped extra fetch fills text for recent
-articles that had an RSS teaser and so were never downloaded.
+(no extra requests).  A capped extra fetch fills text for new articles that
+had an RSS teaser and so were never downloaded: by default only for the
+pilot's in-scope categories.
 
 Rules:
 
@@ -17,8 +18,11 @@ Environment:
 
 - ``ARTICLE_TEXT_STORE``: ``0`` disables storing (default on).
 - ``ARTICLE_TEXT_RETENTION_DAYS``: retention window in days (default 730).
-- ``ARTICLE_TEXT_FETCH_MAX``: extra pages fetched per run for articles with
-  no stored text (default 0 = no extra requests).
+- ``ARTICLE_TEXT_INSCOPE_CATEGORIES`` / ``ARTICLE_TEXT_INSCOPE_FETCH_MAX``:
+  categories the pilot needs text for (default ``military``) and the extra
+  pages fetched per run for them (default 20).
+- ``ARTICLE_TEXT_FETCH_MAX``: extra pages fetched per run for all other
+  articles with no stored text (default 0 = no extra requests).
 """
 
 from __future__ import annotations
@@ -86,29 +90,44 @@ def purge_expired(db, *, now: datetime | None = None, days: int | None = None) -
         return 0
 
 
+def inscope_categories() -> set[str]:
+    raw = os.getenv("ARTICLE_TEXT_INSCOPE_CATEGORIES", "military")
+    return {c.strip() for c in raw.split(",") if c.strip()}
+
+
 def fetch_missing(
     db,
     articles: Iterable[Article],
     *,
     max_fetch: int | None = None,
+    inscope_max: int | None = None,
     fetcher: Callable[[list[Article]], dict[str, str]] | None = None,
     now: datetime | None = None,
 ) -> int:
-    """Fetch and store text for up to ``max_fetch`` articles that have none."""
-    limit = _int_env("ARTICLE_TEXT_FETCH_MAX", 0) if max_fetch is None else max_fetch
-    if db is None or limit <= 0 or not store_enabled():
+    """Fetch and store text for articles that have none.
+
+    In-scope categories (the pilot's, default ``military``) are fetched up to
+    ``ARTICLE_TEXT_INSCOPE_FETCH_MAX`` per run (default 20); other articles
+    up to ``ARTICLE_TEXT_FETCH_MAX`` (default 0).
+    """
+    other_cap = _int_env("ARTICLE_TEXT_FETCH_MAX", 0) if max_fetch is None else max_fetch
+    scope_cap = _int_env("ARTICLE_TEXT_INSCOPE_FETCH_MAX", 20) if inscope_max is None else inscope_max
+    if db is None or (other_cap <= 0 and scope_cap <= 0) or not store_enabled():
         return 0
     try:
         candidates = [a for a in articles if a.access_level is None and a.url]
         if not candidates:
             return 0
         have = db.get_urls_with_text([a.url for a in candidates])
-        missing = [a for a in candidates if a.url not in have][:limit]
-        if not missing:
+        missing = [a for a in candidates if a.url not in have]
+        scope = inscope_categories()
+        chosen = [a for a in missing if a.category in scope][: max(0, scope_cap)]
+        chosen += [a for a in missing if a.category not in scope][: max(0, other_cap)]
+        if not chosen:
             return 0
         if fetcher is None:
             from .summarizer import fetch_article_full_texts as fetcher  # lazy: avoids import cycle
-        return save_texts(db, fetcher(missing), now=now)
+        return save_texts(db, fetcher(chosen), now=now)
     except Exception as exc:  # noqa: BLE001
         logger.warning("Article text fetch failed safely: %s", exc)
         return 0

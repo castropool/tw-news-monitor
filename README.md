@@ -113,7 +113,8 @@ config/sources.yaml
 - 摘要器 hybrid 模式已下载的文章页，其正文抽取结果（trafilatura，不含 meta 描述）同时存入 `article_texts`，不增加任何请求。
 - 带 `access_level` 的国际媒体条目永不抓取正文（与摘要器相同的边界）。
 - 保留约 24 个月（`ARTICLE_TEXT_RETENTION_DAYS`，默认 730），过期只删正文，文章行保留；每次运行自动清理。
-- `ARTICLE_TEXT_FETCH_MAX`（默认 0）设为正数时，每次运行额外抓取最多该数量的、尚无正文的文章（如有 RSS 导语而未下载过的）。
+- 试点范围内的分类（`ARTICLE_TEXT_INSCOPE_CATEGORIES`，默认 `military`）每次运行额外抓取最多 `ARTICLE_TEXT_INSCOPE_FETCH_MAX`（默认 20）篇尚无正文的新文章。
+- 其他分类由 `ARTICLE_TEXT_FETCH_MAX`（默认 0 = 不额外请求）控制。
 
 ### 全文检索（`app/search.py`）
 
@@ -133,6 +134,8 @@ python -m app.search --rebuild
 - 预估偏高以保证不超支：按峰时价计价；未知模型按最贵已知价；网关不回报 token（本地 Command Code 网关恒为 0）时按文字长度估算（每个汉字 1 token，其余每 3 字符 1 token）。失败调用只计端点回报的 token。
 - 本月（UTC 自然月）预估花费达到 `AI_MONTHLY_BUDGET_USD`（默认 15 美元）后拒绝调用，摘要按现有降级路径回退（导语/meta），新闻照常交付。台账读写失败不阻断调用。
 - 查看：`python -m app.ai_usage`（本月）或 `python -m app.ai_usage --month 2026-10`。
+- 相同请求（模型+提示词完全一致）30 天内直接复用已存答案，记为 `cache_hit`、费用 0（`AI_CACHE_ENABLED=0` 关闭，`AI_CACHE_DAYS` 调整）。
+- 两档模型（`app/ai_client.py`）：`fast` 用于摘要/翻译/抽取（`AI_MODEL_FAST`，默认沿用 `SUMMARIZER_MODEL`），`strong` 用于周度研判草稿（`AI_MODEL_STRONG`，默认 `deepseek/deepseek-v4-pro`），走同一网关。
 
 ### 国防部共军动态日报（`app/military/pla_activity.py`，表 `pla_activity_daily`）
 
@@ -144,7 +147,13 @@ python -m app.search --rebuild
 python -m app.military.pla_activity --check
 ```
 
-  结果正确后在 `.env` 设 `PLA_ACTIVITY_ENABLED=true`，常规任务每天最多抓取到当日报告为止；失败不影响新闻交付。查看已存数据：`python -m app.military.pla_activity --show 14`。
+  结果正确后回填历史（约每秒一个请求，两年约 15 分钟），并列出缺报日期：
+
+```
+python -m app.military.pla_activity --backfill-days 730
+```
+
+  然后在 `.env` 设 `PLA_ACTIVITY_ENABLED=true`，常规任务每天最多抓取到当日报告为止；失败不影响新闻交付。查看已存数据：`python -m app.military.pla_activity --show 14`。
 
 ### 时效与重要度
 
@@ -246,8 +255,10 @@ tw-news-monitor-simple/
 | `NEWS_CATCHUP_ENABLED` / `NEWS_CATCHUP_MAX_MINUTES` | 补发开关与窗口 |
 | `DISABLE_FEISHU_SEND` | 停用飞书发送 |
 | `PLA_ACTIVITY_ENABLED` / `PLA_ACTIVITY_LIST_URL` | 国防部共军动态日报采集开关（默认关）、列表页地址（默认 `https://www.mnd.gov.tw/news/plaactlist`） |
+| `AI_MODEL_FAST` / `AI_MODEL_STRONG` / `AI_CACHE_ENABLED` / `AI_CACHE_DAYS` | 两档模型、AI 回答缓存开关与天数（默认开、30 天） |
 | `AI_MONTHLY_BUDGET_USD` / `AI_USAGE_DB_PATH` | AI 月度花费上限（默认 15 美元）、调用台账路径（默认 `data/ai_usage.db`） |
 | `ARTICLE_TEXT_STORE` / `ARTICLE_TEXT_RETENTION_DAYS` / `ARTICLE_TEXT_FETCH_MAX` | 正文存储开关（默认开）、保留天数（默认 730）、每次额外抓取上限（默认 0 = 不额外请求） |
+| `ARTICLE_TEXT_INSCOPE_CATEGORIES` / `ARTICLE_TEXT_INSCOPE_FETCH_MAX` | 试点分类（默认 `military`）及其每次额外抓取上限（默认 20） |
 
 ## 七、测试
 

@@ -89,6 +89,82 @@ def _connect(path: Path | None = None) -> sqlite3.Connection:
     return conn
 
 
+# ── response cache ─────────────────────────────────────────────────
+# Identical (model, system, user) requests reuse a stored answer for
+# AI_CACHE_DAYS (default 30) instead of paying again; AI_CACHE_ENABLED=0
+# turns this off.  Cache hits are logged at zero cost.
+
+DEFAULT_CACHE_DAYS = 30
+
+
+def cache_enabled() -> bool:
+    return os.getenv("AI_CACHE_ENABLED", "1").strip().lower() not in ("0", "false", "no", "off")
+
+
+def cache_key(model: str, system_prompt: str, user_prompt: str) -> str:
+    import hashlib
+
+    payload = "\x1f".join((model or "", system_prompt or "", user_prompt or ""))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _cache_days() -> int:
+    try:
+        return max(1, int(os.getenv("AI_CACHE_DAYS", str(DEFAULT_CACHE_DAYS))))
+    except ValueError:
+        return DEFAULT_CACHE_DAYS
+
+
+def _ensure_cache(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS ai_cache (key TEXT PRIMARY KEY, model TEXT NOT NULL, "
+        "content TEXT NOT NULL, created_at TEXT NOT NULL)"
+    )
+
+
+def cache_get(key: str, *, now: datetime | None = None, path: Path | None = None) -> str | None:
+    from datetime import timedelta
+
+    try:
+        conn = _connect(path)
+        try:
+            _ensure_cache(conn)
+            cutoff = ((now or datetime.now(timezone.utc)) - timedelta(days=_cache_days())).isoformat()
+            row = conn.execute(
+                "SELECT content FROM ai_cache WHERE key = ? AND created_at >= ?", (key, cutoff)
+            ).fetchone()
+            return row[0] if row else None
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("AI cache read failed (%s)", exc)
+        return None
+
+
+def cache_put(key: str, model: str, content: str, *, now: datetime | None = None, path: Path | None = None) -> None:
+    from datetime import timedelta
+
+    try:
+        conn = _connect(path)
+        try:
+            _ensure_cache(conn)
+            stamp = now or datetime.now(timezone.utc)
+            conn.execute(
+                "INSERT INTO ai_cache(key, model, content, created_at) VALUES (?, ?, ?, ?) "
+                "ON CONFLICT(key) DO UPDATE SET content = excluded.content, created_at = excluded.created_at",
+                (key, model, content, stamp.isoformat()),
+            )
+            conn.execute(
+                "DELETE FROM ai_cache WHERE created_at < ?",
+                ((stamp - timedelta(days=_cache_days())).isoformat(),),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("AI cache write failed (%s)", exc)
+
+
 def estimate_tokens(text: str | None) -> int:
     if not text:
         return 0

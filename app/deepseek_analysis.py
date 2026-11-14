@@ -10,6 +10,17 @@ from . import ai_usage
 
 logger = logging.getLogger(__name__)
 
+
+def parse_json_content(content: str) -> dict:
+    """Model output (optionally fenced) as a JSON object; raises JSONDecodeError."""
+    content_clean = (content or '').strip()
+    if content_clean.startswith('```'):
+        content_clean = content_clean.split('\n', 1)[-1] if '\n' in content_clean else content_clean[3:]
+        if content_clean.endswith('```'):
+            content_clean = content_clean[:-3].strip()
+    return json.loads(content_clean)
+
+
 class DeepSeekClient:
     """The single entry point for model calls (OpenAI-compatible chat API).
 
@@ -36,6 +47,19 @@ class DeepSeekClient:
         return 'local-gateway' if host in ('127.0.0.1', 'localhost', '::1') else host
 
     def analyze(self, system_prompt: str, user_prompt: str) -> dict:
+        key = ai_usage.cache_key(self.model, system_prompt, user_prompt) if ai_usage.cache_enabled() else None
+        if key:
+            cached = ai_usage.cache_get(key)
+            if cached is not None:
+                try:
+                    result = parse_json_content(cached)
+                except (json.JSONDecodeError, TypeError):
+                    result = None
+                if isinstance(result, dict):
+                    ai_usage.record_call(task=self.task, provider=self.provider, model=self.model,
+                                         status='cache_hit')
+                    result.update(status='success', input_tokens=0, output_tokens=0, cached=True)
+                    return result
         try:
             ai_usage.check_budget()
         except ai_usage.BudgetExceeded as exc:
@@ -55,6 +79,8 @@ class DeepSeekClient:
             duration_ms=int((time.monotonic() - started) * 1000),
             error=None if result.get('status') == 'success' else str(result.get('error')),
         )
+        if key and result.get('status') == 'success' and self._last_content:
+            ai_usage.cache_put(key, self.model, self._last_content)
         return result
 
     def _analyze(self, system_prompt: str, user_prompt: str) -> dict:
@@ -99,12 +125,7 @@ class DeepSeekClient:
                 content = data['choices'][0]['message']['content']
                 self._last_content = content or ''
                 usage = data.get('usage', {})
-                content_clean = content.strip()
-                if content_clean.startswith('```'):
-                    content_clean = content_clean.split('\n', 1)[-1] if '\n' in content_clean else content_clean[3:]
-                    if content_clean.endswith('```'):
-                        content_clean = content_clean[:-3].strip()
-                result = json.loads(content_clean)
+                result = parse_json_content(content)
                 result['status'] = 'success'
                 result['input_tokens'] = usage.get('prompt_tokens', 0)
                 result['output_tokens'] = usage.get('completion_tokens', 0)
