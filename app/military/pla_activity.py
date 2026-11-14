@@ -355,23 +355,31 @@ def backfill(
     list_url: str = DEFAULT_LIST_URL,
     *,
     client: httpx.Client | None = None,
-    max_list_pages: int = 200,
+    max_list_pages: int = 400,
     delay_seconds: float = 1.0,
     sleep=None,
+    known: dict[str, str] | None = None,
+    on_report=None,
 ) -> tuple[list[PlaReport], str]:
     """Walk list pages newest to oldest until reports predate ``since``.
 
-    Returns (reports, stop_reason).  One request per second by default, so a
-    two-year backfill takes roughly 15 minutes.
+    Resumable: ``known`` maps already-stored source URLs to their report
+    dates; those pages are not fetched again but still count towards the
+    stopping date.  ``on_report`` is called for each new report as soon as it
+    is parsed, so an interrupted run keeps everything read so far.
+
+    Returns (new reports, stop_reason).  One request per second by default.
     """
     import time
 
     pause = sleep or time.sleep
+    known = dict(known or {})
     own = client is None
     client = client or httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT, follow_redirects=True)
     reports: list[PlaReport] = []
     seen_pages: set[str] = set()
     seen_links: set[str] = set()
+    oldest: str | None = None
     url: str | None = list_url
     reason = "max_list_pages"
     try:
@@ -383,11 +391,14 @@ def backfill(
                 reason = "page_loop"
                 break
             seen_pages.add(url)
-            listing = client.get(url)
-            listing.raise_for_status()
+            listing = get_detail(client, url)
             links = [h for h in report_links(listing.text, str(listing.url)) if h not in seen_links]
             for href in links:
                 seen_links.add(href)
+                stored = next((known[v] for v in url_variants(href) if v in known), None)
+                if stored is not None:
+                    oldest = min(oldest or stored, stored)
+                    continue
                 pause(delay_seconds)
                 try:
                     detail = get_detail(client, href)
@@ -398,16 +409,25 @@ def backfill(
                 if report is None:
                     logger.warning("PLA backfill page not parsed: %s", detail.url)
                     continue
-                reports.append(report)
-            if reports and min(r.report_date for r in reports) < since.isoformat():
+                oldest = min(oldest or report.report_date, report.report_date)
+                if report.report_date >= since.isoformat():
+                    reports.append(report)
+                    if on_report is not None:
+                        on_report(report)
+            if oldest is not None and oldest < since.isoformat():
                 reason = "reached_since"
                 break
             url = next_page_link(listing.text, str(listing.url))
             pause(delay_seconds)
-        return [r for r in reports if r.report_date >= since.isoformat()], reason
+        return reports, reason
     finally:
         if own:
             client.close()
+
+
+def stored_urls(conn: sqlite3.Connection) -> dict[str, str]:
+    ensure_table(conn)
+    return {row[0]: row[1] for row in conn.execute("SELECT source_url, report_date FROM pla_activity_daily")}
 
 
 def missing_dates(conn: sqlite3.Connection, since: date, until: date) -> list[str]:
@@ -501,11 +521,23 @@ def main(argv: list[str] | None = None) -> int:
 
         today = datetime.now(TAIPEI).date()
         since = today - timedelta(days=args.backfill_days)
-        reports, reason = backfill(since, args.url)
-        print(f"Backfill parsed {len(reports)} reports (stopped: {reason}).")
         with Database(args.db or get_settings().news_db_path) as db:
-            print(f"Stored/updated: {save_reports(db.conn, reports)}")
+            known = stored_urls(db.conn)
+            print(f"Backfill to {since}; {len(known)} reports already stored (skipped, not refetched).", flush=True)
+            count = 0
+
+            def store(report: PlaReport) -> None:
+                nonlocal count
+                save_reports(db.conn, [report])  # saved one by one: an interruption loses nothing
+                count += 1
+                if count % 25 == 0:
+                    print(f"  stored {count} (latest {report.report_date})", flush=True)
+
+            reports, reason = backfill(since, args.url, known=known, on_report=store)
+            print(f"Backfill parsed {len(reports)} new reports (stopped: {reason}).", flush=True)
             gaps = missing_dates(db.conn, since, today)
+            total = db.conn.execute("SELECT COUNT(*) FROM pla_activity_daily").fetchone()[0]
+        print(f"Reports stored in total: {total}")
         print(f"Dates with no report since {since}: {len(gaps)}")
         for gap in gaps[:60]:
             print(f"  {gap}")

@@ -298,3 +298,40 @@ def test_official_ships_written_without_chuan():
     r = pla.parse_report_text(text)
     assert (r.report_date, r.aircraft, r.aircraft_crossed, r.vessels, r.official_ships) == (
         "2026-11-11", 4, 2, 7, 3)
+
+
+def test_backfill_saves_as_it_goes_and_resumes_without_refetching(db):
+    from datetime import date
+
+    base = "https://www.mnd.gov.tw/news/plaactlist"
+    page1 = ('<a href="/r/10">中共解放軍臺海周邊海、空域動態</a><a href="/r/9">中共解放軍臺海周邊海、空域動態</a>'
+             '<a href="?page=2">下一頁</a>')
+    page2 = ('<a href="/r/8">中共解放軍臺海周邊海、空域動態</a><a href="/r/7">中共解放軍臺海周邊海、空域動態</a>')
+    pages = {base: page1, base + "?page=2": page2}
+    for d in (10, 9, 8, 7):
+        pages[f"https://www.mnd.gov.tw/r/{d}"] = detail_html(_report(d))
+    fetched = []
+    r8_attempts = []
+
+    def handler(request):
+        fetched.append(str(request.url))
+        if str(request.url) == "https://www.mnd.gov.tw/r/8":
+            r8_attempts.append(1)
+            if len(r8_attempts) <= 2:
+                raise httpx.ReadTimeout("slow", request=request)  # first run: /r/8 times out twice
+        body = pages.get(str(request.url))
+        return httpx.Response(200, text=body) if body is not None else httpx.Response(404)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    saved = []
+    first, _ = pla.backfill(date(2025, 11, 7), client=client, sleep=lambda s: None,
+                            on_report=lambda r: (saved.append(r.report_date), pla.save_reports(db.conn, [r])))
+    assert saved == ["2025-11-10", "2025-11-09", "2025-11-07"]  # stored immediately, /r/8 skipped
+    fetched.clear()
+    second, reason = pla.backfill(date(2025, 11, 7), client=client, sleep=lambda s: None,
+                                  known=pla.stored_urls(db.conn),
+                                  on_report=lambda r: pla.save_reports(db.conn, [r]))
+    assert [r.report_date for r in second] == ["2025-11-08"]
+    assert not any(u.endswith(("/r/10", "/r/9", "/r/7")) for u in fetched)  # not refetched
+    assert reason == "reached_since" or reason == "no_next_page"
+    assert pla.missing_dates(db.conn, date(2025, 11, 7), date(2025, 11, 10)) == []
