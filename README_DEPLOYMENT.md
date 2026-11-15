@@ -60,6 +60,16 @@ sudo PYTHON=<服务所用的 python> bash /tmp/server_update.sh <分支> [预期
 
 测试失败、提交不符或服务器上有人改过受控文件时，脚本会停下且不切换代码；结尾打印回退命令。
 
+## 一键验证与开启功能（控制台只能输入短命令时）
+
+```
+sudo scripts/verify_all.sh            # 全部检查（会用少量 AI 预算）；--no-ai 跳过模型步骤
+cat /opt/backups/verify-<时间>/report_00.txt   # 报告按约 3000 字节分段：report_00、report_01……
+sudo scripts/enable_features.sh pla tagging extraction weekly   # 只开启已审核通过的功能
+```
+
+`verify_all.sh` 只做检查：重新解析已存 PLA 报告、标注计划、试抽少量事实、写草稿文件；不批准、不发送、不改 `.env`。`enable_features.sh` 先备份 `.env`，只追加尚未设置的开关。
+
 ## 台海安全试点（Program 4）上线步骤
 
 以下均为可选，且只读写本机文件与 `news.db` 新表，不发送飞书：
