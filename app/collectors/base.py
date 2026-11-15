@@ -21,6 +21,12 @@ TRACKING_PARAMS = frozenset({
 })
 
 
+# host as published -> (real host, path prefix it swallowed)
+MALFORMED_HOSTS = {
+    "www.ydn.com.twtw": ("www.ydn.com.tw", "/tw"),
+}
+
+
 class BaseCollector(ABC):
     """Base class for news collectors."""
 
@@ -155,9 +161,16 @@ class BaseCollector(ABC):
         separately by ``article_identity_key``.
         """
         parsed = urlparse(url.strip())
+        netloc = parsed.netloc.lower()
+        path = parsed.path
+        # Feeds that glue host and path without a slash (YDN: "www.ydn.com.twtw/News/...").
+        if netloc in MALFORMED_HOSTS:
+            netloc, prefix = MALFORMED_HOSTS[netloc]
+            path = prefix + path
         normalized = parsed._replace(
             scheme=parsed.scheme.lower(),
-            netloc=parsed.netloc.lower(),
+            netloc=netloc,
+            path=path,
             fragment="",
         )
         path = normalized.path.rstrip("/")

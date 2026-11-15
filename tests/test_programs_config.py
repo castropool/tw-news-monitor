@@ -41,6 +41,8 @@ def test_validation_rejects_single_hypothesis_program():
     ("輝達黃仁勳：美國 中國 台灣 晶片需求強勁", None, "economy", set()),
     ("義大利 無人機 混合戰 國會議員 訪問團", None, "international", set()),
     ("白宮：美國 中國 台灣 晶片出口管制將調整", None, "international", {"P1", "P5"}),
+    ("AUKUS核潛艦合作進度超前 美軍 澳洲 演習", None, "military", {"P4"}),  # military → P4 only, not P3
+    ("美軍與日本自衛隊演習 強化台海防衛", None, "international", {"P3"}),
 ])
 def test_routing(title, summary, category, expected):
     assert set(tagging.match(title, summary, category)) == expected
@@ -68,3 +70,20 @@ def test_tag_range_stores_multi_program_tags(tmp_path):
 def test_run_hook_off_by_default(tmp_path):
     with Database(tmp_path / "n.db") as db:
         assert tagging.run_safe(db) == {"status": "disabled"}
+
+
+
+def test_retagging_drops_stale_rule_tags_but_keeps_lead_tags(tmp_path):
+    with Database(tmp_path / "n.db") as db:
+        db.save_articles([Article(source_id="s", source_name="中央社", category="economy",
+                                  title="輝達黃仁勳：美國 中國 台灣 晶片需求強勁", url="https://x/nv",
+                                  published_at=datetime(2026, 11, 14, 8), fetched_at=datetime(2026, 11, 14, 8),
+                                  position=1)])
+        tagging.ensure_table(db.conn)
+        db.conn.executemany("INSERT INTO program_tags VALUES (?, ?, ?, ?)", [
+            ("https://x/nv", "P1", '["support:美國"]', "old"),       # stale rule tag from looser rules
+            ("https://x/nv", "P5", '["lead:7"]', "old"),             # added by an approved lead
+        ])
+        db.conn.commit()
+        tagging.tag_range(db.conn, datetime(2026, 11, 13, tzinfo=timezone.utc), NOW, now=NOW)
+        assert tagging.programs_for(db.conn, "https://x/nv") == ["P5"]

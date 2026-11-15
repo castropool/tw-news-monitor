@@ -315,3 +315,11 @@ def test_url_normalization():
     )
     assert m == "https://example.com/page",         "fbclid and gclid should be stripped"
 
+
+def test_ydn_glued_host_is_repaired():
+    from app.collectors.base import BaseCollector
+
+    broken = "https://www.ydn.com.twtw/News/ugC_News_Detail.aspx?ID=650257"
+    assert BaseCollector.normalize_url(broken) == "https://www.ydn.com.tw/tw/News/ugC_News_Detail.aspx?ID=650257"
+    ok = "https://www.ydn.com.tw/tw/News/ugC_News_Detail.aspx?ID=650257"
+    assert BaseCollector.normalize_url(ok) == ok

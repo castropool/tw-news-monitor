@@ -62,7 +62,9 @@ def make_client(task: str, tier: str = "fast") -> DeepSeekClient | None:
         api_key=api_key.strip(),
         base_url=os.getenv("SUMMARIZER_BASE_URL", os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")),
         model=model_for(tier),
-        timeout=_int_env("SUMMARIZER_TIMEOUT_SECONDS", 180),
+        # The strong model answers long prompts slowly (the live assistant timed out).
+        timeout=(max(_int_env("AI_STRONG_TIMEOUT_SECONDS", 420), _int_env("SUMMARIZER_TIMEOUT_SECONDS", 180))
+                 if tier == "strong" else _int_env("SUMMARIZER_TIMEOUT_SECONDS", 180)),
         max_retries=_int_env("SUMMARIZER_MAX_RETRIES", 2),
         task=task,
     )

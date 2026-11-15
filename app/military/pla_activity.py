@@ -68,13 +68,15 @@ AIRCRAFT_RE = re.compile(r"共機\s*(\d+)\s*架次")
 #  direct:   "共機12架次逾越中線進入我北部…" / "(其中12架次逾越…)" → 12
 #  其中:     "其中12架次於…逾越中線"                                 → 12
 CROSSED_PATTERNS = (
-    re.compile(r"(?:逾越|進入)(?:(?!架次)[^。；\n])*?計\s*(\d+)\s*架次"),
+    # "(逾越中線進入北部、西南及東部空域9架次)" / "…空域計4架次" / "(其中逾越…29架次)"
+    re.compile(r"(?:逾越|進入)(?:(?!架次)[^。；\n\d])*?(?:計\s*)?(\d+)\s*架次"),
     re.compile(r"(\d+)\s*架次\s*(?:逾越|進入)"),
     re.compile(r"其中\s*(\d+)\s*架次(?:(?!架次)[^。；\n])*?(?:逾越|進入)"),
 )
 VESSELS_RE = re.compile(r"共艦\s*(\d+)\s*艘")
 OFFICIAL_SHIPS_RE = re.compile(r"公務(?:船)?\s*(\d+)\s*艘")  # live text also writes "公務3艘"
-BALLOONS_RE = re.compile(r"氣球\s*(\d+)\s*(?:顆|枚|個|架)")
+# "空飄氣球2顆" / "中共空飄氣球計偵獲1顆"
+BALLOONS_RE = re.compile(r"氣球[^\d。；\n]{0,8}?(\d+)\s*(?:顆|枚|個|架)")
 NONE_AIRCRAFT_RE = re.compile(r"未(?:偵獲|發現)[^。]*?共機")
 NONE_VESSELS_RE = re.compile(r"未(?:偵獲|發現)[^。]*?共艦")
 BODY_START_RE = re.compile(r"一\s*[、.．]\s*日期")
@@ -487,6 +489,37 @@ def stored_text(conn: sqlite3.Connection, report_date: str) -> tuple[str, str] |
                         (report_date,)).fetchone()
 
 
+def reparse_stored(conn: sqlite3.Connection, *, now: datetime | None = None) -> dict[str, int]:
+    """Re-run the current parser on every stored report text (no network).
+
+    Updates the counts in place; a row whose text now yields a different
+    report date or no report is left as it is and counted, for review.
+    """
+    ensure_table(conn)
+    stamp = (now or datetime.now(timezone.utc)).isoformat()
+    stats = {"rows": 0, "changed": 0, "date_mismatch": 0, "unparsed": 0}
+    for report_date, url, raw in conn.execute(
+            "SELECT report_date, source_url, raw_text FROM pla_activity_daily").fetchall():
+        stats["rows"] += 1
+        r = parse_report_text(raw, url)
+        if r is None:
+            stats["unparsed"] += 1
+            continue
+        if r.report_date != report_date:
+            stats["date_mismatch"] += 1
+            continue
+        cur = conn.execute(
+            "UPDATE pla_activity_daily SET period_start = ?, period_end = ?, aircraft = ?, aircraft_crossed = ?, "
+            "vessels = ?, official_ships = ?, balloons = ?, fetched_at = ? WHERE report_date = ? AND NOT ("
+            "aircraft IS ? AND aircraft_crossed IS ? AND vessels IS ? AND official_ships IS ? AND balloons IS ?)",
+            (r.period_start, r.period_end, r.aircraft, r.aircraft_crossed, r.vessels, r.official_ships, r.balloons,
+             stamp, report_date, r.aircraft, r.aircraft_crossed, r.vessels, r.official_ships, r.balloons),
+        )
+        stats["changed"] += cur.rowcount
+    conn.commit()
+    return stats
+
+
 def stored_urls(conn: sqlite3.Connection) -> dict[str, str]:
     ensure_table(conn)
     return {row[0]: row[1] for row in conn.execute("SELECT source_url, report_date FROM pla_activity_daily")}
@@ -571,6 +604,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="print the stored report text and its parse for these dates")
     parser.add_argument("--unparsed", type=int, metavar="N",
                         help="print text samples of the last N pages the backfill could not parse")
+    parser.add_argument("--reparse-stored", action="store_true",
+                        help="re-run the parser on every stored report text (no downloads)")
     parser.add_argument("--url", default=os.getenv("PLA_ACTIVITY_LIST_URL", DEFAULT_LIST_URL))
     parser.add_argument("--pages", type=int, default=MAX_DETAIL_PAGES)
     parser.add_argument("--db", help="news DB path (default: the configured news DB)")
@@ -611,6 +646,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Dates with no report since {since}: {len(gaps)}")
         for gap in gaps[:60]:
             print(f"  {gap}")
+        return 0
+    if args.reparse_stored:
+        from ..database import Database
+        from ..settings import get_settings
+
+        with Database(args.db or get_settings().news_db_path) as db:
+            print(f"Re-parsed stored reports: {reparse_stored(db.conn)}")
         return 0
     if args.text or args.unparsed:
         from ..database import Database

@@ -89,6 +89,8 @@ programs:
       strong: [對台軍售, DSCA, 外國軍事融資, FMF, 總統撥款權, PDA, 聯合訓練, 台灣海峽通過, 印太司令部, INDOPACOM]
       support: [美軍, 日本防衛省, 自衛隊, 菲律賓, 澳洲, 軍售, 交付, 訓練, 盟友, 演習, 國防部]
       min_support: 2
+      # Support matches also need a Taiwan link (keeps out AUKUS or other stories that never mention Taiwan).
+      require_any: [台灣, 臺灣, 台海, 臺海, 對台, 國軍, 台美, 美台, 第一島鏈]
     questions:
       - id: P3-Q1
         text: 援助重點是否改變（大型平台 vs 不對稱、訓練、後勤）？

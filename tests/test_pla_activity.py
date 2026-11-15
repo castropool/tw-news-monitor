@@ -368,3 +368,46 @@ def test_stored_text_and_cli_print(db, capsys):
     out = capsys.readouterr().out
     assert "=== 2026-11-14" in out and "'aircraft_crossed': 4" in out and "=== 2026-01-01: no stored report" in out
     db.connect()
+
+
+# Verbatim report texts from www.mnd.gov.tw, captured on the server 2026-11-15.
+LIVE_OLDER = {
+    "2026-01-15": ("一、日期:\n中華民國115年1月14日(星期三)0600時至115年1月15日(星期四)0600時止。\n二、活動動態:\n"
+                   "迄0600時止,偵獲共機9架次(逾越中線進入北部、西南及東部空域9架次)及共艦11艘,持續在臺海周邊活動。"
+                   "國軍運用任務機、艦及岸置飛彈系統嚴密監控與應處。\n三、中共空飄氣球活動:\n中共空飄氣球計偵獲1顆。",
+                   (9, 9, 11, None, 1)),
+    "2026-07-18": ("一、日期:\n中華民國115年7月17日(星期五)0600時至115年7月18日(星期六)0600時止。\n二、活動動態:\n"
+                   "迄0600時止,偵獲共艦8艘及公務船4艘,持續在臺海周邊活動。國軍運用任務機、艦及岸置飛彈系統嚴密監控與應處。\n"
+                   "三、上述期間未偵獲共機,故無提供航跡圖。",
+                   (0, 0, 8, 4, None)),
+    "2025-10-26": ("一、日期:\n中華民國114年10月25日(星期六)0600時至10月26日(星期日)0600時止。\n二、活動動態:\n"
+                   "迄0600時止,偵獲共機8架次(逾越中線進入北部、中部及西南空域5架次)及共艦7艘,持續在臺海周邊活動。",
+                   (8, 5, 7, None, None)),
+    "2025-02-20": ("一、日期:\n中華民國114年2月19日(星期三)0600時至2月20日(星期四)0600時止。\n二、活動動態 :\n"
+                   "迄0600時止,偵獲共機36架次(其中逾越海峽中線進入北部、中部、西南及東南空域29架次)及共艦8艘,持續在臺海周邊活動。"
+                   "國軍運用任務機、艦及岸置飛彈系統嚴密監控與應處。\n三、中共空飄氣球活動:\n中共空飄氣球計偵獲1顆。",
+                   (36, 29, 8, None, 1)),
+    "2025-12-10": ("一、日期:\n中華民國114年12月9日(星期二)0600時至12月10日(星期三)0600時止。\n二、活動動態:\n"
+                   "迄0600時止,偵獲共機7架次(逾越中線進入北部及西南空域2架次)及共艦6艘,持續在臺海周邊活動。",
+                   (7, 2, 6, None, None)),
+}
+
+
+@pytest.mark.parametrize("day", sorted(LIVE_OLDER))
+def test_live_older_wordings(day):
+    text, expected = LIVE_OLDER[day]
+    r = pla.parse_report_text(text)
+    assert r.report_date == day
+    assert (r.aircraft, r.aircraft_crossed, r.vessels, r.official_ships, r.balloons) == expected
+
+
+def test_reparse_stored_fixes_rows_without_downloading(db):
+    text, _ = LIVE_OLDER["2025-02-20"]
+    pla.save_reports(db.conn, [pla.parse_report_text(text, "https://www.mnd.gov.tw/news/plaact/84042")])
+    db.conn.execute("UPDATE pla_activity_daily SET aircraft_crossed = NULL, balloons = NULL")  # as the old parser left it
+    db.conn.commit()
+    stats = pla.reparse_stored(db.conn)
+    assert stats == {"rows": 1, "changed": 1, "date_mismatch": 0, "unparsed": 0}
+    row = db.conn.execute("SELECT aircraft_crossed, balloons FROM pla_activity_daily").fetchone()
+    assert row == (29, 1)
+    assert pla.reparse_stored(db.conn)["changed"] == 0

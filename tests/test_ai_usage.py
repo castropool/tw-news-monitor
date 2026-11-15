@@ -190,3 +190,13 @@ def test_strong_model_follows_the_endpoint_naming(monkeypatch):
     assert ai_client.model_for("strong") == "deepseek/deepseek-v4-pro"
     monkeypatch.setenv("AI_MODEL_STRONG", "custom-model")
     assert ai_client.model_for("strong") == "custom-model"
+
+
+def test_strong_tier_gets_a_longer_timeout(monkeypatch):
+    from app import ai_client
+
+    monkeypatch.setenv("SUMMARIZER_API_KEY", "k")
+    monkeypatch.setenv("SUMMARIZER_TIMEOUT_SECONDS", "60")
+    monkeypatch.delenv("AI_STRONG_TIMEOUT_SECONDS", raising=False)
+    assert ai_client.make_client("summary").timeout == 60
+    assert ai_client.make_client("assistant", "strong").timeout == 420

@@ -158,7 +158,7 @@ python -m app.military.pla_activity --check
 python -m app.military.pla_activity --backfill-days 730
 ```
 
-  回填会把无法解析的页面连同文字样本存入 `pla_unparsed`；`--unparsed 10` 查看，`--text 2025-12-10 2026-01-15` 打印指定日期的已存报告原文与解析结果；修正解析后用 `--backfill-days 950 --fresh` 重读全部页面并覆盖旧行。
+  回填会把无法解析的页面连同文字样本存入 `pla_unparsed`；`--unparsed 10` 查看，`--text 2025-12-10 2026-01-15` 打印指定日期的已存报告原文与解析结果；修正解析后用 `--reparse-stored` 以已存原文重新解析（不需下载，数秒完成），或用 `--backfill-days 1000 --fresh` 重读全部页面。
 
   然后在 `.env` 设 `PLA_ACTIVITY_ENABLED=true`，常规任务每天最多抓取到当日报告为止；失败不影响新闻交付。查看已存数据：`python -m app.military.pla_activity --show 14`。
 

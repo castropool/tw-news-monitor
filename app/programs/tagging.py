@@ -91,6 +91,15 @@ def tag_range(conn: sqlite3.Connection, since: datetime, until: datetime | None 
         for pid, reasons in match(title, summary, category, cfg).items():
             batch.append((url, pid, json.dumps(reasons, ensure_ascii=False), stamp))
             counts[pid] = counts.get(pid, 0) + 1
+    # Re-tagging replaces rule-based tags for these articles (rules may have
+    # changed); tags added by approved research leads are kept.
+    urls = [r[0] for r in rows]
+    for i in range(0, len(urls), 500):
+        chunk = urls[i:i + 500]
+        conn.execute(
+            f"DELETE FROM program_tags WHERE url IN ({','.join('?' * len(chunk))}) AND reason NOT LIKE '%lead:%'",
+            chunk,
+        )
     conn.executemany(
         "INSERT INTO program_tags(url, program, reason, tagged_at) VALUES (?, ?, ?, ?) "
         "ON CONFLICT(url, program) DO UPDATE SET reason = excluded.reason, tagged_at = excluded.tagged_at",
