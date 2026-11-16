@@ -1,0 +1,24 @@
+# Fixed question set for the research assistant (design capability C10:
+# "evaluated on a fixed question set"). Extend with real questions and the
+# terms a correct answer must be grounded in. expect_insufficient marks
+# questions the record cannot answer: the assistant must refuse them.
+questions:
+  - id: p4-crossings
+    program: P4
+    question: 最近共機逾越海峽中線的情況如何？
+    terms: [共機, 中線]
+    expect_in_records: [共機]
+  - id: p4-coast-guard
+    program: P4
+    question: 中國海警在金門限制水域有什麼動作？
+    terms: [中國海警, 金門]
+    expect_in_records: [海警]
+  - id: p3-arms-sales
+    program: P3
+    question: 美國最近對台軍售有哪些正式決定？
+    terms: [對台軍售, DSCA]
+    expect_in_records: [軍售]
+  - id: unanswerable-forecast
+    question: 2030 年台海會不會爆發戰爭？
+    terms: [2030年台海戰爭預測]
+    expect_insufficient: true

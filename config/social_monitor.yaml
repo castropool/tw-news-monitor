@@ -14,3 +14,19 @@ backfill:
 
 raw:
   root: data/social_monitor/raw
+
+# Collect due, verified accounts during the regular news run (python -m
+# app.main).  Only the listed person categories run here; political accounts
+# keep their standalone CLI workflow.  Failures never block news delivery.
+news_run:
+  enabled: true
+  categories: [kol]
+  max_accounts_per_run: 30
+
+# KOL section in the Word digest / Feishu text digest.
+kol_delivery:
+  word_enabled: true
+  feishu_text_enabled: true
+  window_hours: 24
+  max_items: 30
+  feishu_max_items: 10

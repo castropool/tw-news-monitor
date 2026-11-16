@@ -21,7 +21,7 @@ def server(monkeypatch):
     """A gateway server bound to an ephemeral port with a stubbed CLI."""
     monkeypatch.setattr(gateway, "run_headless", _fake_headless)
     srv = gateway.make_server(host="127.0.0.1", port=0)
-    thread = threading.Thread(target=srv.serve_forever, daemon=True)
+    thread = threading.Thread(target=srv.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True)
     thread.start()
     port = srv.server_address[1]
     yield f"http://127.0.0.1:{port}"
@@ -51,7 +51,7 @@ def test_non_loopback_bind_requires_explicit_guard():
 def test_request_body_limit_returns_413(monkeypatch):
     monkeypatch.setattr(gateway, "run_headless", _fake_headless)
     srv = gateway.make_server(host="127.0.0.1", port=0, max_body_bytes=1024)
-    thread = threading.Thread(target=srv.serve_forever, daemon=True)
+    thread = threading.Thread(target=srv.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True)
     thread.start()
     try:
         body = {"messages": [{"role": "user", "content": "x" * 1500}]}
@@ -77,7 +77,7 @@ def test_cli_concurrency_limit_returns_429(monkeypatch):
 
     monkeypatch.setattr(gateway, "run_headless", blocking)
     srv = gateway.make_server(host="127.0.0.1", port=0, max_concurrency=1)
-    thread = threading.Thread(target=srv.serve_forever, daemon=True)
+    thread = threading.Thread(target=srv.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True)
     thread.start()
     url = f"http://127.0.0.1:{srv.server_address[1]}/v1/chat/completions"
     body = {"messages": [{"role": "user", "content": "使用者資料"}]}

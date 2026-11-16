@@ -1,4 +1,5 @@
 ﻿import re
+from functools import lru_cache
 from urllib.parse import urlsplit
 from .collectors.base import BaseCollector
 
@@ -9,7 +10,9 @@ NEWTALK_PATTERN = re.compile(r"^/news/view/\d{4}-\d{2}-\d{2}/(\d+)$")
 STORM_PATTERN = re.compile(r"^/article/(\d+)")
 EY_PATTERN = re.compile(r"^/page/[0-9a-f]+//([0-9a-f-]+)", re.IGNORECASE)
 
+@lru_cache(maxsize=16384)
 def article_identity_key(url: str) -> str:
+    """Stable cross-URL identity for dedup (pure; cached per URL)."""
     normalized = BaseCollector.normalize_url(url)
     parts = urlsplit(normalized)
     host = (parts.hostname or "").lower()

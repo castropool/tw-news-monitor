@@ -5,6 +5,11 @@ from pathlib import Path
 
 import pytest
 
+import pytest
+
+# validation/ is a local, gitignored release-tooling package; these tests run only where it exists.
+pytest.importorskip("validation.international_media", reason="validation/ package not present (gitignored)")
+
 import validation.international_media.build_sha256_manifest as manifest_module
 from validation.international_media.build_sha256_manifest import (
     _matches_exclude,

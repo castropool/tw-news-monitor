@@ -133,7 +133,7 @@ class TestDedupHistorical:
         with open(p, encoding="utf-8") as f:
             return json.load(f)
 
-    def test_historical_144_to_130(self, json_records):
+    def test_historical_144_to_130(self, json_records, tmp_path):
         articles = []
         for rec in json_records:
             pub = None
@@ -175,7 +175,7 @@ class TestDedupHistorical:
         assert len(urls) == len(set(urls)), "Unique list contains duplicate URLs"
 
         # Save validation results for report
-        diag = Path(__file__).resolve().parent.parent / "data" / "diagnostics"
+        diag = tmp_path  # report is a by-product; keep it out of the repo
         lines = [
             "# Dedup Validation (Historical JSON)",
             "",

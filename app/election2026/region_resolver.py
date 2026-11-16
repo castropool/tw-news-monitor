@@ -15,6 +15,7 @@
 """
 
 import logging
+from functools import lru_cache
 
 from .hanzi_utils import to_traditional
 
@@ -43,16 +44,41 @@ def _sorted_names(region_names: list[tuple[str, list[str]]]) -> list[tuple[str, 
     return pairs
 
 
-def _matched_spans(
-    text: str, regions_config: dict
-) -> list[tuple[str, str, int, int]]:
-    """返回 (名字, 标准名, start, end) 命中列表。
+def _alias_key(regions_config: dict) -> tuple:
+    """Hashable snapshot of the alias table (cache key).
 
-    名字包含标准名与别名；文本先转繁体（配置词表为繁体）。
+    Built from the live config on every call, so an in-place config edit
+    yields a new key instead of a stale cached result.
     """
-    norm_text = to_traditional(text)
+    aliases_config = (regions_config or {}).get("aliases", {}) or {}
+    key = tuple(
+        (canonical, tuple(alias_list or ()))
+        for canonical, alias_list in aliases_config.items()
+    )
+    try:
+        hash(key)
+    except TypeError:  # malformed (unhashable) alias entries: drop them early
+        key = tuple(
+            (canonical, tuple(a for a in alias_list if isinstance(a, str)))
+            for canonical, alias_list in key
+        )
+    return key
+
+
+@lru_cache(maxsize=64)
+def _sorted_pairs_for(alias_key: tuple) -> tuple[tuple[str, str], ...]:
+    # Same name list as _build_region_names: canonical + string aliases only.
+    region_names = [
+        (canonical, [canonical, *(a for a in aliases if isinstance(a, str))])
+        for canonical, aliases in alias_key
+    ]
+    return tuple(_sorted_names(region_names))
+
+
+@lru_cache(maxsize=8192)
+def _spans_for(norm_text: str, alias_key: tuple) -> tuple[tuple[str, str, int, int], ...]:
     spans: list[tuple[str, str, int, int]] = []
-    for name, canonical in _sorted_names(_build_region_names(regions_config)):
+    for name, canonical in _sorted_pairs_for(alias_key):
         start = 0
         while True:
             pos = norm_text.find(name, start)
@@ -60,7 +86,18 @@ def _matched_spans(
                 break
             spans.append((name, canonical, pos, pos + len(name)))
             start = pos + 1
-    return spans
+    return tuple(spans)
+
+
+def _matched_spans(
+    text: str, regions_config: dict
+) -> list[tuple[str, str, int, int]]:
+    """返回 (名字, 标准名, start, end) 命中列表。
+
+    名字包含标准名与别名；文本先转繁体（配置词表为繁体）。
+    结果按 (文本, 别名表) 缓存：同一标题在一次分类中会被多次解析。
+    """
+    return list(_spans_for(to_traditional(text), _alias_key(regions_config)))
 
 
 def _resolve_overlaps(

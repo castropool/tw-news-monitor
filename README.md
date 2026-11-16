@@ -1,23 +1,13 @@
-# tw-news-monitor-simple — 台湾新闻监测 + 选情事实底表系统
+# tw-news-monitor-simple — 台湾新闻监测 + 选情候选事实监控
 
-本项目是一个运行在 Windows 上的台湾政治新闻监测与「选情辅助研判」一体化系统，由两大子系统构成：
+本项目是一个运行在 Windows 上的台湾政治新闻监测与选情候选事实监控系统，由两大子系统构成：
 
-1. **新闻采集与推送子系统**：定时采集台湾政治/财经/国际新闻，去重入库，生成摘要与 Word 简报，推送至控制台 / 飞书 / Telegram。
-2. **选情事实底表子系统**（`election_context`）：面向「2026 年台南市长选举」的可验证事实库——从研究资料包经人工裁决 → 转换预览 → 发布门禁 → 正式入库 → 覆盖矩阵 → 态势快照 → 研判报告，全链路留痕、可审计、可回滚。
+1. **新闻采集与推送子系统**：定时采集台湾政治/财经/国际新闻、民调、地下赌盘与 KOL 社群动态，去重入库，生成摘要与 Word 简报，推送至控制台 / 飞书 / Telegram。
+2. **选情候选事实监控**（`app/election_candidates/`）：从新闻中自动生成 2026 台南 / 新北市长选举的候选事实，供人工审核与逐日完成审核记录（只监控、不发布）。
 
-当前正式数据基线（2026-08-01）：
-
-| 指标 | 数量 |
-|---|---|
-| elections | 1 |
-| actors | 6 |
-| events（正式事件） | 41 |
-| sources（正式来源） | 112 |
-| event_source_links | 101 |
-| event_fts（全文检索） | 41 |
-| polls（正式民调） | 15 |
-| poll_questions / poll_results | 39 / 116 |
-| snapshots（态势快照） | 4（1 active：`tn_state_20260801_v1`） |
+> 已移除的功能：选情研判（分析报告生成、终审与交付），以及选情正式事实库（`app/election_context/`：
+> 正式入库、覆盖矩阵、态势快照、候选事实发布 / 自动发布）。`data/` 下的历史报告、正式事实库
+> `election_context.db` 与种子均作为历史数据保留；候选生成时只读引用它们做查重，不再写入。
 
 ---
 
@@ -77,6 +67,7 @@ config/sources.yaml
 | `reuters` | ReutersCollector | Reuters 官方新闻 sitemap，仅元数据 |
 | `ft_alphaville` | FTAlphavilleCollector | FT Alphaville 官方 RSS，仅 feed 摘要 |
 | `wsj_rss` | WSJRSSCollector | WSJ 官方冻结 RSS，Phase I 默认停用 |
+| `google_news_rss` | GoogleNewsRSSCollector | Google 新闻 RSS 检索（民调 / 地下赌盘专题），发布媒体作 `source_name` |
 
 采集器规则：单来源上限 20 条、空标题/空 URL 跳过、统一设置超时与 User-Agent、不抓取正文、单来源故障不中断整体。
 采集器本身不做关键词过滤；关注范围过滤由 `config/content_filter.yaml` 统一执行。生产默认 `exclude_from_delivery`：命中经济栏目里的彩票开奖、美食消费、营销活动、职场生活等社会琐事的文章仍保留在历史库，但不进入摘要、Word 或通知；特殊环境可切换为 `drop_before_save`。
@@ -89,11 +80,139 @@ config/sources.yaml
 - `metadata_only`、`newsletter` 以及其他显式国际 access level 不进入正文或 meta-description 网络抓取。
 - 独立真实验收见 `validation/international_phase1/`，不会使用生产数据库、Scheduler 或飞书。
 
+### 民调与地下赌盘专题（`category: poll` / `betting`）
+
+- 来源：`config/sources.yaml` 中 `poll_*`（台湾民意基金会、美丽岛电子报国政民调、TVBS、台湾指标、远见、联合报、选举民调、最新民调）与 `betting_*`（地下赌盘、选举赌盘、签赌查缉、博弈网站查缉）共 12 个 Google 新闻 zh-TW 检索 feed（近 7 天）。走与其他新闻相同的采集、URL/identity 去重、入库、时效、重要度与交付链路。
+- 相关性门禁（`app/special_topics/` + `config/special_topics.yaml`）：检索 feed 难免混入无关结果，统一在去重后判定；不相关条目照常入库但 `delivery_eligible=0`、`filter_reason=topic_relevance`，不进入摘要/Word/飞书。采集器本身不做关键词过滤。
+- 结构化标注写入 `news_topics`（`topic=poll` / `betting`，`metadata_json`）：民调为发布机构、关键百分比、样本数、抽样误差、调查期间；赌盘为类型（选举赌盘/运动签赌/线上博弈/查缉执法/洗钱金流）与是否涉及选举。只复述原文，不推断。
+- 展示：飞书文本摘要与 Word 各有「民调」「地下赌盘」小节，每条附一行标注（如 `民调机构：台灣民意基金會｜关键数据：賴清德聲望42.3%…`）。这两类始终留在自己的小节，不会被改路由到「九合一」或「国际媒体」。
+
+### KOL 社群动态（`app/social_monitor/`）
+
+- 名单：`config/kol_social_sources.yaml` 收录 20 位台湾本地/涉台 KOL（时事解说、两岸与国际评论、各光谱政治评论员），与 `config/political_social_sources.yaml` 共用社群监测架构（账号、帖子去重与修订、跨平台合并、原始快照），以 `person_category=kol` 区分。
+- **账号须先验证才会采集**（沿用政治人物社群的安全规则）。名单中的账号标识是候选值，需在联网的部署机执行：
+
+  ```
+  python -m app.social_monitor.cli verify --account-id kol_mindi_youtube --url https://www.youtube.com/@<handle>
+  python -m app.social_monitor.cli verify --category kol        # 批量验证所有尚未验证的账号（缺候选标识的只报告原因，不写入）
+  python -m app.social_monitor.cli list --category kol          # 查看验证状态
+  ```
+
+  YouTube：解析频道 ID → 读取公开频道 feed → 标题须与名单姓名/别名匹配；有 `feed_url` 的账号（Podcast、Blog/Substack，或运营方自建 RSS 桥接的 Facebook/Threads/X）：feed 标题或作者须匹配。结果写入 `data/social_monitor/account_verifications.json`，不匹配一律不记为已验证。Facebook/Threads/X 官方适配器未实现，没有 `feed_url` 时无法采集。
+- 采集：常规新闻任务（`python -m app.main`）每轮按 `config/social_monitor.yaml` 的 `news_run` 采集到期的已验证 KOL 账号（分级间隔，单轮上限 30 个），失败不影响新闻交付；也可手动 `python -m app.social_monitor.cli collect --category kol`。
+- 展示：Word 新增「KOL 社群动态」小节（与「政治人物社群动态」分开），飞书文本摘要追加「KOL动态」小节；只取最近 24 小时、通过相关性筛选的帖子（`kol_delivery`：窗口、Word 上限 30、飞书上限 10）。
+
 ### 去重机制（`article_identity.py`）
 
 - **可点击 URL 清理**：scheme+host 小写、保留 path 大小写，去 tracking 参数、fragment 与尾部斜杠；身份键单独负责查重规范化。
 - **身份键（identity key）**：独立提取来源、日期与标题指纹，用于捕获同一文章的别名 URL（如 UDN 重复路径），不会改写用户看到的链接。
 - 三轮去重：本轮内 URL 去重 → 本轮内 identity 去重 → 与历史库 URL+identity 比对。
+
+### 正文存储（`article_text.py`，表 `article_texts`）
+
+- 摘要器 hybrid 模式已下载的文章页，其正文抽取结果（trafilatura，不含 meta 描述）同时存入 `article_texts`，不增加任何请求。
+- 带 `access_level` 的国际媒体条目永不抓取正文（与摘要器相同的边界）。
+- 保留约 24 个月（`ARTICLE_TEXT_RETENTION_DAYS`，默认 730），过期只删正文，文章行保留；每次运行自动清理。
+- 试点范围内的分类（`ARTICLE_TEXT_INSCOPE_CATEGORIES`，默认 `military`）每次运行额外抓取最多 `ARTICLE_TEXT_INSCOPE_FETCH_MAX`（默认 20）篇尚无正文的新文章。
+- 其他分类由 `ARTICLE_TEXT_FETCH_MAX`（默认 0 = 不额外请求）控制。
+
+### 全文检索（`app/search.py`）
+
+- SQLite FTS5 索引标题、摘要与已存正文；每个汉字单独成词，查询词按相邻字短语匹配（`國防部` 不会匹配分散的三个字）。
+- 简体输入统一折为繁体，`国防部` 与 `國防部` 结果相同；多个词以空格分隔，须全部命中；标题命中排在前面。
+- 索引表懒创建（不在 `Database.connect()` 中），无 FTS5 的环境只会让检索不可用，不影响采集；每次检索前增量更新（首次在大库上需数十秒）。
+
+```
+python -m app.search 國防部 共機 --since 2026-11-01 --limit 20
+python -m app.search 民調 --category poll
+python -m app.search --rebuild
+```
+
+### AI 调用记账与月度上限（`app/ai_usage.py`）
+
+- 所有模型调用都经 `DeepSeekClient.analyze`：发送前检查本月预估花费，发送后写入台账 `data/ai_usage.db`（任务、端点、模型、token、预估费用、耗时、错误）。
+- 预估偏高以保证不超支：按峰时价计价；未知模型按最贵已知价；网关不回报 token（本地 Command Code 网关恒为 0）时按文字长度估算（每个汉字 1 token，其余每 3 字符 1 token）。失败调用只计端点回报的 token。
+- 本月（UTC 自然月）预估花费达到 `AI_MONTHLY_BUDGET_USD`（默认 15 美元）后拒绝调用，摘要按现有降级路径回退（导语/meta），新闻照常交付。台账读写失败不阻断调用。
+- 查看：`python -m app.ai_usage`（本月）或 `python -m app.ai_usage --month 2026-10`。
+- 相同请求（模型+提示词完全一致）30 天内直接复用已存答案，记为 `cache_hit`、费用 0（`AI_CACHE_ENABLED=0` 关闭，`AI_CACHE_DAYS` 调整）。
+- 两档模型（`app/ai_client.py`）：`fast` 用于摘要/翻译/抽取（`AI_MODEL_FAST`，默认沿用 `SUMMARIZER_MODEL`），`strong` 用于周度研判草稿与研究助理（`AI_MODEL_STRONG`；默认 `deepseek-v4-pro`，命名风格跟随 fast 模型：fast 带 `deepseek/` 前缀时才加前缀），走同一端点。
+
+### 试点辅助来源：海巡署与日本统合幕僚监部（默认关闭）
+
+- `config/sources.yaml` 中 `cga_china_coast_guard`、`cga_kinmen_waters`（海巡署与中国海警动态）、`jp_joint_staff`、`jp_mod_pla_vessels`（日本统合幕僚监部/防卫省公布的共军动态）：通过 Google News RSS 收集新闻报道，`category: military`，走现有军事筛选与事件归并。
+- 默认 `enabled: false`；在服务器上逐个改为 `true` 后执行一次 `python -m app.main --dry-run`，检查收集到的条目是否相关，再保留开启。
+
+### 国防部共军动态日报（`app/military/pla_activity.py`，表 `pla_activity_daily`）
+
+- 解析国防部每日「中共解放軍臺海周邊海、空域動態」：共机架次、逾越中线/进入空域架次、共舰、公务船、空飘气球，每个报告日一行（06:00–06:00 窗口的结束日）；国防部改稿时更新。
+- 解析基于报告文字而非网页样式；报告未提及的数字记为空（未知），只有写明「未偵獲」才记 0。
+- **尚未对线上网页验证**（开发环境无法访问 mnd.gov.tw），默认关闭。在能访问的机器上先检查：
+
+```
+python -m app.military.pla_activity --check
+```
+
+  结果正确后回填历史（约每秒一个请求，两年约 15 分钟），并列出缺报日期：
+
+```
+python -m app.military.pla_activity --backfill-days 730
+```
+
+  回填会把无法解析的页面连同文字样本存入 `pla_unparsed`；`--unparsed 10` 查看，`--text 2025-12-10 2026-01-15` 打印指定日期的已存报告原文与解析结果；修正解析后用 `--reparse-stored` 以已存原文重新解析（不需下载，数秒完成），或用 `--backfill-days 1000 --fresh` 重读全部页面。
+
+  然后在 `.env` 设 `PLA_ACTIVITY_ENABLED=true`，常规任务每天最多抓取到当日报告为止；失败不影响新闻交付。查看已存数据：`python -m app.military.pla_activity --show 14`。
+
+### 共军动态基线与异常（`app/military/pla_baseline.py`）
+
+- 纯统计、无模型调用：每个指标（共机、逾越中线、共舰、公务船、气球）与前 90 天比较，给出 z 分数；z≥2 且不低于 P90 记「异常偏高」，z≤-1.5 且不高于 P10 记「异常偏低」；前 90 天有数据少于 30 天时不出旗标（基线不足）。
+- 周视图：本周合计/日均/单日最高、本周对基线倍数、高于 P90 天数、90 日最小二乘趋势，以及缺报日期。
+- 历史对照：本周单日最高在全部历史中出现过几次、最近几次是哪天；本周合计在此前所有完整周（同一星期几结束）中的排名、上次达到此数的周；去年同周合计。周报草稿的数据段落与模型输入都包含这部分。`python -m app.military.pla_baseline --week-ending 2026-11-14`。
+
+### 试点：台海安全事实抽取（`app/pilot/claims.py`，表 `claims`）
+
+- 对试点分类（`PILOT_CATEGORIES`，默认 `military`）的文章，用 fast 档模型按 `prompts/claims_p4.md` 抽取分类断言（共军活动、演习、事件、表态、军购、政策等），每条须附原文**逐字**引文。
+- 引文在原文中找不到（仅容忍空白与全半角差异）、类型不合法、日期晚于文章、数量非法的断言标为无效并记原因，不进入研判。
+- 每篇文章按「正文版本 + 提示词版本」只抽一次；正文更新会重抽，已人工审核的断言保留。分析员用 `review` 标记 confirmed / rejected。
+- 常规任务中默认关闭（`PILOT_EXTRACTION_ENABLED=true` 开启，`PILOT_EXTRACTION_MAX_PER_RUN` 默认 10）；受月度 AI 预算约束。
+
+```
+python -m app.pilot.claims extract --days 7 --limit 20
+python -m app.pilot.claims list --days 7
+python -m app.pilot.claims review 12 confirmed --reviewer 你的名字
+```
+
+### 试点：台海安全周报草稿（`app/pilot/weekly.py`）
+
+- 一周（截至 `--week-ending`）的草稿：共军活动数据与基线、本周有效事实（编号、逐字引文、来源）、三个竞争假设（H1 结构性上升 / H2 稳定基线上的触发型尖峰 / H3 训练与季节周期）按固定、可稽核的指标规则给出「支持/不支持/中性/资料不足」，以及资料缺口。
+- 事件归并（`app/pilot/events.py`）：沿用现有军事事件管线（`app/military/events.py`）把本周试点文章归并为事件，并把引用同一已核实事实（类型+日期+数量+单位+主体）的事件再合并（例如多家媒体报道同一份国防部日报）；草稿「本周事件」列出各事件及其事实编号。
+- 研判要点（可选）由 strong 档模型依 `prompts/weekly_p4.md` 只根据上述内容撰写；自动检查：须引用存在的事实编号或数据表，文中数字须出现在所引内容中，否则在草稿中以「⚠ 自动检查」标出。带 ⚠ 的草稿不能批准。
+- 文件写在 `ASSESSMENT_DIR`（默认 `data/assessments/p4/<截止日>/`）：`generated.md`（原始生成）、`draft.md`（分析员编辑）、`meta.json`；批准时记录审核人与改动比例（试点门槛：连续四周仅小幅修改即批准）。**不发送飞书**。
+
+```
+python -m app.pilot.weekly generate --week-ending 2026-11-15
+python -m app.pilot.weekly approve --week-ending 2026-11-15 --reviewer 你的名字
+python -m app.pilot.weekly status
+python -m app.pilot.weekly revision --week-ending 2026-11-22 --id 1 accept --reviewer 你的名字
+```
+
+- 修订建议（`app/pilot/revisions.py`）：新草稿与上一份已核准周报比较，按固定规则提出「建议修订」（第七节）：假设的指标净支持变号或变动 ≥2；上次要点所引事实之后被驳回或失效；共机活动在「偏高（≥1.3×）/正常/偏低（≤0.8×）」之间转换。每项写明理由，分析员逐项 accept / dismiss；仍有未决项时不能核准。
+
+### 研究计划 P1–P6（`app/programs/`，阶段 2–4，默认全部关闭）
+
+- 计划设置：`config/programs.yaml`（每个计划的长期问题、指标、至少三个竞争假设、文章归类规则）；`python -m app.programs.tagging --days 30` 把文章归入一个或多个计划（表 `program_tags`）。
+- 事实抽取：`python -m app.pilot.claims extract --program P1`；P1/P2/P3/P5/P6 的事实须标明性质（事实/转述/指控/解读/计划）与证据阶梯（表态→承诺→正式决定→资源投入→执行→效果）；未经确认的指控不进入草稿或列表。
+- 人物与机构记录：`python -m app.programs.registry seed|propose|list|review|add|end`；职务等正式关系可自动提议（显示「未确认」），派系、非正式结盟、传闻关系须分析员确认后才显示，且不会自动建立。
+- 周报草稿：`python -m app.programs.weekly generate --program P3`（证据阶梯表、模型填写并经检查的假设证据矩阵、自动检查、修订建议；与 P4 相同的批准规则，文件在 `data/assessments/<计划>/`）。
+- 研究助理：`python -m app.programs.assistant ask "问题"`（只依据检索到的记录回答并引用记录编号；记录不足时直接回答「证据不足」而不调用模型）；`... assistant eval` 用 `config/assistant_eval.yaml` 固定问题集评测。
+- 研究缺口与搜索提议：`python -m app.programs.leads gaps|propose|list|approve|reject|run`；只有分析员批准的搜索才会执行，且只限允许的来源（`LEADS_ALLOWED_HOSTS`，默认 news.google.com）。
+- 每日战略摘要：`python -m app.programs.daily`（共军异常、正式决定以上的事实、跨计划事件、待决修订；`DAILY_ALERT_CLASSES` 决定哪些算警示；只写本地文件）。
+- P4 回测：`python -m app.military.pla_backtest --since 2025-01-01 --until 2025-12-31`，以 `config/p4_incident_labels.yaml`（须分析员确认日期）计算异常旗标的召回率与精确率。
+- 各计划的新闻来源（`prog_*`）标为 `research_only: true`：入库并供研究计划使用，但不进入新闻简报（`filter_reason=research_only`）；2026-11-14 服务器检查后已开启（`prog_p2_transit_visits` 仍关闭）。
+- 排程与飞书发送（`app/programs/delivery.py`，依设计文档决定：团队使用、发到现有飞书群）：
+  - `WEEKLY_AUTO_DRAFT=true`：周日 `WEEKLY_DRAFT_HOUR`（默认 9 点，台北）起为 `WEEKLY_PROGRAMS`（默认 `P4`）生成截至周六的草稿；
+  - `PROGRAM_DELIVERY_ENABLED=true`：经常规通知渠道（`NOTIFIER=feishu` 时即现有飞书群）发送：**已核准**的周报（草稿永不发送）、`DAILY_DIGEST_HOUR`（默认 8 点）起的前一日每日摘要、以及 `DAILY_ALERT_CLASSES` 中的即时警示；
+  - 每条只发一次（表 `program_deliveries`）；`DISABLE_FEISHU_SEND` 仍可暂停发送，恢复后补发。
+  - `PROGRAM_NOTIFIER=feishu`：研判消息使用独立渠道（只受 `PROGRAM_DISABLE_SEND` 暂停），适用于新闻简报仍由另一台机器发送、本机只发研判消息的过渡期；飞书设置缺失时只跳过发送，不影响新闻任务。
 
 ### 时效与重要度
 
@@ -122,102 +241,20 @@ config/sources.yaml
 
 ---
 
-## 三、选情事实底表子系统（`app/election_context/`）
+## 三、选情候选事实监控（`app/election_candidates/`）
 
-这是面向「2026 台南市长选举」的核心工程，遵循 **种子(seed) → 数据库(DB) 双写一致、全流程门禁、幂等可回滚** 的原则。
-
-### 核心概念
-
-- **正式种子（formal seed）**：`data/election_seed/tainan_2026/` 下的权威文本文件，是事实的唯一来源（source of truth）：
-  - `election.json`（选举定义）、`actors.yaml`（人物）、`events.jsonl`（41 条正式事件）、`sources.jsonl`（112 条正式来源）、`polls.jsonl`（15 条正式民调）、`poll_source_links.jsonl`、`taxonomy.yaml`（事件类型定义）、`initial_snapshot.json` + `snapshot_history.jsonl`（快照）。
-- **生产数据库**：`data/election_context.db`，由种子经 bootstrap 生成，必须与种子完全等价（有等价性校验）。
-- **事件（event）**：事实最小单元，含 `event_id`、`occurred_at`、`event_type`、`title`、`analysis_json`（含 scope / verified_facts / limitations / subevents / mentions 等）、`sources[]`（内嵌来源）。
-- **证据台账（evidence ledger）**：覆盖矩阵 v4 中 88 条唯一 `evidence_ref`，每条绑定事件、来源、主题、限制与修订版本（`rt04_imported` / `rt04_enriched`）。
-
-### 模块职责（`app/election_context/`）
-
-| 模块 | 职责 |
-|---|---|
-| `models.py` | Election / Actor / Source / ElectionEvent / ElectionStateSnapshot 数据模型 |
-| `repository.py` | SQLite 仓储层：建表、保存、查询、FTS 全文检索与相关度排序 |
-| `bootstrap.py` | 从种子构建/重置生产 DB，幂等（重复运行结果一致） |
-| `importer.py` | events.jsonl / sources.jsonl 导入 |
-| `retriever.py` | `build_election_context()`：检索 + 组装选情上下文 |
-| `state_builder.py` | `build_snapshot()`：生成态势快照 |
-| `audit.py` | 数据库完整性审计（计数、孤儿、快照约束等） |
-| `poll_validator.py` | 民调记录/集合校验、可比性分组（cross-tracker 比对前提） |
-| `validate_*.py` | 各阶段门禁验证器（见下） |
-
-### 验证器（门禁）
-
-| 验证器 | 门禁内容 |
-|---|---|
-| `validate_poll_import.py` / `validate_poll_release.py` | 民调导入与发布校验 |
-| `validate_event_release.py` | 事件发布：正式数据不变、限制披露、唯一性 |
-| `validate_search_release.py` | 检索案例 + 黄金检索集通过 |
-| `validate_seed_db_equivalence.py` | 种子 ↔ 生产 DB 等价性 |
-| `validate_snapshot_release.py` / `validate_snapshot_v2_preview.py` | 快照发布：只引用正式证据、唯一 active、supersede 正确、幂等 |
-| `validate_fact_coverage.py` | 覆盖矩阵：preflight / ledger / 时间/主题矩阵 / 快照缺口对账 / backlog |
-
-### 研究 → 入库流水线（RT 流程）
-
-每条研究任务（RT02 陈亭妃整合、RT03 谢龙介组织、RT04 蓝白合作…）按固定管线推进，每步产出可审计报告：
-
-```
-data/research/tainan_2026/<rtXX>_research_pack_*.jsonl/.md   # 研究资料包（含人工裁决标记）
-   ↓ 转换预览
-event_preview_rtXX_*/  → conversion_report / event_similarity_report /
-                         event_type_mapping_report / human_adjudication_report /
-                         negative_findings.jsonl / final_release_candidate/
-   ↓ 发布门禁
-rtXX_release_gate.json / rtXX_source_import_plan.json（新来源数、复用数）
-   ↓ 正式入库（双写种子 + DB）
-event_import_rtXX_*/ → import_preflight / import_validation / post_release_reconciliation /
-                       seed_db_equivalence / bootstrap_idempotency / second_import_idempotency /
-                       search_results / golden_search_results / import_audit
-   ↓ 覆盖更新
-fact_coverage_*/ v1 → v2 → v3 → v4（ledger / 时间矩阵 / 主题矩阵 / gap对账 / backlog / closure_record / blocker_triage）
-   ↓ 快照
-snapshot_release_candidate_*.json → snapshot_validation → 原子发布（supersede 旧 active）
-   ↓ 研判报告
-data/reports/tainan_2026/tainan_election_assessment_*.md + _evidence.json
-```
-
-关键约束（历史教训固化为门禁）：
-
-- **种子必须与 DB 等价**（重建验证）；导入前必须备份到 `data/backup_rtXX_pre_import/`。
-- **enrichment（子事件/新增内容）必须写进种子**，否则重建丢失（RT02/RT03 教训）。
-- **`analysis_json` 必须以解析后的 dict 写入种子**，否则 scope 等顶层键丢失（RT04 教训）。
-- 发布前核验：目标事件哈希不变、非目标事件不动、hold / negative finding 不得作为正式证据。
-- 快照发布：先候选 → 验证 → 原子发布（唯一 active、旧快照 supersede、二次发布幂等）。
-
-### 覆盖矩阵版本（`data/election_seed/tainan_2026/fact_coverage_*/`）
-
-| 版本 | 说明 |
-|---|---|
-| v1（20260727） | 基线：RT01 民调缺口负发现 |
-| v2（20260727） | RT02 陈亭妃整合（closure_record） |
-| v3（20260727） | RT03 谢龙介组织（closure_record） |
-| **v4（20260801）** | **RT04 蓝白合作结项 + 快照阻断分级 + 首个生产快照** |
-
-每个版本包含：`coverage_preflight.json`、`coverage_evidence_ledger.jsonl`（88 条）、`time_coverage_matrix.{json,csv}`、`theme_coverage_matrix.{json,csv}`、`snapshot_gap_reconciliation.json`、`research_priority_backlog.json`、`coverage_validation.json`；RT 结项版本另含 `rtXX_closure_record.json`、`snapshot_blocker_triage.json` 等。**旧版本禁止修改**（构建前有哈希快照校验）。
-
-### 态势快照（snapshot）
-
-- 正式快照：`initial_snapshot.json`（当前 active）+ `snapshot_history.jsonl`（历史，superseded）。
-- 当前 active：`tn_state_20260801_v1`（事实截止 2026-07-27，民调截止 2026-03-12）。
-- 快照内容：总体格局、候选人判断（陈亭妃整合 / 谢龙介组织 / 蓝白合作）、民调判断（含空窗披露）、已知限制、核心议题、关键风险、里程碑事件。
-- 门禁：只引用正式事件/民调、active P0=0、无 hard blocker、民调空窗与治理缺口必须披露、pytest 全过。
+- 生成：`python -m app.election_candidates.build_candidate_queue --since-last-success`（计划任务「Tainan / New Taipei Election Candidate Monitor」每 30 分钟运行；新北加 `--config config/election_candidate_pipeline.new_taipei.yaml`）。读取 `news.db` 与 `election_watch.db`，聚类、断言分类、来源解析、评分与路由后写入候选库 `data/election_candidates/<选举>/candidate_fact_pipeline.db`。
+- 查重：只读打开历史正式事实库（`paths.formal_db`）比对疑似重复；从不写入正式库或种子（`guardrails`）。
+- 审核：`list_candidates` / `show_candidate` / `export_review_template` / `review_candidate`（追加式审核记录）/ `complete_review`（逐日连续标记“已审核完成”）。操作步骤见 `docs/FACT_MAINTENANCE_OPERATOR_GUIDE.md`。
 
 ---
 
-## 四、选情研判子系统（实时扫描 + 报告）
+## 四、选情新闻扫描（实时扫描）
 
 - `election_watch.py`：扫描 `news.db` 新文章，`ElectionClassifier`（`config/election_watch.yaml` 关键词规则）识别涉台南选举文章，打分 relevance，写入 `election_fact_store`（事实库）。
 - `election_classifier.py`：城市/人物/政党/议题匹配 + 选举上下文判定。
 - `election_fact_store.py`：扫描状态与匹配事实存储（增量扫描、幂等）。
-- `deepseek_analysis.py`：可选调用 DeepSeek API 做深度分析（`DEEPSEEK_API_KEY`）。
-- `election_report.py`：汇总事实库 + 人工补充事实（`config/election_manual_facts.json`）+ 风格配置（`config/election_analysis_style.yaml`），经 `election_quality_check.py` 质检后生成报告。
+- `deepseek_analysis.py`：OpenAI 兼容的 DeepSeek 客户端（供文章梗概 `summarizer.py` 使用）。
 - `election_event_merge.py`：将同事件的多篇文章聚合为事件。
 
 ---
@@ -236,29 +273,22 @@ tw-news-monitor-simple/
 │   ├── freshness.py importance.py article_identity.py source_registry.py time_utils.py lock.py
 │   ├── summarizer.py            # 文章梗概（RSS 导语 + DeepSeek 批量 + meta 兜底）
 │   ├── diagnose.py              # 采集诊断
-│   ├── election_classifier.py election_watch.py election_fact_store.py election_report.py
-│   ├── election_quality_check.py election_event_merge.py election_utils.py deepseek_analysis.py
-│   └── election_context/        # 选情事实底表子系统
-│       ├── models.py repository.py bootstrap.py importer.py retriever.py
-│       ├── state_builder.py audit.py poll_validator.py
-│       └── validate_*.py        # 各阶段门禁
-├── config/                      # sources.yaml / election_watch.yaml / importance_rules.yaml /
-│                                # election_analysis_style.yaml / election_manual_facts.json
+│   ├── election_classifier.py election_watch.py election_fact_store.py
+│   ├── election_event_merge.py election_utils.py deepseek_analysis.py
+│   ├── election2026/            # 九合一选举新闻识别（Word 专栏）
+│   ├── election_candidates/     # 选情候选事实监控（生成 + 人工审核，不发布）
+│   ├── special_topics/          # 民调 / 地下赌盘相关性门禁与标注
+│   └── social_monitor/          # 政治人物与 KOL 社群监测
+├── config/                      # sources.yaml / election_watch.yaml / importance_rules.yaml 等
 ├── data/
 │   ├── news.db                  # 新闻库（勿删！去重状态在此）
-│   ├── election_context.db      # 选情事实底表生产库
-│   ├── election_seed/tainan_2026/   # ★ 正式种子（事实唯一来源）
-│   │   ├── events.jsonl sources.jsonl polls.jsonl election.json actors.yaml taxonomy.yaml
-│   │   ├── initial_snapshot.json snapshot_history.jsonl
-│   │   ├── event_preview_rtXX_*/     # 转换预览 + 人工裁决 + release candidate
-│   │   ├── event_import_rtXX_*/      # 正式入库报告（验证/对账/幂等/审计）
-│   │   └── fact_coverage_*/          # 覆盖矩阵 v1-v4
-│   ├── research/tainan_2026/         # 研究资料包（人工裁决输入）
-│   ├── reports/tainan_2026/          # 选情研判报告 + 证据映射
-│   ├── backup_rtXX_pre_import/       # 导入前备份
+│   ├── election_candidates/          # 候选库与审核模板（候选监控运行数据）
+│   ├── election_context.db           # 历史正式事实库（只读查重，不再写入）
+│   ├── election_seed/ research/ backup_rtXX_pre_import/   # 历史正式种子与研究资料（归档）
+│   ├── reports/tainan_2026/          # 历史研判报告归档（功能已移除，仅保留数据）
 │   └── diagnostics/                  # 采集诊断输出
-├── prompts/                     # DeepSeek 分析提示词模板
-├── tests/                       # 629+ 个测试（含 election_context 门禁测试）
+├── prompts/                     # summarize.md 文章梗概提示词
+├── tests/                       # 离线测试（采集、去重、Word、通知、候选监控等）
 ├── *.bat / *.ps1                # 计划任务安装/状态/卸载
 ├── requirements.txt
 └── README.md
@@ -276,29 +306,36 @@ tw-news-monitor-simple/
 | `FEISHU_APP_ID` / `FEISHU_APP_SECRET` / `FEISHU_CHAT_ID` | 飞书 App 机器人 |
 | `FEISHU_WEBHOOK_URL` | 飞书 Webhook（旧渠道） |
 | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | Telegram |
-| `DEEPSEEK_API_KEY` | 选举评估等深度分析 API（摘要链路不依赖它） |
+| `DEEPSEEK_API_KEY` / `DEEPSEEK_BASE_URL` / `DEEPSEEK_MODEL` | 旧版 .env 兼容：未设置 `SUMMARIZER_*` 时文章梗概回退使用；本地 Command Code 网关（`app.cmd_gateway`）的上游端点 |
 | `SUMMARIZER_MODE` / `SUMMARIZER_MAX_LENGTH` / `SUMMARIZER_BATCH_SIZE` | 文章梗概：模式（rss/llm/meta/hybrid/none）、长度上限、LLM 批量大小 |
 | `SUMMARIZER_CONTENT_CHARS` / `SUMMARIZER_RETRY_HOURS` | 正文截取字符数（默认800）、抓取失败重试间隔（小时） |
 | `SUMMARIZER_BASE_URL` / `SUMMARIZER_MODEL` | 摘要 LLM 端点（默认本地 Command Code 网关 `http://127.0.0.1:8765/v1` + `deepseek/deepseek-v4-flash`；未设置时回退 `DEEPSEEK_*`） |
 | `NEWS_DB_PATH` / `SOURCES_CONFIG_PATH` / `DATABASE_PATH` | 路径覆盖 |
 | `NEWS_CATCHUP_ENABLED` / `NEWS_CATCHUP_MAX_MINUTES` | 补发开关与窗口 |
 | `DISABLE_FEISHU_SEND` | 停用飞书发送 |
+| `PROGRAMS_TAGGING_ENABLED` / `PILOT_EXTRACTION_PROGRAMS` | 常规任务中的计划归类开关（默认关）、要抽取事实的计划（默认 `P4`） |
+| `WEEKLY_AUTO_DRAFT` / `WEEKLY_PROGRAMS` / `WEEKLY_DRAFT_HOUR` | 周日自动生成周报草稿（默认关）、计划列表（默认 `P4`）、时点（默认 9） |
+| `PROGRAM_DELIVERY_ENABLED` / `DAILY_DIGEST_HOUR` | 发送已核准周报、每日摘要与即时警示（默认关）、每日摘要时点（默认 8） |
+| `ASSESSMENT_ROOT` / `LEADS_ALLOWED_HOSTS` / `DAILY_ALERT_CLASSES` | 各计划周报与每日摘要目录（默认 `data/assessments`）、搜索提议允许的来源、每日警示类别 |
+| `PLA_ACTIVITY_ENABLED` / `PLA_ACTIVITY_LIST_URL` | 国防部共军动态日报采集开关（默认关）、列表页地址（默认 `https://www.mnd.gov.tw/news/plaactlist`） |
+| `AI_MODEL_FAST` / `AI_MODEL_STRONG` / `AI_CACHE_ENABLED` / `AI_CACHE_DAYS` | 两档模型、AI 回答缓存开关与天数（默认开、30 天） |
+| `AI_MONTHLY_BUDGET_USD` / `AI_USAGE_DB_PATH` | AI 月度花费上限（默认 15 美元）、调用台账路径（默认 `data/ai_usage.db`） |
+| `ARTICLE_TEXT_STORE` / `ARTICLE_TEXT_RETENTION_DAYS` / `ARTICLE_TEXT_FETCH_MAX` | 正文存储开关（默认开）、保留天数（默认 730）、每次额外抓取上限（默认 0 = 不额外请求） |
+| `ARTICLE_TEXT_INSCOPE_CATEGORIES` / `ARTICLE_TEXT_INSCOPE_FETCH_MAX` | 试点分类（默认 `military`）及其每次额外抓取上限（默认 20） |
 
 ## 七、测试
 
 ```bash
-python -m pytest -q      # 2564 passed, 4 skipped（2026-08-14）
+python -m pytest -q
 ```
 
-测试覆盖：采集器解析（含国际媒体真实结构离线 fixture）、去重/身份键、时效/重要度、国际相关性与跨媒体显示去重、Word 生成、通知渠道、配置校验、民调校验，以及 election_context 全部门禁（RT02/RT03/RT04 转换预览、发布门禁、来源校正、结项快照、种子↔DB 等价、哈希不变）。
+测试覆盖：采集器解析（含国际媒体真实结构离线 fixture）、去重/身份键、时效/重要度、国际相关性与跨媒体显示去重、Word 生成、通知渠道、配置校验、民调 / 赌盘 / KOL 来源，以及候选事实生成与审核流程。
 
 ## 八、维护注意事项
 
 1. **不要删除 `data/news.db`**：包含文章历史与去重状态。
-2. **不要直接改正式种子**：任何事件/来源/民调变更必须走「备份 → 转换 → 门禁 → 双写 → 对账 → 测试」流程。
-3. **不要修改既有覆盖矩阵版本**（v1-v4 是历史快照）。
-4. **导入前必须备份**：`backup_rtXX_pre_import/` 保留每个任务的前置状态，用于回滚。
-5. **快照发布遵循候选→验证→原子发布**：连续发布不得破坏唯一 active 约束。
+2. **不要删除候选库** `data/election_candidates/*/candidate_fact_pipeline.db`：包含审核记录与扫描游标。
+3. **历史正式数据只读**：`election_context.db`、`election_seed/`、`research/` 为归档数据，代码不再写入，也不要手工修改（候选查重会读取）。
 
 ## License
 

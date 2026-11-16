@@ -1,0 +1,736 @@
+"""Daily PLA activity counts from the Ministry of National Defense report.
+
+MND publishes one report a day, "中共解放軍臺海周邊海、空域動態", covering
+06:00 to 06:00 Taipei time.  Its body follows a fixed wording::
+
+    一、日期：中華民國114年11月13日（星期四）0600時至中華民國114年11月14日（星期五）0600時止。
+    二、臺海周邊海、空域動態：共機13架次、共艦6艘、公務船1艘。
+    三、共機12架次逾越中線進入我北部、中部及西南空域。
+
+Parsing works on page text, not on CSS classes, so a site redesign that keeps
+the wording keeps working: list pages are scanned for links whose text names
+the report, and detail pages are reduced to text before the regexes run.
+Counts that the report does not mention stay ``None`` (unknown), never 0,
+except where the report says none were detected (未偵獲).
+
+Rows go to ``pla_activity_daily`` in the news DB (created here, not in
+``Database.connect()``), one per report date, updated if MND revises the text.
+
+The HTML handling has NOT yet been checked against the live site (it was not
+reachable from the development environment), so the feature is off by
+default.  On a machine that can reach MND, check it first::
+
+    python -m app.military.pla_activity --check
+
+then set ``PLA_ACTIVITY_ENABLED=true`` to collect during the regular run.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import logging
+import os
+import re
+import sqlite3
+import sys
+import unicodedata
+from dataclasses import asdict, dataclass
+from datetime import date, datetime, timezone
+from urllib.parse import urljoin
+
+import httpx
+from bs4 import BeautifulSoup
+
+from ..election2026.hanzi_utils import to_traditional
+from ..time_utils import TAIPEI
+
+logger = logging.getLogger(__name__)
+
+DEFAULT_LIST_URL = "https://www.mnd.gov.tw/news/plaactlist"
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+)
+TIMEOUT = httpx.Timeout(30.0, connect=10.0)
+MAX_DETAIL_PAGES = 5
+REPORT_TITLE_RE = re.compile(r"臺海周邊海[、，,]?\s*空域動態")
+# The live report writes the second date without 中華民國: "…0600時至115年11月14日…".
+ROC_DATE_RE = re.compile(r"(?:(?:中華)?民國\s*)?(\d{2,3})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日")
+# Any date in the window line; the year may be omitted after the first one
+# ("…0600時至12月10日（星期三）0600時止").
+WINDOW_DATE_RE = re.compile(r"(?:(?:中華)?民國\s*)?(?:(\d{2,3})\s*年\s*)?(\d{1,2})\s*月\s*(\d{1,2})\s*日")
+AIRCRAFT_RE = re.compile(r"共機\s*(\d+)\s*架次")
+# A sortie count followed by 逾越/進入 before the sentence ends or another
+# count starts: "共機12架次逾越中線進入我北部…空域".
+# Median-line / ADIZ crossings, most specific wording first:
+#  live:     "共機10架次(逾越中線進入中部、西南及東部空域計4架次)"  → 4
+#  direct:   "共機12架次逾越中線進入我北部…" / "(其中12架次逾越…)" → 12
+#  其中:     "其中12架次於…逾越中線"                                 → 12
+CROSSED_PATTERNS = (
+    # "(逾越中線進入北部、西南及東部空域9架次)" / "…空域計4架次" / "(其中逾越…29架次)"
+    re.compile(r"(?:逾越|進入)(?:(?!架次)[^。；\n\d])*?(?:計\s*)?(\d+)\s*架次"),
+    re.compile(r"(\d+)\s*架次\s*(?:逾越|進入)"),
+    re.compile(r"其中\s*(\d+)\s*架次(?:(?!架次)[^。；\n])*?(?:逾越|進入)"),
+)
+VESSELS_RE = re.compile(r"共艦\s*(\d+)\s*艘")
+OFFICIAL_SHIPS_RE = re.compile(r"公務(?:船)?\s*(\d+)\s*艘")  # live text also writes "公務3艘"
+# "空飄氣球2顆" / "中共空飄氣球計偵獲1顆"
+BALLOONS_RE = re.compile(r"氣球[^\d。；\n]{0,8}?(\d+)\s*(?:顆|枚|個|架)")
+NONE_AIRCRAFT_RE = re.compile(r"未(?:偵獲|發現)[^。]*?共機")
+NONE_VESSELS_RE = re.compile(r"未(?:偵獲|發現)[^。]*?共艦")
+BODY_START_RE = re.compile(r"一\s*[、.．]\s*日期")
+SECTION_RE = re.compile(r"(?:^|\n|。)\s*[一二三四五]\s*[、.．]")
+
+
+@dataclass(slots=True)
+class PlaReport:
+    report_date: str  # end date of the 06:00–06:00 window, YYYY-MM-DD
+    period_start: str | None
+    period_end: str | None
+    aircraft: int | None
+    aircraft_crossed: int | None
+    vessels: int | None
+    official_ships: int | None
+    balloons: int | None
+    source_url: str
+    raw_text: str
+
+
+def _normalize(text: str) -> str:
+    text = unicodedata.normalize("NFKC", text or "")
+    return to_traditional(text).replace("台海", "臺海")
+
+
+def window_dates(text: str) -> list[date]:
+    """Dates of the reporting window in order; a year-less date takes the
+    previous date's year, rolling over at New Year (12月 → 1月)."""
+    out: list[date] = []
+    year: int | None = None
+    for m in WINDOW_DATE_RE.finditer(text):
+        roc_year, month, day = m.group(1), int(m.group(2)), int(m.group(3))
+        if roc_year:
+            year = int(roc_year) + 1911
+        elif year is None:
+            continue  # a bare month/day before any full date is not the window
+        elif out and month < out[-1].month:
+            year += 1
+        try:
+            out.append(date(year, month, day))
+        except ValueError:
+            continue
+    return out
+
+
+def _roc_to_date(match: re.Match) -> date | None:
+    year, month, day = (int(g) for g in match.groups())
+    try:
+        return date(year + 1911, month, day)
+    except ValueError:
+        return None
+
+
+def _first_int(pattern: re.Pattern, text: str) -> int | None:
+    match = pattern.search(text)
+    return int(match.group(1)) if match else None
+
+
+def parse_report_text(text: str, source_url: str = "") -> PlaReport | None:
+    """Counts from a report's text; None when it is not a PLA activity report."""
+    norm = _normalize(text)
+    start = BODY_START_RE.search(norm)
+    body = norm[start.start():] if start else norm
+    body = body[:3000]
+    # Dates come from the 一、日期 section only, so later dates in the text
+    # (announcements, footers) cannot shift the reporting window.
+    marks = list(SECTION_RE.finditer(body))
+    date_zone = body[: marks[1].start()] if len(marks) > 1 else body
+    dates = window_dates(date_zone)
+    if not dates:
+        return None
+    aircraft = _first_int(AIRCRAFT_RE, body)
+    vessels = _first_int(VESSELS_RE, body)
+    if aircraft is None and NONE_AIRCRAFT_RE.search(body):
+        aircraft = 0
+    if vessels is None and NONE_VESSELS_RE.search(body):
+        vessels = 0
+    if aircraft is None and vessels is None:
+        return None
+    match = next((m for m in (p.search(body) for p in CROSSED_PATTERNS) if m), None)
+    if match:
+        crossed: int | None = int(match.group(1))
+    elif aircraft == 0 or not re.search(r"逾越|進入", body):
+        crossed = 0  # no sorties, or the report lists no crossings
+    else:
+        crossed = None  # crossings mentioned but not in a recognised form
+    period_start = dates[0]
+    period_end = dates[1] if len(dates) > 1 else dates[0]
+    sections = list(SECTION_RE.finditer(body))
+    end = body.find("。", sections[-1].end()) if sections else -1
+    raw = body[: end + 1] if end > 0 else body[:600]
+    return PlaReport(
+        report_date=period_end.isoformat(),
+        period_start=period_start.isoformat(),
+        period_end=period_end.isoformat(),
+        aircraft=aircraft,
+        aircraft_crossed=crossed,
+        vessels=vessels,
+        official_ships=_first_int(OFFICIAL_SHIPS_RE, body),
+        balloons=_first_int(BALLOONS_RE, body),
+        source_url=source_url,
+        raw_text=raw.strip(),
+    )
+
+
+def page_text(html: str) -> str:
+    soup = BeautifulSoup(html, "html.parser")
+    for node in soup(["script", "style", "noscript"]):
+        node.decompose()
+    return soup.get_text("\n", strip=True)
+
+
+def _page_base(soup: BeautifulSoup, page_url: str) -> str:
+    """URL relative links resolve against: the page's <base href> if any."""
+    tag = soup.find("base", href=True)
+    return urljoin(page_url, tag["href"].strip()) if tag else page_url
+
+
+def url_variants(url: str) -> list[str]:
+    """``url`` plus a copy with repeated path segments collapsed.
+
+    Guards against relative links resolved one directory too deep
+    (``/news/news/plaact/1`` → ``/news/plaact/1``).
+    """
+    from urllib.parse import urlsplit, urlunsplit
+
+    parts = urlsplit(url)
+    segments = parts.path.split("/")
+    collapsed = [seg for i, seg in enumerate(segments) if i == 0 or not seg or seg != segments[i - 1]]
+    alt = urlunsplit(parts._replace(path="/".join(collapsed)))
+    return [url] if alt == url else [url, alt]
+
+
+def get_detail(client: httpx.Client, url: str) -> httpx.Response:
+    """GET a detail page, trying the collapsed-path variant after a 404."""
+    last: httpx.HTTPError | None = None
+    for candidate in url_variants(url):
+        for attempt in range(2):  # one retry on timeout: the MND site is slow at times
+            try:
+                response = client.get(candidate)
+                response.raise_for_status()
+                return response
+            except httpx.TimeoutException as exc:
+                last = exc
+                if attempt == 1:
+                    raise
+            except httpx.HTTPStatusError as exc:
+                last = exc
+                if exc.response.status_code != 404:
+                    raise
+                break
+    assert last is not None
+    raise last
+
+
+def report_links(html: str, base_url: str) -> list[str]:
+    """Detail links whose text (or title) names the daily report, page order."""
+    soup = BeautifulSoup(html, "html.parser")
+    page_url = base_url
+    base_url = _page_base(soup, page_url)
+    links: list[str] = []
+    for anchor in soup.find_all("a", href=True):
+        label = _normalize(anchor.get_text(" ", strip=True) + " " + str(anchor.get("title") or ""))
+        if not REPORT_TITLE_RE.search(label):
+            continue
+        href = urljoin(base_url, anchor["href"].strip())
+        if href not in links and href.rstrip("/") not in (base_url.rstrip("/"), page_url.rstrip("/")):
+            links.append(href)
+    return links
+
+
+# ── storage ───────────────────────────────────────────────────────────
+
+
+def ensure_table(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pla_activity_daily (
+            report_date TEXT PRIMARY KEY,
+            period_start TEXT,
+            period_end TEXT,
+            aircraft INTEGER,
+            aircraft_crossed INTEGER,
+            vessels INTEGER,
+            official_ships INTEGER,
+            balloons INTEGER,
+            source_url TEXT NOT NULL,
+            raw_text TEXT NOT NULL,
+            raw_sha256 TEXT NOT NULL,
+            fetched_at TEXT NOT NULL
+        )
+        """
+    )
+    conn.commit()
+
+
+def save_reports(conn: sqlite3.Connection, reports: list[PlaReport], *, now: datetime | None = None) -> int:
+    """Insert new dates; update a date only if MND changed its text."""
+    ensure_table(conn)
+    stamp = (now or datetime.now(timezone.utc)).isoformat()
+    before = conn.total_changes
+    for r in reports:
+        sha = hashlib.sha256(r.raw_text.encode("utf-8")).hexdigest()
+        conn.execute(
+            "INSERT INTO pla_activity_daily(report_date, period_start, period_end, aircraft, "
+            "aircraft_crossed, vessels, official_ships, balloons, source_url, raw_text, raw_sha256, fetched_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(report_date) DO UPDATE SET period_start=excluded.period_start, "
+            "period_end=excluded.period_end, aircraft=excluded.aircraft, "
+            "aircraft_crossed=excluded.aircraft_crossed, vessels=excluded.vessels, "
+            "official_ships=excluded.official_ships, balloons=excluded.balloons, "
+            "source_url=excluded.source_url, raw_text=excluded.raw_text, "
+            "raw_sha256=excluded.raw_sha256, fetched_at=excluded.fetched_at "
+            "WHERE pla_activity_daily.raw_sha256 != excluded.raw_sha256",
+            (r.report_date, r.period_start, r.period_end, r.aircraft, r.aircraft_crossed,
+             r.vessels, r.official_ships, r.balloons, r.source_url, r.raw_text, sha, stamp),
+        )
+    conn.commit()
+    return conn.total_changes - before
+
+
+def latest_report_date(conn: sqlite3.Connection) -> str | None:
+    ensure_table(conn)
+    row = conn.execute("SELECT MAX(report_date) FROM pla_activity_daily").fetchone()
+    return row[0] if row else None
+
+
+def recent_reports(conn: sqlite3.Connection, days: int = 14) -> list[dict]:
+    ensure_table(conn)
+    cur = conn.execute(
+        "SELECT report_date, aircraft, aircraft_crossed, vessels, official_ships, balloons, source_url "
+        "FROM pla_activity_daily ORDER BY report_date DESC LIMIT ?",
+        (max(1, days),),
+    )
+    keys = [c[0] for c in cur.description]
+    return [dict(zip(keys, row)) for row in cur.fetchall()]
+
+
+# ── fetching ──────────────────────────────────────────────────────────
+
+
+def fetch_reports(
+    list_url: str = DEFAULT_LIST_URL,
+    *,
+    client: httpx.Client | None = None,
+    max_pages: int = MAX_DETAIL_PAGES,
+    skip_dates_through: str | None = None,
+) -> list[PlaReport]:
+    """Newest reports from the list page (detail pages fetched up to max_pages)."""
+    own = client is None
+    client = client or httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT, follow_redirects=True)
+    try:
+        listing = client.get(list_url)
+        listing.raise_for_status()
+        reports: list[PlaReport] = []
+        # Some layouts print the newest report in full on the list page itself.
+        inline = parse_report_text(page_text(listing.text), str(listing.url))
+        links = report_links(listing.text, str(listing.url))
+        if inline is not None and not links:
+            return [inline]
+        for href in links[:max_pages]:
+            try:
+                detail = get_detail(client, href)
+            except httpx.HTTPError as exc:
+                logger.warning("PLA activity detail fetch failed %s: %s", href, exc)
+                continue
+            report = parse_report_text(page_text(detail.text), str(detail.url))
+            if report is None:
+                logger.warning("PLA activity page not parsed: %s", detail.url)
+                continue
+            reports.append(report)
+            if skip_dates_through and report.report_date <= skip_dates_through:
+                break  # list is newest first; the rest are already stored
+        return reports
+    finally:
+        if own:
+            client.close()
+
+
+NEXT_LABELS = frozenset({"下一頁", "下一页", "下頁", "次頁", "next", "›", "»", ">"})
+
+
+def next_page_link(html: str, base_url: str) -> str | None:
+    """The list's "next page" link (rel=next, a next-like label or class)."""
+    soup = BeautifulSoup(html, "html.parser")
+    base_url = _page_base(soup, base_url)
+    for anchor in soup.find_all("a", href=True):
+        href = anchor["href"].strip()
+        if not href or href.startswith(("javascript:", "#")):
+            continue
+        label = anchor.get_text(" ", strip=True).lower()
+        rel = [r.lower() for r in (anchor.get("rel") or [])]
+        classes = " ".join(anchor.get("class") or []).lower()
+        if "next" in rel or label in NEXT_LABELS or "next" in classes:
+            return urljoin(base_url, href)
+    return None
+
+
+def backfill(
+    since: date,
+    list_url: str = DEFAULT_LIST_URL,
+    *,
+    client: httpx.Client | None = None,
+    max_list_pages: int = 400,
+    delay_seconds: float = 1.0,
+    sleep=None,
+    known: dict[str, str] | None = None,
+    on_report=None,
+    on_unparsed=None,
+) -> tuple[list[PlaReport], str]:
+    """Walk list pages newest to oldest until reports predate ``since``.
+
+    Resumable: ``known`` maps already-stored source URLs to their report
+    dates; those pages are not fetched again but still count towards the
+    stopping date.  ``on_report`` is called for each new report as soon as it
+    is parsed, so an interrupted run keeps everything read so far.
+
+    Returns (new reports, stop_reason).  One request per second by default.
+    """
+    import time
+
+    pause = sleep or time.sleep
+    known = dict(known or {})
+    own = client is None
+    client = client or httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT, follow_redirects=True)
+    reports: list[PlaReport] = []
+    seen_pages: set[str] = set()
+    seen_links: set[str] = set()
+    oldest: str | None = None
+    url: str | None = list_url
+    reason = "max_list_pages"
+    try:
+        for _ in range(max_list_pages):
+            if url is None:
+                reason = "no_next_page"
+                break
+            if url in seen_pages:
+                reason = "page_loop"
+                break
+            seen_pages.add(url)
+            listing = get_detail(client, url)
+            links = [h for h in report_links(listing.text, str(listing.url)) if h not in seen_links]
+            for href in links:
+                seen_links.add(href)
+                stored = next((known[v] for v in url_variants(href) if v in known), None)
+                if stored is not None:
+                    oldest = min(oldest or stored, stored)
+                    continue
+                pause(delay_seconds)
+                try:
+                    detail = get_detail(client, href)
+                except httpx.HTTPError as exc:
+                    logger.warning("PLA backfill detail failed %s: %s", href, exc)
+                    continue
+                text = page_text(detail.text)
+                report = parse_report_text(text, str(detail.url))
+                if report is None:
+                    logger.warning("PLA backfill page not parsed: %s", detail.url)
+                    if on_unparsed is not None:
+                        on_unparsed(str(detail.url), text)
+                    continue
+                oldest = min(oldest or report.report_date, report.report_date)
+                if report.report_date >= since.isoformat():
+                    reports.append(report)
+                    if on_report is not None:
+                        on_report(report)
+            if oldest is not None and oldest < since.isoformat():
+                reason = "reached_since"
+                break
+            url = next_page_link(listing.text, str(listing.url))
+            pause(delay_seconds)
+        return reports, reason
+    finally:
+        if own:
+            client.close()
+
+
+def text_sample(text: str, size: int = 800) -> str:
+    """The part of a page most likely to hold the report, for diagnosis."""
+    norm = _normalize(text)
+    for marker in ("日期", "共機", "共艦", "動態"):
+        pos = norm.find(marker)
+        if pos >= 0:
+            return norm[max(0, pos - 20): pos - 20 + size]
+    return norm[:size]
+
+
+def record_unparsed(conn: sqlite3.Connection, url: str, text: str, *, now: datetime | None = None) -> None:
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS pla_unparsed (url TEXT PRIMARY KEY, sample TEXT NOT NULL, seen_at TEXT NOT NULL)"
+    )
+    conn.execute(
+        "INSERT INTO pla_unparsed(url, sample, seen_at) VALUES (?, ?, ?) "
+        "ON CONFLICT(url) DO UPDATE SET sample = excluded.sample, seen_at = excluded.seen_at",
+        (url, text_sample(text), (now or datetime.now(timezone.utc)).isoformat()),
+    )
+    conn.commit()
+
+
+def unparsed(conn: sqlite3.Connection, limit: int = 10) -> list[tuple[str, str]]:
+    try:
+        return conn.execute("SELECT url, sample FROM pla_unparsed ORDER BY seen_at DESC LIMIT ?", (limit,)).fetchall()
+    except sqlite3.OperationalError:
+        return []
+
+
+def stored_text(conn: sqlite3.Connection, report_date: str) -> tuple[str, str] | None:
+    ensure_table(conn)
+    return conn.execute("SELECT source_url, raw_text FROM pla_activity_daily WHERE report_date = ?",
+                        (report_date,)).fetchone()
+
+
+def inspect_page(html: str, base_url: str = "") -> dict:
+    """The page's main content without menus, plus the images in it.
+
+    Used to find out how a report page that does not parse is built (for
+    example, older reports published as images).
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    for node in soup(["script", "style", "noscript", "nav", "header", "footer"]):
+        node.decompose()
+
+    def own_text(node) -> int:
+        text = len(node.get_text(" ", strip=True))
+        links = sum(len(a.get_text(" ", strip=True)) for a in node.find_all("a"))
+        return text - 2 * links  # menus are mostly links
+
+    candidates = soup.find_all(["article", "main", "section", "div", "td"])
+    best = max(candidates, key=own_text, default=soup)
+    images = [{"src": urljoin(base_url, img.get("src", "")), "alt": (img.get("alt") or "").strip()}
+              for img in best.find_all("img") if img.get("src")]
+    full = _normalize(soup.get_text(" ", strip=True))
+    return {
+        "content": _normalize(best.get_text("\n", strip=True))[:2500],
+        "images": images[:10],
+        "mentions_aircraft": "共機" in full,
+        "mentions_vessels": "共艦" in full,
+    }
+
+
+def reparse_stored(conn: sqlite3.Connection, *, now: datetime | None = None) -> dict[str, int]:
+    """Re-run the current parser on every stored report text (no network).
+
+    Updates the counts in place; a row whose text now yields a different
+    report date or no report is left as it is and counted, for review.
+    """
+    ensure_table(conn)
+    stamp = (now or datetime.now(timezone.utc)).isoformat()
+    stats = {"rows": 0, "changed": 0, "date_mismatch": 0, "unparsed": 0}
+    for report_date, url, raw in conn.execute(
+            "SELECT report_date, source_url, raw_text FROM pla_activity_daily").fetchall():
+        stats["rows"] += 1
+        r = parse_report_text(raw, url)
+        if r is None:
+            stats["unparsed"] += 1
+            continue
+        if r.report_date != report_date:
+            stats["date_mismatch"] += 1
+            continue
+        cur = conn.execute(
+            "UPDATE pla_activity_daily SET period_start = ?, period_end = ?, aircraft = ?, aircraft_crossed = ?, "
+            "vessels = ?, official_ships = ?, balloons = ?, fetched_at = ? WHERE report_date = ? AND NOT ("
+            "aircraft IS ? AND aircraft_crossed IS ? AND vessels IS ? AND official_ships IS ? AND balloons IS ?)",
+            (r.period_start, r.period_end, r.aircraft, r.aircraft_crossed, r.vessels, r.official_ships, r.balloons,
+             stamp, report_date, r.aircraft, r.aircraft_crossed, r.vessels, r.official_ships, r.balloons),
+        )
+        stats["changed"] += cur.rowcount
+    conn.commit()
+    return stats
+
+
+def stored_urls(conn: sqlite3.Connection) -> dict[str, str]:
+    ensure_table(conn)
+    return {row[0]: row[1] for row in conn.execute("SELECT source_url, report_date FROM pla_activity_daily")}
+
+
+def missing_dates(conn: sqlite3.Connection, since: date, until: date) -> list[str]:
+    """Report dates in [since, until] with no stored row (documented gaps)."""
+    from datetime import timedelta
+
+    ensure_table(conn)
+    have = {r[0] for r in conn.execute(
+        "SELECT report_date FROM pla_activity_daily WHERE report_date BETWEEN ? AND ?",
+        (since.isoformat(), until.isoformat()),
+    )}
+    out, day = [], since
+    while day <= until:
+        if day.isoformat() not in have:
+            out.append(day.isoformat())
+        day += timedelta(days=1)
+    return out
+
+
+def enabled() -> bool:
+    return os.getenv("PLA_ACTIVITY_ENABLED", "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def collect_safe(db, *, now: datetime | None = None, fetcher=None) -> dict:
+    """Regular-run hook: at most one list fetch per run, none once today is stored."""
+    if db is None or not enabled():
+        return {"status": "disabled"}
+    try:
+        today = (now or datetime.now(timezone.utc)).astimezone(TAIPEI).date().isoformat()
+        latest = latest_report_date(db.conn)
+        if latest is not None and latest >= today:
+            return {"status": "up_to_date", "latest": latest}
+        fetch = fetcher or fetch_reports
+        reports = fetch(os.getenv("PLA_ACTIVITY_LIST_URL", DEFAULT_LIST_URL), skip_dates_through=latest)
+        written = save_reports(db.conn, reports, now=now)
+        logger.info("PLA activity: parsed=%d stored=%d", len(reports), written)
+        return {"status": "ok", "parsed": len(reports), "stored": written}
+    except Exception as exc:  # noqa: BLE001 - must never block news delivery
+        logger.warning("PLA activity collection failed safely: %s", exc)
+        return {"status": "error", "error": str(exc)}
+
+
+def _print_diagnostics(list_url: str) -> None:
+    """What the parser saw, to send to the developer when --check fails."""
+    with httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT, follow_redirects=True) as client:
+        listing = client.get(list_url)
+        soup = BeautifulSoup(listing.text, "html.parser")
+        base = soup.find("base", href=True)
+        print(f"\n--- diagnostics ---\nlist final URL: {listing.url}  status {listing.status_code}")
+        print(f"<base href>: {base['href'] if base else '(none)'}")
+        matching = [a for a in soup.find_all("a", href=True)
+                    if REPORT_TITLE_RE.search(_normalize(a.get_text(' ', strip=True) + ' ' + str(a.get('title') or '')))]
+        print(f"report links found: {len(matching)}")
+        for a in matching[:3]:
+            print(f"  raw href: {a['href']!r}  text: {a.get_text(' ', strip=True)[:40]!r}")
+        links = report_links(listing.text, str(listing.url))
+        if links:
+            first = links[0]
+            for candidate in url_variants(first):
+                r = client.get(candidate)
+                print(f"GET {candidate} -> {r.status_code}")
+                if r.status_code == 200:
+                    print("detail text (first 600 chars):")
+                    print(page_text(r.text)[:600])
+                    break
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="python -m app.military.pla_activity",
+                                     description="MND daily PLA activity reports")
+    parser.add_argument("--check", action="store_true", help="fetch and print parsed reports; store nothing")
+    parser.add_argument("--collect", action="store_true", help="fetch and store new reports")
+    parser.add_argument("--show", type=int, metavar="DAYS", help="print the last DAYS stored reports")
+    parser.add_argument("--backfill-days", type=int, metavar="DAYS",
+                        help="walk list pages back DAYS days, store reports, then list missing dates")
+    parser.add_argument("--fresh", action="store_true",
+                        help="with --backfill-days: re-read pages already stored and overwrite their rows")
+    parser.add_argument("--text", nargs="+", metavar="YYYY-MM-DD",
+                        help="print the stored report text and its parse for these dates")
+    parser.add_argument("--unparsed", type=int, metavar="N",
+                        help="print text samples of the last N pages the backfill could not parse")
+    parser.add_argument("--inspect", metavar="URL", help="print one report page's main content and images")
+    parser.add_argument("--reparse-stored", action="store_true",
+                        help="re-run the parser on every stored report text (no downloads)")
+    parser.add_argument("--url", default=os.getenv("PLA_ACTIVITY_LIST_URL", DEFAULT_LIST_URL))
+    parser.add_argument("--pages", type=int, default=MAX_DETAIL_PAGES)
+    parser.add_argument("--db", help="news DB path (default: the configured news DB)")
+    args = parser.parse_args(argv)
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+    except (AttributeError, ValueError):
+        pass
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+    if args.backfill_days:
+        from datetime import timedelta
+
+        from ..database import Database
+        from ..settings import get_settings
+
+        today = datetime.now(TAIPEI).date()
+        since = today - timedelta(days=args.backfill_days)
+        with Database(args.db or get_settings().news_db_path) as db:
+            known = {} if args.fresh else stored_urls(db.conn)
+            print(f"Backfill to {since}; " + ("fresh: re-reading every page." if args.fresh else
+                  f"{len(known)} reports already stored (skipped, not refetched)."), flush=True)
+            count = 0
+
+            def store(report: PlaReport) -> None:
+                nonlocal count
+                save_reports(db.conn, [report])  # saved one by one: an interruption loses nothing
+                count += 1
+                if count % 25 == 0:
+                    print(f"  stored {count} (latest {report.report_date})", flush=True)
+
+            reports, reason = backfill(since, args.url, known=known, on_report=store,
+                                       on_unparsed=lambda url, text: record_unparsed(db.conn, url, text))
+            print(f"Backfill parsed {len(reports)} new reports (stopped: {reason}).", flush=True)
+            gaps = missing_dates(db.conn, since, today)
+            total = db.conn.execute("SELECT COUNT(*) FROM pla_activity_daily").fetchone()[0]
+        print(f"Reports stored in total: {total}")
+        print(f"Dates with no report since {since}: {len(gaps)}")
+        for gap in gaps[:60]:
+            print(f"  {gap}")
+        return 0
+    if args.inspect:
+        with httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT, follow_redirects=True) as client:
+            page = get_detail(client, args.inspect)
+        info = inspect_page(page.text, str(page.url))
+        print(f"mentions 共機: {info['mentions_aircraft']}  mentions 共艦: {info['mentions_vessels']}")
+        print(f"images in content: {len(info['images'])}")
+        for img in info["images"]:
+            print(f"  {img['src']}  alt={img['alt']!r}")
+        print("--- content ---")
+        print(info["content"])
+        return 0
+    if args.reparse_stored:
+        from ..database import Database
+        from ..settings import get_settings
+
+        with Database(args.db or get_settings().news_db_path) as db:
+            print(f"Re-parsed stored reports: {reparse_stored(db.conn)}")
+        return 0
+    if args.text or args.unparsed:
+        from ..database import Database
+        from ..settings import get_settings
+
+        with Database(args.db or get_settings().news_db_path) as db:
+            for day in args.text or []:
+                row = stored_text(db.conn, day)
+                if row is None:
+                    print(f"=== {day}: no stored report")
+                    continue
+                parsed = parse_report_text(row[1], row[0])
+                print(f"=== {day}  {row[0]}\n{row[1]}\n--- parsed: "
+                      f"{ {k: v for k, v in asdict(parsed).items() if k not in ('raw_text', 'source_url')} if parsed else None}")
+            for url, sample in unparsed(db.conn, args.unparsed or 0):
+                print(f"=== UNPARSED {url}\n{sample}")
+        return 0
+    if args.check or args.collect:
+        reports = fetch_reports(args.url, max_pages=args.pages)
+        if not reports:
+            print("No reports parsed. The page layout may differ from what the parser expects.")
+            _print_diagnostics(args.url)
+            return 1
+        for r in reports:
+            print({k: v for k, v in asdict(r).items() if k != "raw_text"})
+        if args.check:
+            print(f"\nNewest report text:\n{reports[0].raw_text}")
+            return 0
+    from ..database import Database
+    from ..settings import get_settings
+
+    with Database(args.db or get_settings().news_db_path) as db:
+        if args.collect:
+            print(f"Stored/updated: {save_reports(db.conn, reports)}")
+        for row in recent_reports(db.conn, args.show or 14):
+            print(row)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -19,6 +19,7 @@ PERSON_COLUMNS = [
     "person_id", "canonical_name", "display_name", "current_role", "organization",
     "party", "jurisdiction_level", "jurisdiction", "election_scope", "candidate_id",
     "monitoring_tier", "active_from", "active_to", "enabled", "created_at", "updated_at",
+    "person_category",
 ]
 ACCOUNT_COLUMNS = [
     "account_id", "person_id", "platform", "platform_user_id", "handle", "canonical_url",
@@ -26,7 +27,7 @@ ACCOUNT_COLUMNS = [
     "verification_method", "verification_source_url", "verified_at", "collection_method",
     "enabled", "monitoring_priority", "first_seen_at", "last_checked_at", "last_success_at",
     "last_seen_post_id", "last_seen_published_at", "consecutive_failures", "last_error_code",
-    "created_at", "updated_at",
+    "created_at", "updated_at", "feed_url",
 ]
 POST_COLUMNS = [
     "post_id", "platform", "platform_post_id", "account_id", "person_id", "published_at",
@@ -64,8 +65,9 @@ class SocialRepository:
             INSERT INTO political_person
                 (person_id, canonical_name, display_name, current_role, organization,
                  party, jurisdiction_level, jurisdiction, election_scope, candidate_id,
-                 monitoring_tier, active_from, active_to, enabled, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 monitoring_tier, active_from, active_to, enabled, created_at, updated_at,
+                 person_category)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(person_id) DO UPDATE SET
                 canonical_name=excluded.canonical_name, display_name=excluded.display_name,
                 current_role=excluded.current_role, organization=excluded.organization,
@@ -73,7 +75,8 @@ class SocialRepository:
                 jurisdiction=excluded.jurisdiction, election_scope=excluded.election_scope,
                 candidate_id=excluded.candidate_id, monitoring_tier=excluded.monitoring_tier,
                 active_from=excluded.active_from, active_to=excluded.active_to,
-                enabled=excluded.enabled, updated_at=excluded.updated_at
+                enabled=excluded.enabled, updated_at=excluded.updated_at,
+                person_category=excluded.person_category
             """,
             (
                 person.person_id, person.canonical_name, person.display_name,
@@ -81,6 +84,7 @@ class SocialRepository:
                 person.jurisdiction_level, person.jurisdiction, person.election_scope,
                 person.candidate_id, person.monitoring_tier, person.active_from,
                 person.active_to, 1 if person.enabled else 0, created_at, now,
+                person.person_category or "political",
             ),
         )
         self.conn.commit()
@@ -106,8 +110,8 @@ class SocialRepository:
                  collection_method, enabled, monitoring_priority, first_seen_at,
                  last_checked_at, last_success_at, last_seen_post_id,
                  last_seen_published_at, consecutive_failures, last_error_code,
-                 created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 created_at, updated_at, feed_url)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(account_id) DO UPDATE SET
                 person_id=excluded.person_id, platform=excluded.platform,
                 platform_user_id=excluded.platform_user_id, handle=excluded.handle,
@@ -118,7 +122,7 @@ class SocialRepository:
                 verification_source_url=excluded.verification_source_url,
                 verified_at=excluded.verified_at, collection_method=excluded.collection_method,
                 enabled=excluded.enabled, monitoring_priority=excluded.monitoring_priority,
-                updated_at=excluded.updated_at
+                updated_at=excluded.updated_at, feed_url=excluded.feed_url
             """,
             (
                 account.account_id, account.person_id, account.platform,
@@ -131,6 +135,7 @@ class SocialRepository:
                 account.last_checked_at, account.last_success_at,
                 account.last_seen_post_id, account.last_seen_published_at,
                 account.consecutive_failures, account.last_error_code, created_at, now,
+                account.feed_url,
             ),
         )
         self.conn.commit()

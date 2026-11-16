@@ -12,6 +12,7 @@ from .wsj import WSJRSSCollector
 from .wsj_newsletter import WSJNewsletterCollector
 from .bloomberg_newsletter import BloombergNewsletterCollector
 from .military import LtnMilitaryCollector, NownewsMilitaryCollector, MNAMilitaryCollector
+from .google_news import GoogleNewsRSSCollector
 
 
 __all__ = [
@@ -31,4 +32,5 @@ __all__ = [
     "LtnMilitaryCollector",
     "NownewsMilitaryCollector",
     "MNAMilitaryCollector",
+    "GoogleNewsRSSCollector",
 ]

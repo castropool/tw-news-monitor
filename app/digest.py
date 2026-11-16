@@ -2,6 +2,8 @@ from datetime import datetime
 
 from .international import is_international_media
 from .models import Article
+from .special_topics import is_dedicated_topic_article
+from .special_topics.render import special_topic_line
 
 
 CATEGORY_NAMES = {
@@ -10,9 +12,16 @@ CATEGORY_NAMES = {
     "politics": "政治",
     "economy": "经济",
     "international": "国际",
+    "poll": "民调",
+    "betting": "地下赌盘",
 }
 
-CATEGORY_ORDER = ["politics", "economy", "military", "international", "religion"]
+CATEGORY_ORDER = ["politics", "economy", "poll", "betting", "military", "international", "religion"]
+
+KOL_PLATFORM_LABELS = {
+    "facebook": "Facebook", "threads": "Threads", "instagram": "Instagram",
+    "youtube": "YouTube", "x": "X", "podcast": "Podcast", "blog": "Blog",
+}
 
 
 def build_digest(
@@ -22,6 +31,7 @@ def build_digest(
     international_config: dict | None = None,
     *,
     include_international_media: bool = True,
+    kol_items: list[dict] | None = None,
 ) -> str:
     """Build a digest text from newly fetched articles.
 
@@ -34,6 +44,8 @@ def build_digest(
       （仅当该事件 coverage 非空）。
     - ``include_international_media``：delivery 层可设为 False，让普通国际
       相关稿件只进入 Word；默认 True 保持旧的直接调用行为。
+    - ``kol_items``：近期 KOL 社群动态（已经过时间窗与相关性筛选），在
+      分类小节之后追加“KOL动态”小节；不传则行为不变。
     """
     if not articles:
         total = 0
@@ -43,6 +55,9 @@ def build_digest(
             "",
             "本轮未发现新增新闻。",
         ]
+        if kol_items:
+            lines.append("")
+            lines.extend(_kol_lines(kol_items))
         return "\n".join(lines)
 
     # Group by category
@@ -54,6 +69,7 @@ def build_digest(
             not include_international_media
             and international_config
             and international_config.get("enabled", False)
+            and not is_dedicated_topic_article(article)
             and is_international_media(article.source_name, international_config)
         ):
             continue
@@ -82,6 +98,9 @@ def build_digest(
             if article.published_at:
                 time_str = article.published_at.strftime("%H:%M")
             lines.append(f"{idx}. {article.title}")
+            topic_line = special_topic_line(article)
+            if topic_line:
+                lines.append(f"   {topic_line}")
             if is_international_media(article.source_name, international_config):
                 members = (international_coverage or {}).get(article.url) or []
                 if len(members) > 1:
@@ -90,7 +109,27 @@ def build_digest(
             lines.append(f"   {article.url}")
         lines.append("")
 
+    if kol_items:
+        lines.extend(_kol_lines(kol_items))
+        lines.append("")
+
     return "\n".join(lines)
+
+
+def _kol_lines(kol_items: list[dict]) -> list[str]:
+    """Compact KOL block: who, platform, headline (title/first line), link."""
+    lines = [f"KOL动态｜{len(kol_items)}条"]
+    for idx, item in enumerate(kol_items, 1):
+        name = str(item.get("person_display_name") or item.get("person_canonical_name") or item.get("person_id") or "")
+        platform = KOL_PLATFORM_LABELS.get(str(item.get("platform")), str(item.get("platform") or ""))
+        headline = str(item.get("title") or item.get("normalized_text") or item.get("text") or "").strip()
+        headline = headline.splitlines()[0] if headline else ""
+        if len(headline) > 80:
+            headline = headline[:79] + "…"
+        lines.append(f"{idx}. 【{name}｜{platform}】{headline}")
+        if item.get("canonical_url"):
+            lines.append(f"   {item['canonical_url']}")
+    return lines
 
 
 def count_new_by_category(articles: list[Article]) -> dict[str, int]:

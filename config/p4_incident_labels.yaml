@@ -1,0 +1,17 @@
+# Labelled PLA incidents for the P4 backtest (python -m app.military.pla_backtest).
+# The pilot gate requires the analyst to confirm these: check each date against
+# MND/official records and set confirmed: true. Unconfirmed rows are seeds from
+# public reporting and may be off by a day; --confirmed-only ignores them.
+incidents:
+  - name: 聯合利劍-2024A 演習
+    start: 2024-05-23
+    end: 2024-05-24
+    confirmed: false
+  - name: 聯合利劍-2024B 演習
+    start: 2024-10-14
+    end: 2024-10-14
+    confirmed: false
+  - name: 海峽雷霆-2025A 演習
+    start: 2025-04-01
+    end: 2025-04-02
+    confirmed: false

@@ -3,6 +3,11 @@ from pathlib import Path
 
 import pytest
 
+import pytest
+
+# validation/ is a local, gitignored release-tooling package; these tests run only where it exists.
+pytest.importorskip("validation.international_media", reason="validation/ package not present (gitignored)")
+
 from validation.international_media.rc_manifest import (
     build_rc_manifest,
     load_rc_manifest,

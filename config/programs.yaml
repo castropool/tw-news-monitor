@@ -1,0 +1,194 @@
+# Research programs (design doc section 3). Each program: persistent
+# questions with observable indicators, at least three rival hypotheses
+# (no program keeps a single favoured hypothesis), and routing rules that
+# tag articles to programs (an article may belong to several).
+#
+# Routing (app/programs/tagging.py), on the article title + summary after
+# Simplified -> Traditional folding:
+#   - categories: articles of these categories are always tagged;
+#   - strong: any one term tags the article;
+#   - support: at least `min_support` distinct terms tag the article, and, if
+#     `require_any` is set, at least one of those terms must also appear.
+# Keep terms specific: tags feed extraction, which spends the AI budget.
+version: 1
+
+evidence_ladder:
+  - rhetoric            # 表態
+  - commitment          # 承諾
+  - decision            # 正式決定（法律、通知、命令）
+  - resources           # 資源投入（預算、合約、部署）
+  - implementation      # 執行已觀察到
+  - effect              # 效果已觀察到
+
+ladder_labels:
+  rhetoric: 表態
+  commitment: 承諾
+  decision: 正式決定
+  resources: 資源投入
+  implementation: 執行
+  effect: 效果
+
+programs:
+  P1:
+    name: 美國對台戰略運用
+    routing:
+      strong: [對台軍售, 台灣關係法, 國防授權法, NDAA, 美中峰會, 川習會, 美中貿易協議, 對台政策, 台灣保證法]
+      support: [美國, 白宮, 國務院, 國會, 參議院, 眾議院, 台灣, 中國, 關稅, 出口管制, 晶片, 峰會, 國安會]
+      min_support: 3
+      # Support matches also need a U.S. policy actor (keeps out e.g. chip-company stories).
+      require_any: [白宮, 國務院, 國務卿, 國會, 參議院, 眾議院, 國安會, 美國政府, 美方, 川普, 總統川普, 拜登]
+      # Every P1 match, strong terms included, must also involve Taiwan (keeps out U.S.-China chip stories).
+      require_also: [台灣, 臺灣, 台海, 臺海, 對台, 涉台, 台美, 美台, 賴清德]
+    questions:
+      - id: P1-Q1
+        text: 台灣在美國對中政策中的排序是否改變（口頭 vs 經費）？
+        indicators: [峰會讀稿是否提及台灣, NDAA 與撥款法案台灣條款, 對台軍售金額與時點]
+      - id: P1-Q2
+        text: 台灣議題是否與美中交易（貿易、科技、峰會）掛鉤？
+        indicators: [軍售通知與美中談判的時間關係, 出口管制措施與談判節點, 官員是否把台灣與交易並提]
+      - id: P1-Q3
+        text: 行政部門、國會與國安機構之間是否出現分歧？
+        indicators: [國會法案與行政部門表態差異, 國安官員證詞, 否決或延宕]
+      - id: P1-Q4
+        text: 宣示是否與制度性行動一致？
+        indicators: [宣示後的法律、通知、預算, 證據階梯是否上升]
+    hypotheses:
+      H1: 台灣被當作對中交易籌碼
+      H2: 嚇阻承諾持續強化
+      H3: 美國國內政治驅動
+      H4: 制度延續、政策基本不變
+
+  P2:
+    name: 賴政府國際空間
+    routing:
+      strong: [外交部長, 邦交國, 斷交, 過境, 友邦, 世界衛生大會, WHA, 國際民航組織, 雙邊協定, 備忘錄簽署]
+      support: [外交部, 總統府, 賴清德, 林佳龍, 出訪, 國會議員, 訪問團, 協定, 合作備忘錄, 歐洲議會]
+      min_support: 2
+      # Support matches also need a Taiwanese diplomatic actor.
+      require_any: [外交部, 總統府, 賴清德, 林佳龍, 邦交, 友邦, 駐外, 外長]
+    questions:
+      - id: P2-Q1
+        text: 哪些管道在擴張（雙邊、多邊、國會、經濟）？
+        indicators: [訪問與過境的層級和時長, 簽署的 MOU 與協定, 國際組織參與結果]
+      - id: P2-Q2
+        text: 夥伴優先順序是否轉移？
+        indicators: [各夥伴互動次數, 高層互訪對象]
+      - id: P2-Q3
+        text: 姿態性動作是否轉為制度性協定？
+        indicators: [協定從意向到生效, 證據階梯是否上升]
+      - id: P2-Q4
+        text: 外交部組織與預算有何變化？
+        indicators: [外交部預算科目, 駐外單位增減, 邦交國數量]
+    hypotheses:
+      H1: 國際空間實質擴張
+      H2: 象徵性互動增加但制度性成果有限
+      H3: 空間受北京施壓而收縮
+      H4: 主要隨美國政策起伏
+
+  P3:
+    name: 美國與盟友防衛支持
+    routing:
+      strong: [對台軍售, DSCA, 外國軍事融資, FMF, 總統撥款權, PDA, 聯合訓練, 台灣海峽通過, 印太司令部, INDOPACOM]
+      support: [美軍, 日本防衛省, 自衛隊, 菲律賓, 澳洲, 軍售, 交付, 訓練, 盟友, 演習, 國防部]
+      min_support: 2
+      # Support matches also need a Taiwan link (keeps out AUKUS or other stories that never mention Taiwan).
+      require_any: [台灣, 臺灣, 台海, 臺海, 對台, 國軍, 台美, 美台, 第一島鏈]
+    questions:
+      - id: P3-Q1
+        text: 援助重點是否改變（大型平台 vs 不對稱、訓練、後勤）？
+        indicators: [軍售項目類型, 交付延遲, 訓練揭露]
+      - id: P3-Q2
+        text: 支持是否制度化（FMF、PDA、訓練計畫）？
+        indicators: [FMF 與 PDA 金額, 長期訓練計畫]
+      - id: P3-Q3
+        text: 日本、菲律賓、澳洲、歐洲的涉台態勢是否變化？
+        indicators: [盟國國防白皮書, 盟國演習, 台海通過頻率]
+      - id: P3-Q4
+        text: 盟國對突發情況的協調是否結構化？
+        indicators: [聯合規劃揭露, 多邊演習]
+    hypotheses:
+      H1: 支持實質升級並制度化
+      H2: 支持以宣示為主、交付滯後
+      H3: 盟友各自調整、缺乏協調
+      H4: 支持水準大致不變
+
+  P4:
+    name: 台海安全與突發情勢
+    routing:
+      categories: [military]
+      strong: [共機, 共艦, 海峽中線, 聯合戰備警巡, 東部戰區, 國台辦, 中國海警, 灰色地帶]
+      support: []
+      min_support: 99
+    questions:
+      - id: P4-Q1
+        text: 共軍台海周邊活動是否偏離基線（數量、類型、地理）？
+        indicators: [國防部每日共機共艦架次, 逾越中線架次, 氣球]
+      - id: P4-Q2
+        text: 哪些事件屬常態、哪些屬模式中斷？
+        indicators: [具名演習, 異常偏高日]
+      - id: P4-Q3
+        text: 海警與執法行動是否變化（金門、灰色地帶）？
+        indicators: [海巡署登檢與巡邏報告, 限制水域進入]
+      - id: P4-Q4
+        text: 是否出現危機溝通或降溫步驟？
+        indicators: [官方溝通管道表態, 活動減少]
+      - id: P4-Q5
+        text: 重大事件是否改變先前評估？
+        indicators: [修訂建議, 假設支持度變化]
+    hypotheses:
+      H1: 共軍對台壓力結構性上升
+      H2: 穩定基線上、圍繞政治觸發點的短期尖峰
+      H3: 主要隨訓練與季節週期起伏
+
+  P5:
+    name: 經濟與半導體外交
+    routing:
+      strong: [台積電赴美, 半導體出口管制, 投審會, 晶片法案, 對等關稅, 232條款, 經濟繁榮夥伴對話, 台美貿易協定]
+      support: [台積電, 半導體, 晶片, 經濟部, 投資, 關稅, 出口管制, 美國商務部, 日本經產省, 歐盟]
+      min_support: 2
+    questions:
+      - id: P5-Q1
+        text: 對外經濟政策是否改變（協定、投資審查）？
+        indicators: [簽署的經貿協定, 投審會核准]
+      - id: P5-Q2
+        text: 半導體地位如何影響與美日歐關係？
+        indicators: [政府把產業與外交並提的表態, 晶片法案補助]
+      - id: P5-Q3
+        text: 哪些海外投資與政策相關、哪些屬商業考量？
+        indicators: [伴隨政府誘因的資本支出, 投資核准時點]
+      - id: P5-Q4
+        text: 美國出口管制與關稅如何影響台灣？
+        indicators: [BIS 措施, 關稅措施, 企業回應]
+    hypotheses:
+      H1: 半導體是外交槓桿並被主動運用
+      H2: 投資主要由商業考量驅動
+      H3: 主要是被動因應美國壓力
+      H4: 多邊分散布局、降低對單一夥伴依賴
+
+  P6:
+    name: 國內政治動態
+    routing:
+      strong: [立法院表決, 三讀, 黨團協商, 罷免, 不分區, 黨主席, 中常會, 中執會, 藍白合作, 人事任命]
+      support: [民進黨, 國民黨, 民眾黨, 立法院, 行政院, 總統府, 黨團, 提名, 初選, 覆議]
+      min_support: 2
+    questions:
+      - id: P6-Q1
+        text: 民進黨內權力如何分配（任命、提名、黨職）？
+        indicators: [任命與提名紀錄, 黨職變動]
+      - id: P6-Q2
+        text: 國民黨各派如何競爭？
+        indicators: [黨內選舉, 提名結果]
+      - id: P6-Q3
+        text: 藍白合作是否制度化？
+        indicators: [共同提案, 立法院表決一致性]
+      - id: P6-Q4
+        text: 行政與立法衝突如何影響政策？
+        indicators: [覆議與釋憲, 預算刪減]
+      - id: P6-Q5
+        text: 選舉與醜聞如何改變結盟？
+        indicators: [罷免與選舉結果, 黨團立場變化]
+    hypotheses:
+      H1: 權力集中於執政核心
+      H2: 朝小野大格局主導政策結果
+      H3: 在野合作制度化
+      H4: 結盟隨個別議題與事件變動

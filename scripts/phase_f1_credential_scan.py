@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.assessment.security_scan import scan_text
+from app.security_scan import scan_text
 
 
 OUT = ROOT / "data/election_candidates/tainan_2026/phase_f1"
@@ -18,7 +18,6 @@ OUT = ROOT / "data/election_candidates/tainan_2026/phase_f1"
 F1_OPS_FILES = {
     "scripts/deploy_candidate_production.ps1",
     "scripts/rollback_candidate_deployment.ps1",
-    "scripts/phase_f1_baseline.py",
     "run_candidate_monitor.bat",
 }
 SOURCE_ROOTS = ("app/", "config/", "scripts/", "docs/", "prompts/")

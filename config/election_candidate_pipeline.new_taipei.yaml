@@ -3,7 +3,6 @@ timezone: Asia/Taipei
 versions:
   candidate_pipeline_version: 0.3.0
   candidate_schema_version: 1.1
-  publication_pipeline_version: 0.1.0
 
 deployment:
   enabled: true
@@ -37,8 +36,6 @@ paths:
     - data/election_seed/new_taipei_2026/polls.jsonl
     - data/election_seed/new_taipei_2026/poll_source_links.jsonl
   coverage_root: data/election_seed/new_taipei_2026
-  post_publication_root: data/post_publication
-  backup_root: data/backups
   lock_root: data/locks
   frozen_release_zip: dist/releases/tainan-assessment-offline-rc1.zip
 
@@ -611,33 +608,6 @@ guardrails:
     - related_event
     - separate_event
     - uncertain
-
-auto_publish:
-  # Production enablement 2026-08-12: low-risk auto publish + real snapshot
-  # activation are ON.  --skip-downstream stays refused (test escape hatch only);
-  # tests enable it explicitly via allow_skip_downstream=true in fixtures.
-  enabled: true
-  policy_version: "1.0"
-  max_per_run: 20
-  max_daily: 50
-  consecutive_failure_limit: 2
-  auto_approver: auto_approver_v1
-  kill_switch_file: data/locks/auto_publish_disabled
-  circuit_break_file: data/locks/auto_publish_circuit_open
-  manifest_dir: data/election_candidates/new_taipei_2026/auto_publish
-  allowed_risk_levels: [low]
-  allowed_relevance_labels: [direct_event]
-  # 2026-09-03 决策：放宽 inferred_from_publication —— direct_event + 低风险 +
-  # 有 observed_fact + 有源的候选，其日期仅“报道当天”推断（router 已挡掉 date_unknown），
-  # 允许自动发布；unknown 仍禁。
-  forbidden_event_date_basis: [unknown]
-  allowed_source_match_statuses: [exact, normalized_match]
-  required_formal_duplicate_status: no_match
-  required_validation_ready: true
-  # Post-publication wiring.  Production refuses --skip-downstream and keeps
-  # real snapshot/coverage activation enabled.
-  allow_skip_downstream: false
-  auto_activate_snapshots: true
 
 outputs:
   review_queue: review_queue.json

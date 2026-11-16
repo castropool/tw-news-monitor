@@ -24,6 +24,7 @@ from pathlib import Path
 import httpx
 from bs4 import BeautifulSoup
 
+from . import ai_client, article_text
 from .deepseek_analysis import DeepSeekClient
 from .models import Article
 
@@ -146,7 +147,7 @@ def translate_metadata(
     """Translate supplied international metadata without fetching article content."""
     if not _env_truthy("INTERNATIONAL_TRANSLATION_ENABLED"):
         raise RuntimeError("international metadata translation is disabled")
-    client = _load_deepseek_client()
+    client = _load_deepseek_client(task="translation")
     if client is None:
         raise RuntimeError("international metadata translation client unavailable")
     payload = {
@@ -214,8 +215,7 @@ def rss_summary_from_entry(entry, max_length: int = DEFAULT_MAX_LENGTH) -> str |
 def deepseek_available() -> bool:
     """Whether the summarizer's LLM endpoint is configured.
 
-    The summarizer is fully independent from the election assessment
-    pipeline: it enables itself from ``SUMMARIZER_API_KEY`` (any non-empty
+    The summarizer enables itself from ``SUMMARIZER_API_KEY`` (any non-empty
     placeholder works - the local Command Code gateway does not validate
     keys) and falls back to ``DEEPSEEK_API_KEY`` only for older .env files.
     """
@@ -224,31 +224,16 @@ def deepseek_available() -> bool:
     )
 
 
-def _load_deepseek_client() -> DeepSeekClient | None:
-    """Build the summarizer's LLM client.
+def _load_deepseek_client(task: str = "summary") -> DeepSeekClient | None:
+    """Build the summarizer's LLM client (fast tier, see app/ai_client.py).
 
-    The summarizer resolves its endpoint independently from the election
-    assessment pipeline so the two can point at different providers:
     ``SUMMARIZER_BASE_URL`` / ``SUMMARIZER_MODEL`` win when set (e.g. a local
     Command Code gateway + ``deepseek/deepseek-v4-flash``), otherwise they
     fall back to the shared ``DEEPSEEK_*`` variables.
     """
     if not deepseek_available():
         return None
-    api_key = os.getenv("SUMMARIZER_API_KEY", "") or os.getenv("DEEPSEEK_API_KEY", "")
-    return DeepSeekClient(
-        api_key=api_key.strip(),
-        base_url=os.getenv(
-            "SUMMARIZER_BASE_URL",
-            os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
-        ),
-        model=os.getenv(
-            "SUMMARIZER_MODEL",
-            os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
-        ),
-        timeout=_int_env("SUMMARIZER_TIMEOUT_SECONDS", 180),
-        max_retries=_int_env("SUMMARIZER_MAX_RETRIES", 2),
-    )
+    return ai_client.make_client(task, "fast")
 
 
 def _load_system_prompt() -> str:
@@ -400,28 +385,39 @@ def _extract_article_text(html: str) -> str | None:
     return plain or None
 
 
-def _fetch_article_content(url: str, client: httpx.Client) -> tuple[str | None, bool]:
-    """Return (text, fetched_ok). fetched_ok=False on network/HTTP errors."""
+def _fetch_article_content(
+    url: str, client: httpx.Client
+) -> tuple[str | None, bool, bool]:
+    """Return (text, fetched_ok, is_main_text).
+
+    fetched_ok=False on network/HTTP errors; is_main_text=False when the text
+    is only the meta-description fallback.
+    """
     try:
         resp = client.get(url, timeout=META_TIMEOUT)
         resp.raise_for_status()
     except Exception as exc:
         logger.debug("Article content fetch failed for %s: %s", url, exc)
-        return None, False
+        return None, False, False
     text = _extract_article_text(resp.text)
-    if not text:
-        text = _extract_meta_description(resp.text)
-    return text, True
+    if text:
+        return text, True, True
+    return _extract_meta_description(resp.text), True, False
 
 
 def fetch_article_contents(
-    articles: list[Article], max_workers: int | None = None
+    articles: list[Article],
+    max_workers: int | None = None,
+    *,
+    full_texts: dict[str, str] | None = None,
 ) -> tuple[dict[str, str], list[str]]:
     """Fetch article pages and extract main text.
 
     Returns (contents, empty_urls). ``empty_urls`` contains pages that were
     fetched successfully but yielded no extractable text (permanent misses);
     network errors are not included so they retry on the next run.
+    When ``full_texts`` is given, it receives the untruncated main-text
+    extractions (meta-description fallbacks excluded) for storage.
     """
     urls = [a.url for a in articles]
     if not urls:
@@ -440,15 +436,26 @@ def fetch_article_contents(
             }
             for future in as_completed(futures):
                 url = futures[future]
-                text, fetched_ok = future.result()
+                text, fetched_ok, is_main_text = future.result()
                 if not fetched_ok:
                     continue
                 if text:
                     results[url] = text
+                    if is_main_text and full_texts is not None:
+                        full_texts[url] = text
                 else:
                     empty_urls.append(url)
     logger.info("Article contents fetched: %d/%d", len(results), len(urls))
     return results, empty_urls
+
+
+def fetch_article_full_texts(articles: list[Article]) -> dict[str, str]:
+    """Main-text extractions only (used by app.article_text)."""
+    full_texts: dict[str, str] = {}
+    fetch_article_contents(
+        [a for a in articles if a.access_level is None], full_texts=full_texts
+    )
+    return full_texts
 
 
 def _extract_meta_description(html: str) -> str | None:
@@ -552,7 +559,11 @@ def enrich_articles_with_summaries(articles: list[Article], db=None) -> list[Art
 
         empty_urls: list[str] = []
         if mode == "hybrid":
-            contents, empty_urls = fetch_article_contents(page_fetch_pending)
+            full_texts: dict[str, str] = {}
+            contents, empty_urls = fetch_article_contents(
+                page_fetch_pending, full_texts=full_texts
+            )
+            article_text.save_texts(db, full_texts, now=now)
         if mode in ("llm", "hybrid"):
             llm_summaries.update(summarize_with_deepseek(pending, contents=contents))
 

@@ -203,7 +203,7 @@ class TestInternationalMetadataTranslation:
                 }
 
         monkeypatch.setenv("INTERNATIONAL_TRANSLATION_ENABLED", "true")
-        monkeypatch.setattr(summarizer, "_load_deepseek_client", lambda: FakeClient())
+        monkeypatch.setattr(summarizer, "_load_deepseek_client", lambda **kw: FakeClient())
         assert summarizer.translate_metadata(
             "English title", "English teaser", source_name="Reuters"
         ) == ("中文標題", "中文摘要。")
@@ -252,7 +252,7 @@ class TestPrompt:
 
     def test_fetch_article_contents_tracks_empty_not_errors(self, monkeypatch):
         fake_results = iter(
-            [("正文一", True), (None, True), (None, False)]
+            [("正文一", True, True), (None, True, False), (None, False, False)]
         )
         monkeypatch.setattr(
             summarizer,

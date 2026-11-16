@@ -180,7 +180,7 @@ class TestFreshHistoricalJSON:
         with open(p, encoding="utf-8") as f:
             return json.load(f)
 
-    def test_json_dedup_fresh(self, records):
+    def test_json_dedup_fresh(self, records, tmp_path):
         arts = []
         run_ts = []
         for rec in records:
@@ -211,7 +211,7 @@ class TestFreshHistoricalJSON:
         run_at = max(run_ts)
         unique, dups = deduplicate_articles_by_url(arts)
         fr = filter_fresh_articles(unique, run_at)
-        diag = Path(__file__).resolve().parent.parent / "data" / "diagnostics"
+        diag = tmp_path  # report is a by-product; keep it out of the repo
         vp = diag / "freshness_validation.md"
         lines = [
             "# Freshness Validation (Historical JSON)",

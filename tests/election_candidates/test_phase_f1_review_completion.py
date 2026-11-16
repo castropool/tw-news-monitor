@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from datetime import date
 from pathlib import Path
 
@@ -11,14 +10,14 @@ from app.election_candidates.review_completion import (
     compute_reviewed_through,
 )
 
-from .publication_helpers import make_publication_config, open_candidate_repo, seed_candidate
+from .review_helpers import make_review_config, open_candidate_repo, seed_candidate
 
 
 ELECTION = "TW-2026-TNN-MAYOR"
 
 
 def _setup(tmp_path: Path):
-    config = make_publication_config(tmp_path)
+    config = make_review_config(tmp_path)
     repo = open_candidate_repo(config)
     return config, repo
 
@@ -193,23 +192,29 @@ def test_repeat_complete_idempotent(tmp_path):
     repo.close()
 
 
-def test_update_facts_cutoff_writes_preflight_and_status(tmp_path):
+def test_default_start_is_last_completed_day(tmp_path):
     config, repo = _setup(tmp_path)
-    preflight = config.path("coverage_root") / "coverage_preflight.json"
-    preflight.write_text(
-        json.dumps({"facts_cutoff": "2026-07-27", "coverage_status": "partial"}), encoding="utf-8"
-    )
-    status_path = tmp_path / "production_status.json"
-    status_path.write_text(
-        json.dumps({"coverage": {"facts_cutoff": "2026-07-27"}}), encoding="utf-8"
-    )
-    _set_cursor(repo)
-    result = complete_review_through(
+    _set_cursor(repo, last_published_at="2026-07-29T23:59:59.999999")
+    first = complete_review_through(
         repo, config, election_id=ELECTION, through_date="2026-07-28",
-        reviewer="local_reviewer", from_date="2026-07-27", update_facts_cutoff=True,
-        status_path=status_path,
+        reviewer="local_reviewer", from_date="2026-07-27",
     )
-    assert result["facts_cutoff_applied"] is True
-    assert json.loads(preflight.read_text(encoding="utf-8"))["facts_cutoff"] == "2026-07-28"
-    assert json.loads(status_path.read_text(encoding="utf-8"))["coverage"]["facts_cutoff"] == "2026-07-28"
-    repo.close()
+    assert first["reviewed_from"] == "2026-07-27"
+    assert first["reviewed_through"] == "2026-07-28"
+    second = complete_review_through(
+        repo, config, election_id=ELECTION, through_date="2026-07-29",
+        reviewer="local_reviewer",
+    )
+    assert second["reviewed_from"] == "2026-07-28"
+    assert [d["review_date"] for d in second["completed_days"]] == ["2026-07-29"]
+    assert second["reviewed_through"] == "2026-07-29"
+
+
+def test_no_history_requires_explicit_start(tmp_path):
+    config, repo = _setup(tmp_path)
+    _set_cursor(repo)
+    with pytest.raises(ValueError, match="pass --from explicitly"):
+        complete_review_through(
+            repo, config, election_id=ELECTION, through_date="2026-07-28",
+            reviewer="local_reviewer",
+        )
