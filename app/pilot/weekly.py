@@ -66,7 +66,8 @@ NUMBER_RE = re.compile(r"\d+(?:\.\d+)?")
 # Citation-like references the model may write into its text ("事實4"、"[2][3]"、
 # "H1"、"P3-Q2"、"R1"、"C12"); their digits are labels, not claims.
 REFERENCE_RE = re.compile(
-    r"\[[^\]]*\]|事[實实证證]\s*\d+(?:\s*[、,，與和及至-]\s*\d+)*|\b[HRAC]\d+\b|P\d-Q\d+|第\s*\d+\s*條"
+    r"\[[^\]]*\]|事[實实证證]\s*\d+(?:\s*[、,，與和及至-]\s*\d+)*|(?<![A-Za-z0-9])[HRAC]\d+(?![0-9])"
+    r"|P\d-Q\d+|第\s*\d+\s*條"
 )
 
 
@@ -195,7 +196,9 @@ def critic(judgments: list[Judgment], facts: list[dict], data_text: str, week: t
     """Attach notes to judgments that cite nothing, cite missing facts or state unverified numbers."""
     known = set(range(1, len(facts) + 1))
     data_numbers = set(NUMBER_RE.findall(data_text))
-    date_numbers = set(NUMBER_RE.findall(" ".join(week))) | {str(int(x)) for x in NUMBER_RE.findall(" ".join(week))}
+    start, end = date.fromisoformat(week[0]), date.fromisoformat(week[1])
+    days = [(start + timedelta(days=i)).isoformat() for i in range((end - start).days + 1)]
+    date_numbers = set(NUMBER_RE.findall(" ".join(days))) | {str(int(x)) for x in NUMBER_RE.findall(" ".join(days))}
     for j in judgments:
         missing = [n for n in j.citations if n not in known]
         if missing:
@@ -295,7 +298,8 @@ def build_draft(conn: sqlite3.Connection, week_ending: date, *, client=None, use
                 "events": pilot_events.events_payload(events),
             }
             judgments, error = draft_judgments(client, payload)
-            critic(judgments, facts, data_md + "\n" + history_md, (view.start, view.end))
+            indicator_text = " ".join(f"{i.name} {i.reading}" for i in indicators)
+            critic(judgments, facts, data_md + "\n" + history_md + "\n" + indicator_text, (view.start, view.end))
 
     state = {
         "tally": tally_indicators(indicators),

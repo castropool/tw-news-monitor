@@ -411,3 +411,15 @@ def test_reparse_stored_fixes_rows_without_downloading(db):
     row = db.conn.execute("SELECT aircraft_crossed, balloons FROM pla_activity_daily").fetchone()
     assert row == (29, 1)
     assert pla.reparse_stored(db.conn)["changed"] == 0
+
+
+def test_inspect_page_finds_content_and_images_not_menus():
+    html = ("<html><body><nav><a href='/a'>本部簡介</a><a href='/b'>部長</a></nav>"
+            "<div class='menu'>" + "".join(f"<a href='/m{i}'>選單項目{i}</a>" for i in range(30)) + "</div>"
+            "<div class='content'><h2>中共解放軍臺海周邊海、空域動態(113年1月12日)</h2>"
+            "<p>國防部今日公布共機動態如附圖。</p><img src='/img/plaact-0112.jpg' alt='共機活動示意圖'></div>"
+            "</body></html>")
+    info = pla.inspect_page(html, "https://www.mnd.gov.tw/news/plaact/82454")
+    assert "如附圖" in info["content"] and "選單項目" not in info["content"]
+    assert info["images"] == [{"src": "https://www.mnd.gov.tw/img/plaact-0112.jpg", "alt": "共機活動示意圖"}]
+    assert info["mentions_aircraft"] is True and info["mentions_vessels"] is False

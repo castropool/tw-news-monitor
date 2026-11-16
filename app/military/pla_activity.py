@@ -489,6 +489,34 @@ def stored_text(conn: sqlite3.Connection, report_date: str) -> tuple[str, str] |
                         (report_date,)).fetchone()
 
 
+def inspect_page(html: str, base_url: str = "") -> dict:
+    """The page's main content without menus, plus the images in it.
+
+    Used to find out how a report page that does not parse is built (for
+    example, older reports published as images).
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    for node in soup(["script", "style", "noscript", "nav", "header", "footer"]):
+        node.decompose()
+
+    def own_text(node) -> int:
+        text = len(node.get_text(" ", strip=True))
+        links = sum(len(a.get_text(" ", strip=True)) for a in node.find_all("a"))
+        return text - 2 * links  # menus are mostly links
+
+    candidates = soup.find_all(["article", "main", "section", "div", "td"])
+    best = max(candidates, key=own_text, default=soup)
+    images = [{"src": urljoin(base_url, img.get("src", "")), "alt": (img.get("alt") or "").strip()}
+              for img in best.find_all("img") if img.get("src")]
+    full = _normalize(soup.get_text(" ", strip=True))
+    return {
+        "content": _normalize(best.get_text("\n", strip=True))[:2500],
+        "images": images[:10],
+        "mentions_aircraft": "共機" in full,
+        "mentions_vessels": "共艦" in full,
+    }
+
+
 def reparse_stored(conn: sqlite3.Connection, *, now: datetime | None = None) -> dict[str, int]:
     """Re-run the current parser on every stored report text (no network).
 
@@ -604,6 +632,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="print the stored report text and its parse for these dates")
     parser.add_argument("--unparsed", type=int, metavar="N",
                         help="print text samples of the last N pages the backfill could not parse")
+    parser.add_argument("--inspect", metavar="URL", help="print one report page's main content and images")
     parser.add_argument("--reparse-stored", action="store_true",
                         help="re-run the parser on every stored report text (no downloads)")
     parser.add_argument("--url", default=os.getenv("PLA_ACTIVITY_LIST_URL", DEFAULT_LIST_URL))
@@ -646,6 +675,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Dates with no report since {since}: {len(gaps)}")
         for gap in gaps[:60]:
             print(f"  {gap}")
+        return 0
+    if args.inspect:
+        with httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT, follow_redirects=True) as client:
+            page = get_detail(client, args.inspect)
+        info = inspect_page(page.text, str(page.url))
+        print(f"mentions 共機: {info['mentions_aircraft']}  mentions 共艦: {info['mentions_vessels']}")
+        print(f"images in content: {len(info['images'])}")
+        for img in info["images"]:
+            print(f"  {img['src']}  alt={img['alt']!r}")
+        print("--- content ---")
+        print(info["content"])
         return 0
     if args.reparse_stored:
         from ..database import Database

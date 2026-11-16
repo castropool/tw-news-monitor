@@ -161,3 +161,15 @@ def test_reference_labels_are_not_treated_as_numbers(db):
     k = wk.Judgment("共機逾越中線88架次（事實1）。", [1], False, "中")
     wk.critic([k], facts, "", ("2026-11-09", "2026-11-15"))
     assert "未核實數字 ['88']" in k.notes
+
+
+def test_live_draft_false_alarms_are_cleared(db):
+    """Warnings from the 2026-11-16 server run that were labels, dates or indicator readings."""
+    facts = cl.claims_between(db.conn, date(2026, 11, 9), END)
+    data = "異常偏高天數 1 天（11-13） 尖峰前後±1日的表態/演習/事件 0 則"
+    js = [
+        wk.Judgment("但H2仍獲部分支持，事實4至10顯示協調，事實11、12顯示卡關。", [1], False, "中"),
+        wk.Judgment("對11-13尖峰原因仍屬證據不足：尖峰前後±1日的讀數為0則。", [], True, "低"),
+    ]
+    wk.critic(js, facts, data, ("2026-11-09", "2026-11-15"))
+    assert [j.notes for j in js] == [[], []]
