@@ -58,6 +58,9 @@ def match(title: str, summary: str | None, category: str, cfg: dict | None = Non
         if category in (r.get("categories") or []):
             out[pid] = [f"category:{category}"]
             continue
+        also = r.get("require_also") or []
+        if also and not any(_fold(t) in text for t in also):
+            continue
         strong = [t for t in r.get("strong") or [] if _fold(t) in text]
         if strong:
             out[pid] = [f"strong:{t}" for t in strong]

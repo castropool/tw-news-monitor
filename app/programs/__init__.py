@@ -43,6 +43,7 @@ def validate(cfg: dict) -> dict:
         need(isinstance(r.get("strong", []), list) and isinstance(r.get("support", []), list), f"{pid}: routing")
         need(isinstance(r.get("min_support", 2), int), f"{pid}: min_support")
         need(isinstance(r.get("require_any", []), list), f"{pid}: require_any")
+        need(isinstance(r.get("require_also", []), list), f"{pid}: require_also")
     return cfg
 
 

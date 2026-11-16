@@ -63,6 +63,15 @@ TYPE_LABELS = {
 }
 CONFIDENCE = ("高", "中", "低")
 NUMBER_RE = re.compile(r"\d+(?:\.\d+)?")
+# Citation-like references the model may write into its text ("事實4"、"[2][3]"、
+# "H1"、"P3-Q2"、"R1"、"C12"); their digits are labels, not claims.
+REFERENCE_RE = re.compile(
+    r"\[[^\]]*\]|事[實实证證]\s*\d+(?:\s*[、,，與和及至-]\s*\d+)*|\b[HRAC]\d+\b|P\d-Q\d+|第\s*\d+\s*條"
+)
+
+
+def strip_references(text: str) -> str:
+    return REFERENCE_RE.sub(" ", text or "")
 
 
 def assessment_dir(program: str = "P4") -> Path:
@@ -200,7 +209,8 @@ def critic(judgments: list[Judgment], facts: list[dict], data_text: str, week: t
             if n in known:
                 f = facts[n - 1]
                 allowed |= set(NUMBER_RE.findall(" ".join(str(f.get(k) or "") for k in ("quote", "quantity", "event_date"))))
-        unverified = sorted({x for x in NUMBER_RE.findall(j.text) if x not in allowed}, key=lambda s: float(s))
+        unverified = sorted({x for x in NUMBER_RE.findall(strip_references(j.text)) if x not in allowed},
+                            key=lambda s: float(s))
         if unverified:
             j.notes.append(f"未核實數字 {unverified}")
         if j.confidence not in CONFIDENCE:

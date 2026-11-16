@@ -151,3 +151,13 @@ def test_cli_generate_and_status(db, capsys):
     out = capsys.readouterr().out
     assert "Draft written" in out and "2026-11-09 – 2026-11-15  draft" in out
     db.connect()
+
+
+def test_reference_labels_are_not_treated_as_numbers(db):
+    facts = cl.claims_between(db.conn, date(2026, 11, 9), END)
+    j = wk.Judgment("共機逾越中線18架次（事實1、2）[1] 支持 H2，見 P4-Q1。", [1], False, "中")
+    wk.critic([j], facts, "", ("2026-11-09", "2026-11-15"))
+    assert j.notes == []
+    k = wk.Judgment("共機逾越中線88架次（事實1）。", [1], False, "中")
+    wk.critic([k], facts, "", ("2026-11-09", "2026-11-15"))
+    assert "未核實數字 ['88']" in k.notes

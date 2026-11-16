@@ -37,6 +37,8 @@ programs:
       min_support: 3
       # Support matches also need a U.S. policy actor (keeps out e.g. chip-company stories).
       require_any: [白宮, 國務院, 國務卿, 國會, 參議院, 眾議院, 國安會, 美國政府, 美方, 川普, 總統川普, 拜登]
+      # Every P1 match, strong terms included, must also involve Taiwan (keeps out U.S.-China chip stories).
+      require_also: [台灣, 臺灣, 台海, 臺海, 對台, 涉台, 台美, 美台, 賴清德]
     questions:
       - id: P1-Q1
         text: 台灣在美國對中政策中的排序是否改變（口頭 vs 經費）？

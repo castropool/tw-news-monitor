@@ -42,6 +42,10 @@ def test_validation_rejects_single_hypothesis_program():
     ("義大利 無人機 混合戰 國會議員 訪問團", None, "international", set()),
     ("白宮：美國 中國 台灣 晶片出口管制將調整", None, "international", {"P1", "P5"}),
     ("AUKUS核潛艦合作進度超前 美軍 澳洲 演習", None, "military", {"P4"}),  # military → P4 only, not P3
+    # Second server run: U.S.-China chip and summit stories without Taiwan are not P1.
+    ("川普政府放寬輝達H20晶片對中國出口 白宮 美國", None, "international", set()),
+    ("美中峰會 川普 習近平 貿易協議", None, "international", set()),
+    ("美中峰會 川普 談台灣問題", None, "international", {"P1"}),
     ("美軍與日本自衛隊演習 強化台海防衛", None, "international", {"P3"}),
 ])
 def test_routing(title, summary, category, expected):

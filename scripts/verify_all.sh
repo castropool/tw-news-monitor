@@ -68,7 +68,7 @@ run "B7 counts around labelled incidents" "$PY" "$SQLQ" \
 section "C. Program tagging"
 run "C1 tag last 14 days" "$PY" -m app.programs.tagging --days 14
 for P in P1 P2 P3 P5 P6; do
-  run "C2 $P samples" "$PY" "$SQLQ" "SELECT a.title FROM program_tags t JOIN articles a ON a.url = t.url WHERE t.program = '$P' ORDER BY random() LIMIT 5"
+  run "C2 $P samples" "$PY" "$SQLQ" "SELECT a.title FROM program_tags t JOIN articles a ON a.url = t.url WHERE t.program = '$P' AND COALESCE(a.published_at, a.fetched_at) >= date('now', '-14 days') ORDER BY random() LIMIT 5"
 done
 
 if [[ $NO_AI -eq 0 ]]; then

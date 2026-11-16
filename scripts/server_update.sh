@@ -35,6 +35,13 @@ if [[ -z "${PYTHON:-}" ]]; then
     if command -v "$candidate" >/dev/null 2>&1 || [[ -x "$candidate" ]]; then PYTHON="$candidate"; break; fi
   done
 fi
+# Absolute path: the tests run from a temporary folder, where a relative
+# path such as .venv/bin/python would not resolve.
+if [[ "$PYTHON" == */* ]]; then
+  PYTHON="$(cd "$(dirname "$PYTHON")" && pwd)/$(basename "$PYTHON")"
+else
+  PYTHON="$(command -v "$PYTHON")"
+fi
 echo "== Python: $PYTHON ($("$PYTHON" --version 2>&1))"
 
 # 1. Backup

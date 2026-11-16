@@ -37,6 +37,7 @@ from .. import programs as prog
 from .. import search
 from ..election2026.hanzi_utils import to_traditional
 from ..pilot import claims as cl
+from ..pilot.weekly import strip_references
 from . import registry
 
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / "assistant.md"
@@ -158,7 +159,7 @@ def check(sentences: list[Sentence], records: list[Record]) -> None:
             if c in by_id:
                 allowed |= set(NUMBER_RE.findall(by_id[c].text + " " + by_id[c].when))
                 allowed |= {str(int(x)) for x in NUMBER_RE.findall(by_id[c].when) if x.isdigit()}
-        unverified = sorted({x for x in NUMBER_RE.findall(s.text) if x not in allowed})
+        unverified = sorted({x for x in NUMBER_RE.findall(strip_references(s.text)) if x not in allowed})
         if unverified:
             s.notes.append(f"未核實數字 {unverified}")
 
